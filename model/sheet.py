@@ -2,6 +2,9 @@ from typing import Optional
 
 import pandas as pd
 
+# These are the "links" to the sheets. Below is the full table and the test
+# table
+
 # Prod
 sheet_id = "1cO0sPRhIvt71J-iB313BeRfNXzXM0FjiQ4bDYmwddBQ"
 
@@ -10,7 +13,8 @@ sheet_id = "1seobblWaZXSu82yf3CnanIps26vCv3QARo75-sAC2KQ"
 sheet_name = "Sheet1"
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
 
-FiniteState = tuple[str, Optional[dict[str, Optional["FiniteState"]]]]
+FiniteStateOptions = dict[str, Optional["FiniteState"]] | None
+FiniteState = tuple[str, FiniteStateOptions]
 
 
 def fill_item(
@@ -34,7 +38,7 @@ def get_data() -> FiniteState:
 
 def main():
     data = get_data()
-    __import__('pprint').pprint(data)
+    __import__("pprint").pprint(data)
 
 
 if __name__ == "__main__":
