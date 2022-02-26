@@ -44,7 +44,13 @@ async def first_aid_handler(message: types.Message, state: FSMContext):
             keyboard.add(name)
         await state.update_data(possible_options)
 
-    await message.answer(msg, reply_markup=keyboard)
+    try:
+        await message.answer(msg, reply_markup=keyboard)
+    except Exception as e:
+        await state.finish()
+        keyboard = types.ReplyKeyboardRemove()
+        await message.answer(str(e), reply_markup=keyboard,
+                             parse_mode=types.ParseMode.MARKDOWN)
 
 
 def register_handlers_first_aid(dp: Dispatcher, data: FiniteState):

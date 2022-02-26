@@ -9,7 +9,7 @@ import pandas as pd
 sheet_id = "Миші з'їли"
 
 # Test
-sheet_id = "1seobblWaZXSu82yf3CnanIps26vCv3QARo75-sAC2KQ"
+# sheet_id = "1seobblWaZXSu82yf3CnanIps26vCv3QARo75-sAC2KQ"
 sheet_name = "Sheet1"
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
 
