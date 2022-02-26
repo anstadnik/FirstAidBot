@@ -5,7 +5,7 @@ from aiogram.dispatcher.storage import FSMContext
 async def cmd_start(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer(
-        "Виберіть, що ви хочете.", reply_markup=types.ReplyKeyboardRemove()
+        "Виберіть, що ви хочете\.", reply_markup=types.ReplyKeyboardRemove()
     )
 
 
