@@ -1,42 +1,50 @@
 #!venv/bin/python
+import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, executor
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types.bot_command import BotCommand
+
+from handlers.common import register_handlers_common
+from handlers.first_aid import register_handlers_first_aid
 from model.sheet import get_data
 
-# Объект бота
-bot = Bot(token="5253437681:AAES1RtIBXBanwaWvFk3vWaty-_LH1xYge0", parse_mode="MarkdownV2")
-# Диспетчер для бота
-dp = Dispatcher(bot)
-# Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.INFO)
+
+# Регистрация команд, отображаемых в интерфейсе Telegram
+async def set_commands(bot: Bot):
+    commands = [
+        BotCommand(command="/first_aid", description="Ask for help"),
+        BotCommand(command="/cancel", description="Discard"),
+    ]
+    await bot.set_my_commands(commands)
 
 
-@dp.message_handler(commands="example")
-async def cmd_test1(message: types.Message):
-    text = """
-*bold \*text*
-_italic \*text_
-__underline__
-~strikethrough~
-||spoiler||
-*bold _italic bold ~italic bold strikethrough ||italic bold strikethrough spoiler||~ __underline italic bold___ bold*
-[inline URL](http://www.example.com/)
-[inline mention of a user](tg://user?id=123456789)
-`inline fixed-width code`
-```
-pre-formatted fixed-width code block
-```
-```python
-pre-formatted fixed-width code block written in the Python programming language
-```
-    """
-    await message.answer(text)
+async def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    )
 
-def main():
-    # Запуск бота
-    executor.start_polling(dp, skip_updates=True)
-    
+    logger = logging.getLogger(__name__)
+    logger.debug("Starting bot")
+
+    bot = Bot(
+        token="5253437681:AAES1RtIBXBanwaWvFk3vWaty-_LH1xYge0", parse_mode="MarkdownV2"
+    )
+    dp = Dispatcher(bot, storage=MemoryStorage())
+    logging.basicConfig(level=logging.INFO)
+
+    data = get_data()
+
+    # Регистрация хэндлеров
+    register_handlers_common(dp)
+    register_handlers_first_aid(dp, data)
+
+    await set_commands(bot)
+
+    await dp.start_polling()
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
