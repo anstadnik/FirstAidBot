@@ -1,7 +1,7 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from model.sheet import FiniteState, FiniteStateOptions
+from model.sheet import FiniteState, FiniteStateOptions, get_data
 
 
 # I'm ashamed
@@ -12,7 +12,20 @@ class FirstAid(StatesGroup):
 
 def get_handler_start(data: FiniteState):
     async def first_aid_handler(message: types.Message, state: FSMContext):
-        question, possible_options = data
+        try:
+            question, possible_options = get_data()
+        except Exception as e:
+            await state.finish()
+            keyboard = types.ReplyKeyboardRemove()
+            await message.answer(
+                "Це ви щось погане зробили ваще, кличте програмістів",
+                reply_markup=keyboard,
+            )
+            await message.answer(
+                str(e), reply_markup=keyboard, parse_mode=types.ParseMode.MARKDOWN
+            )
+            return
+
         assert possible_options is not None
 
         await state.set_data(possible_options)
@@ -49,8 +62,9 @@ async def first_aid_handler(message: types.Message, state: FSMContext):
     except Exception as e:
         await state.finish()
         keyboard = types.ReplyKeyboardRemove()
-        await message.answer(str(e), reply_markup=keyboard,
-                             parse_mode=types.ParseMode.MARKDOWN)
+        await message.answer(
+            str(e), reply_markup=keyboard, parse_mode=types.ParseMode.MARKDOWN
+        )
 
 
 def register_handlers_first_aid(dp: Dispatcher, data: FiniteState):
