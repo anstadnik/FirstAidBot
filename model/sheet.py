@@ -22,6 +22,8 @@ def fill_item(
 ) -> None | dict[str, Optional[dict[str, FiniteState]]]:
     ret = {}
     for _, row in df[df["hierarchy"].str.startswith(parent_key)].iterrows():
+        if '.' in row['hierarchy'].replace(parent_key, ''):
+            continue
         key = f'{row["hierarchy"]}.'
         ret[row["option"]] = (row["answer"], fill_item(df, key))
     return ret or None
