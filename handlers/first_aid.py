@@ -2,10 +2,9 @@ import aiogram.utils.markdown as fmt
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from model.sheet import FiniteState, FiniteStateOptions, get_data
+from model.sheet import FiniteState, FiniteStateOptions
 
 
-# I'm ashamed
 class FirstAid(StatesGroup):
     start = State()
     dialog = State()
@@ -14,7 +13,7 @@ class FirstAid(StatesGroup):
 def get_handler_start(data: FiniteState):
     async def first_aid_handler(message: types.Message, state: FSMContext):
         try:
-            msg, possible_options = get_data()
+            msg, possible_options = data
         except Exception as e:
             await state.finish()
             keyboard = types.ReplyKeyboardRemove()
@@ -33,6 +32,7 @@ def get_handler_start(data: FiniteState):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         for name in possible_options.keys():
             keyboard.add(name)
+        keyboard.add("На початок")
         if isinstance(msg, tuple):
             link, msg = msg
             await message.answer(fmt.hide_link(link), parse_mode=types.ParseMode.HTML)
@@ -44,6 +44,14 @@ def get_handler_start(data: FiniteState):
 
 async def first_aid_handler(message: types.Message, state: FSMContext):
     inp = message.text
+    if inp == "На початок":
+        await state.finish()
+        await message.answer(
+            r"Повертаємось\. Дякую, що допомагаєте, ви сонечко\! 🐞",
+            reply_markup=types.ReplyKeyboardRemove(),
+        )
+        await FirstAid.start.set()
+        return
     if inp not in (await state.get_data()).keys():
         await message.answer("Wrong, use buttons please")
         return
@@ -55,10 +63,12 @@ async def first_aid_handler(message: types.Message, state: FSMContext):
     if possible_options is None:
         await state.finish()
         keyboard = types.ReplyKeyboardRemove()
+        await FirstAid.start.set()
     else:
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         for name in possible_options.keys():
             keyboard.add(name)
+        keyboard.add("На початок")
         await state.update_data(possible_options)
 
     try:
@@ -72,11 +82,11 @@ async def first_aid_handler(message: types.Message, state: FSMContext):
         await message.answer(
             str(e), reply_markup=keyboard, parse_mode=types.ParseMode.MARKDOWN
         )
+        await FirstAid.start.set()
 
 
 def register_handlers_first_aid(dp: Dispatcher, data: FiniteState):
-    dp.register_message_handler(
-        get_handler_start(data), commands="first_aid", state="*"
-    )
-    dp.register_message_handler(first_aid_handler, state=FirstAid.start)
+    start_handler = get_handler_start(data)
+    dp.register_message_handler(start_handler, commands="start", state="*")
+    dp.register_message_handler(start_handler, state=FirstAid.start)
     dp.register_message_handler(first_aid_handler, state=FirstAid.dialog)
