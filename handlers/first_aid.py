@@ -75,6 +75,7 @@ async def process_input(message: types.Message, state: FSMContext, data: FiniteS
             reply_markup=types.ReplyKeyboardRemove(),
         )
         await setup(message, state, data)
+        return
 
     if inp not in (await state.get_data()).keys():
         await message.answer("Wrong, use buttons please")
