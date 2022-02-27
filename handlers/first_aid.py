@@ -1,3 +1,4 @@
+import aiogram.utils.markdown as fmt
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -13,7 +14,7 @@ class FirstAid(StatesGroup):
 def get_handler_start(data: FiniteState):
     async def first_aid_handler(message: types.Message, state: FSMContext):
         try:
-            question, possible_options = get_data()
+            msg, possible_options = get_data()
         except Exception as e:
             await state.finish()
             keyboard = types.ReplyKeyboardRemove()
@@ -32,7 +33,10 @@ def get_handler_start(data: FiniteState):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         for name in possible_options.keys():
             keyboard.add(name)
-        await message.answer(question, reply_markup=keyboard)
+        if isinstance(msg, tuple):
+            link, msg = msg
+            await message.answer(fmt.hide_link(link), parse_mode=types.ParseMode.HTML)
+        await message.answer(msg, reply_markup=keyboard)
         await FirstAid.dialog.set()
 
     return first_aid_handler
@@ -58,6 +62,9 @@ async def first_aid_handler(message: types.Message, state: FSMContext):
         await state.update_data(possible_options)
 
     try:
+        if isinstance(msg, tuple):
+            link, msg = msg
+            await message.answer(fmt.hide_link(link), parse_mode=types.ParseMode.HTML)
         await message.answer(msg, reply_markup=keyboard)
     except Exception as e:
         await state.finish()
