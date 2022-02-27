@@ -2,21 +2,17 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher, executor
+from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types.bot_command import BotCommand
 
-from handlers.common import register_handlers_common
 from handlers.first_aid import register_handlers_first_aid
 from model.sheet import get_data
 
 
 # Регистрация команд, отображаемых в интерфейсе Telegram
 async def set_commands(bot: Bot):
-    commands = [
-        BotCommand(command="/first_aid", description="Ask for help"),
-        BotCommand(command="/cancel", description="Discard"),
-    ]
+    commands = [BotCommand(command="/start", description="Почати роботу")]
     await bot.set_my_commands(commands)
 
 
@@ -38,7 +34,6 @@ async def main():
     data = get_data()
 
     # Регистрация хэндлеров
-    register_handlers_common(dp)
     register_handlers_first_aid(dp, data)
 
     await set_commands(bot)
