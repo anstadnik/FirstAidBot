@@ -1,5 +1,7 @@
-from typing import Optional
+import re
+# import requests
 import aiogram.utils.markdown as fmt
+from typing import Optional
 
 import pandas as pd
 
@@ -14,8 +16,21 @@ sheet_id = "1cO0sPRhIvt71J-iB313BeRfNXzXM0FjiQ4bDYmwddBQ"
 sheet_name = "Sheet1"
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
 
-FiniteStateOptions = dict[str, Optional["FiniteState"]] | None
-FiniteState = tuple[str, FiniteStateOptions]
+OptionalUrlAndStr = tuple[str, str] | str
+FiniteStateOptions = dict[OptionalUrlAndStr, Optional["FiniteState"]] | None
+FiniteState = tuple[OptionalUrlAndStr, FiniteStateOptions]
+
+
+def add_link(answer: str, link):
+    if isinstance(link, str):
+        if "file/d" in link:
+            link = re.sub(r".*file/d/", "", link)
+            link = re.sub(r"/.*", "", link)
+            link = f"https://drive.google.com/uc?id={link}"
+            # r = requests.get(link)
+            # link = r.url
+        return link, answer
+    return answer
 
 
 def fill_item(
@@ -23,10 +38,11 @@ def fill_item(
 ) -> None | dict[str, Optional[dict[str, FiniteState]]]:
     ret = {}
     for _, row in df[df["hierarchy"].str.startswith(parent_key)].iterrows():
-        if '.' in row['hierarchy'].replace(parent_key, ''):
+        if "." in row["hierarchy"].replace(parent_key, "", 1):
             continue
         key = f'{row["hierarchy"]}.'
-        ret[row["option"]] = (row["answer"], fill_item(df, key))
+        answer = add_link(row["answer"], row["link"])
+        ret[row["option"]] = (answer, fill_item(df, key))
     return ret or None
 
 
@@ -35,16 +51,23 @@ def get_data() -> FiniteState:
     data = {}
     for _, row in df[~df["hierarchy"].str.contains(".", regex=False)].iterrows():
         key = f'{row["hierarchy"]}.'
-        answer = row['answer']
-        if not pd.isna(row['link']):
-            answer = fmt.hide_link(row['link']) + answer
+        answer = add_link(row["answer"], row["link"])
         data[row["option"]] = (answer, fill_item(df, key))
     return ("Що трапилось?", data)
 
+def disp(data: FiniteState, indent=0):
+    msg, options = data
+    # print(msg)
+    if options:
+        for msg, options in options.items():
+            print(" " * indent, msg)
+            if options:
+                disp(options, indent+2)
 
 def main():
     data = get_data()
-    __import__("pprint").pprint(data)
+    disp(data)
+    # __import__("pprint").pprint(data)
 
 
 if __name__ == "__main__":
