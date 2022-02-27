@@ -1,6 +1,5 @@
 import re
 # import requests
-import aiogram.utils.markdown as fmt
 from typing import Optional
 
 import pandas as pd
@@ -17,7 +16,7 @@ sheet_name = "Sheet1"
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
 
 OptionalUrlAndStr = tuple[str, str] | str
-FiniteStateOptions = dict[OptionalUrlAndStr, Optional["FiniteState"]] | None
+FiniteStateOptions = dict[str, Optional["FiniteState"]] | None
 FiniteState = tuple[OptionalUrlAndStr, FiniteStateOptions]
 
 
