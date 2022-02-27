@@ -1,4 +1,5 @@
 from typing import Optional
+import aiogram.utils.markdown as fmt
 
 import pandas as pd
 
@@ -34,7 +35,10 @@ def get_data() -> FiniteState:
     data = {}
     for _, row in df[~df["hierarchy"].str.contains(".", regex=False)].iterrows():
         key = f'{row["hierarchy"]}.'
-        data[row["option"]] = (row["answer"], fill_item(df, key))
+        answer = row['answer']
+        if not pd.isna(row['link']):
+            answer = fmt.hide_link(row['link']) + answer
+        data[row["option"]] = (answer, fill_item(df, key))
     return ("Що трапилось?", data)
 
 
