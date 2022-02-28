@@ -13,31 +13,29 @@ fn parse_link(link: &Option<String>) -> Option<String> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct Message {
-    link: Option<String>,
-    message: String,
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub struct FiniteStateMsg {
+    pub link: Option<String>,
+    pub message: String,
 }
 
-impl Message {
+impl FiniteStateMsg {
     pub fn new(link: Option<String>, message: String) -> Self {
-        Self {
-            link: parse_link(&link),
-            message,
-        }
+        let link = parse_link(&link);
+        Self { link, message }
     }
 }
 
-pub type FiniteStateOptions = Option<HashMap<Message, FiniteState>>;
+pub type FiniteStateOptions = Option<HashMap<String, FiniteState>>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FiniteState {
-    message: Message,
-    options: FiniteStateOptions,
+    pub message: FiniteStateMsg,
+    pub options: FiniteStateOptions,
 }
 
 impl FiniteState {
-    pub fn new(message: Message, options: FiniteStateOptions) -> Self {
+    pub fn new(message: FiniteStateMsg, options: FiniteStateOptions) -> Self {
         Self { message, options }
     }
 }
