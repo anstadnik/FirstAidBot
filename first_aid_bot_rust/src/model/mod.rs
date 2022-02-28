@@ -1,10 +1,7 @@
 mod finite_state;
 mod load_data;
-
-use self::{
-    finite_state::{FiniteState, FiniteStateOptions, Message},
-    load_data::{get_csv, Record},
-};
+use self::load_data::{get_csv, Record};
+pub use finite_state::{FiniteState, FiniteStateMsg, FiniteStateOptions};
 
 fn fill_item(data: &Vec<Record>, key: Option<String>) -> FiniteStateOptions {
     let predicate: Box<dyn Fn(&&Record) -> bool> = match key {
@@ -19,9 +16,9 @@ fn fill_item(data: &Vec<Record>, key: Option<String>) -> FiniteStateOptions {
             .filter(predicate)
             .map(|row| {
                 (
-                    Message::new(None, row.option.to_owned()),
+                    row.option.to_owned(),
                     FiniteState::new(
-                        Message::new(row.link.to_owned(), row.answer.to_owned()),
+                        FiniteStateMsg::new(row.link.to_owned(), row.answer.to_owned()),
                         fill_item(&data, Some(format!("{}.", row.hierarchy))),
                     ),
                 )
@@ -34,7 +31,7 @@ pub fn get_data(sheet_id: &str, sheet_name: &str) -> FiniteState {
     let data = get_csv(sheet_id, sheet_name);
     // data.iter().for_each(|row| println!("{:?}", row));
     FiniteState::new(
-        Message::new(None, "Що трапилось?".to_string()),
+        FiniteStateMsg::new(None, "Що трапилось?".to_string()),
         fill_item(&data, None),
     )
 }
