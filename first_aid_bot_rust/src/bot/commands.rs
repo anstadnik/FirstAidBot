@@ -9,7 +9,7 @@ use super::dialogue::{reset_dialogue, FirstAidDialogue};
 #[derive(BotCommand, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
 pub enum FirstAidCommands {
-    #[command(description = "Restart the bot")]
+    #[command(description = "Перезавантажити")]
     Start,
 }
 

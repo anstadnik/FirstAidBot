@@ -4,30 +4,31 @@ use teloxide::{
     types::{KeyboardButton, KeyboardMarkup, ParseMode},
 };
 
-use crate::model::{FiniteState, FiniteStateOptions};
+use crate::model::FiniteState;
 
-pub async fn get_current_options<'a>(
-    data: &'a FiniteState,
-    context: &[String],
-) -> Option<&'a FiniteStateOptions> {
+pub const GO_TO_BEGINNING_TEXT: &str = "◀️ На початок";
+pub const GO_BACK_TEXT: &str = "◀️ Повернутись";
+
+pub async fn get_state<'a>(data: &'a FiniteState, context: &[String]) -> &'a FiniteState {
     let mut current_state = data;
     for choise in context {
         current_state = &current_state.options.as_ref().unwrap().next_states[choise];
     }
-    current_state.options.as_ref()
+    current_state
 }
 
 pub async fn make_keyboard(ordered_keys: &[String]) -> KeyboardMarkup {
     let mut keyboard: Vec<Vec<KeyboardButton>> = vec![];
 
-    for key_texts in ordered_keys.chunks(3) {
-        let row = key_texts
-            .iter()
-            .map(|key_text| KeyboardButton::new(key_text.as_str()))
-            .collect();
+    for key_texts in ordered_keys.chunks(2) {
+        let row = key_texts.iter().map(KeyboardButton::new).collect();
 
         keyboard.push(row);
     }
+    keyboard.push(vec![
+        KeyboardButton::new(GO_BACK_TEXT),
+        KeyboardButton::new(GO_TO_BEGINNING_TEXT),
+    ]);
 
     KeyboardMarkup::new(keyboard)
 }

@@ -10,14 +10,16 @@ use crate::{
     model::FiniteState,
 };
 use std::sync::Arc;
-use teloxide::{dispatching2::dialogue::InMemStorage, prelude2::*};
+use teloxide::{dispatching2::dialogue::InMemStorage, prelude2::*, utils::command::BotCommand};
 
-pub async fn run_bot(data: Arc<FiniteState>) {
+pub async fn run_bot(data: FiniteState) {
     teloxide::enable_logging!();
     log::info!("Starting dialogue_bot...");
 
     let bot = Bot::from_env()
         .auto_send();
+
+    bot.set_my_commands(FirstAidCommands::bot_commands()).await.unwrap();
 
     let handler = Update::filter_message()
         .branch(
@@ -30,7 +32,7 @@ pub async fn run_bot(data: Arc<FiniteState>) {
         .dispatch_by::<State>();
 
     Dispatcher::builder(bot, handler)
-        .dependencies(dptree::deps![data, InMemStorage::<State>::new()])
+        .dependencies(dptree::deps![Arc::new(data), InMemStorage::<State>::new()])
         .build()
         .setup_ctrlc_handler()
         .dispatch()
