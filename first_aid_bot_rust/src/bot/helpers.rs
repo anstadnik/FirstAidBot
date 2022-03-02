@@ -1,7 +1,7 @@
 use teloxide::{
     payloads::SendMessageSetters,
     prelude2::*,
-    types::{KeyboardButton, KeyboardMarkup, ParseMode},
+    types::{KeyboardButton, KeyboardMarkup, ParseMode}, adaptors::DefaultParseMode,
 };
 
 use crate::model::FiniteState;
@@ -34,7 +34,7 @@ pub async fn make_keyboard(ordered_keys: &[String]) -> KeyboardMarkup {
 }
 
 pub async fn send_message(
-    bot: &AutoSend<Bot>,
+    bot: &AutoSend<DefaultParseMode<Bot>>,
     msg: &Message,
     state: &FiniteState,
 ) -> anyhow::Result<()> {

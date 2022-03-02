@@ -4,7 +4,7 @@ use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::{
     dispatching2::dialogue::{serializer::Bincode, RedisStorage},
     macros::DialogueState,
-    prelude2::*,
+    prelude2::*, adaptors::DefaultParseMode,
 };
 
 use crate::{
@@ -32,7 +32,7 @@ impl Default for State {
 }
 
 pub async fn reset_dialogue(
-    bot: AutoSend<Bot>,
+    bot: AutoSend<DefaultParseMode<Bot>>,
     msg: Message,
     data: Arc<FiniteState>,
     mut redis_con: MultiplexedConnection,
@@ -52,7 +52,7 @@ pub async fn reset_dialogue(
 }
 
 async fn move_to_state(
-    bot: AutoSend<Bot>,
+    bot: AutoSend<DefaultParseMode<Bot>>,
     msg: Message,
     dialogue: FirstAidDialogue,
     data: Arc<FiniteState>,
@@ -69,7 +69,7 @@ async fn move_to_state(
 }
 
 async fn handle_dialogue(
-    bot: AutoSend<Bot>,
+    bot: AutoSend<DefaultParseMode<Bot>>,
     msg: Message,
     dialogue: FirstAidDialogue,
     data: Arc<FiniteState>,
