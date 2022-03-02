@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use redis::{aio::MultiplexedConnection, AsyncCommands};
-use teloxide::{prelude2::*, utils::command::BotCommand};
+use teloxide::{prelude2::*, utils::command::BotCommand, adaptors::DefaultParseMode};
 
 use crate::{model::FiniteState, REDIS_KEY};
 
@@ -23,7 +23,7 @@ pub enum MaintainerCommands {
 
 pub async fn commands_handler(
     msg: Message,
-    bot: AutoSend<Bot>,
+    bot: AutoSend<DefaultParseMode<Bot>>,
     cmd: FirstAidCommands,
     data: Arc<FiniteState>,
     redis_con: MultiplexedConnection,
@@ -38,7 +38,7 @@ pub async fn commands_handler(
 }
 pub async fn maintainer_commands_handler(
     msg: Message,
-    bot: AutoSend<Bot>,
+    bot: AutoSend<DefaultParseMode<Bot>>,
     cmd: MaintainerCommands,
     _data: Arc<FiniteState>,
     mut redis_con: MultiplexedConnection,

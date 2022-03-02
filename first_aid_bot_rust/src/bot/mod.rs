@@ -18,14 +18,16 @@ use std::sync::Arc;
 use teloxide::{
     dispatching2::dialogue::{serializer::Bincode, RedisStorage},
     prelude2::*,
-    utils::command::BotCommand,
+    utils::command::BotCommand, adaptors::DefaultParseMode,
 };
 
 pub async fn run_bot(data: FiniteState) {
     teloxide::enable_logging!();
     log::info!("Starting dialogue_bot...");
 
-    let bot = Bot::from_env().auto_send();
+    let bot = Bot::from_env()
+        .parse_mode(teloxide::types::ParseMode::MarkdownV2)
+        .auto_send();
 
     bot.set_my_commands(FirstAidCommands::bot_commands())
         .await
@@ -57,7 +59,7 @@ pub async fn run_bot(data: FiniteState) {
         .branch(
             dptree::filter(
                 |msg: Message,
-                 _bot: AutoSend<Bot>,
+                 _bot: AutoSend<DefaultParseMode<Bot>>,
                  _data: Arc<FiniteState>,
                  _redis_con: MultiplexedConnection| {
                     msg.from()
