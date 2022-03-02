@@ -2,7 +2,6 @@ use regex::Regex;
 use std::collections::HashMap;
 
 pub fn parse_link(link: &Option<String>) -> Option<String> {
-    dbg!(link);
     match link.to_owned() {
         None => None,
         Some(link) if link.contains("file/d") => {

@@ -7,7 +7,7 @@ use self::{
 };
 pub use finite_state::{FiniteState, FiniteStateOptions};
 
-fn get_order(options: &Vec<&Record>, key: Option<String>) -> Vec<String> {
+fn get_order(options: &[&Record], key: Option<String>) -> Vec<String> {
     let key = key.unwrap_or_default();
     let get_index = |hierarchy: &String| hierarchy.replace(&key, "").parse().unwrap();
     let mut order: Vec<(u16, _)> = options
@@ -18,7 +18,7 @@ fn get_order(options: &Vec<&Record>, key: Option<String>) -> Vec<String> {
     order.into_iter().map(|x| x.1).collect()
 }
 
-fn fill_item(data: &Vec<Record>, key: Option<String>) -> Option<FiniteStateOptions> {
+fn fill_item(data: &[Record], key: Option<String>) -> Option<FiniteStateOptions> {
     let predicate: Box<dyn Fn(&&Record) -> bool> = match &key {
         None => Box::new(|row| !row.hierarchy.contains('.')),
         Some(parent_key) => Box::new(move |row| {
@@ -34,7 +34,7 @@ fn fill_item(data: &Vec<Record>, key: Option<String>) -> Option<FiniteStateOptio
     let convert_row = |row: &&Record| {
         let link = parse_link(&row.link);
         let message = row.answer.to_owned();
-        let options = fill_item(&data, Some(format!("{}.", row.hierarchy)));
+        let options = fill_item(data, Some(format!("{}.", row.hierarchy)));
         let state = FiniteState {
             link,
             message,

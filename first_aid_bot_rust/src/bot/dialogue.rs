@@ -51,10 +51,10 @@ async fn handle_dialogue(
     } = get_current_options(data.as_ref(), &context).await.unwrap();
     log::debug!("Got a message {:?} ({:?})", msg.text(), ordered_keys);
     match msg.text() {
-        Some(text) if ordered_keys.contains(&&text.to_string()) => {
+        Some(text) if ordered_keys.contains(&text.to_string()) => {
             let state = &next_states[text];
 
-            send_message(&bot, &msg, &state).await?;
+            send_message(&bot, &msg, state).await?;
             if state.options.is_none() {
                 return reset_dialogue(bot, msg, data, dialogue).await;
             }
