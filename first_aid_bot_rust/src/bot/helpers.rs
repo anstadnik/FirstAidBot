@@ -40,7 +40,6 @@ pub async fn send_message(
 ) -> anyhow::Result<()> {
     // TODO: Hide the link <28-02-22, astadnik> //
     if let Some(link) = &state.link {
-        log::debug!("{}", link);
         bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
             .parse_mode(ParseMode::Html)
             .await?;
