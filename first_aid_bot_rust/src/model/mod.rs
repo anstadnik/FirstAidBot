@@ -23,7 +23,7 @@ fn fill_item(data: &[Record], key: Option<String>) -> Option<FiniteStateOptions>
         None => Box::new(|row| !row.hierarchy.contains('.')),
         Some(parent_key) => Box::new(move |row| {
             row.hierarchy.starts_with(parent_key)
-                && !row.hierarchy.replace(parent_key, "").contains('.')
+                && !row.hierarchy.replacen(parent_key, "", 1).contains('.')
         }),
     };
     let options: Vec<_> = data.iter().filter(predicate).collect();
@@ -54,6 +54,7 @@ pub fn get_data(sheet_id: &str, sheet_name: &str) -> FiniteState {
     FiniteState {
         link: None,
         message: "Що трапилось?".to_string(),
+        // options: fill_item(&data, None),
         options: fill_item(&data, None),
     }
 }

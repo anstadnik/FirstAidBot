@@ -4,16 +4,12 @@ mod model;
 use crate::bot::run_bot;
 use crate::model::get_data;
 use clap::Parser;
-use std::sync::Arc;
 
-// Prod
-static SHEET_ID_PROD: &str = "1seobblWaZXSu82yf3CnanIps26vCv3QARo75-sAC2KQ";
-// Test
-static SHEET_ID_TEST: &str = "Миші з'їли";
+static SHEET_ID: &str = "Миші з'їли";
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
-    #[clap( short, long, default_value = SHEET_ID_TEST)]
+    #[clap( short, long, default_value = SHEET_ID)]
     pub sheet_id: String,
 }
 
@@ -27,5 +23,5 @@ fn main() {
         .enable_all()
         .build()
         .unwrap()
-        .block_on(run_bot(Arc::new(data)))
+        .block_on(run_bot(data))
 }
