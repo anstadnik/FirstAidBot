@@ -15,5 +15,5 @@ pub fn get_csv(sheet_id: &str, sheet_name: &str) -> Vec<Record> {
     );
     let reader = reqwest::blocking::get(url).unwrap();
     let rdr = Reader::from_reader(reader);
-    return rdr.into_deserialize().map(|row| row.unwrap()).collect();
+    rdr.into_deserialize().map(|row| row.unwrap()).collect()
 }

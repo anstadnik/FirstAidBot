@@ -8,7 +8,7 @@ use crate::model::{FiniteState, FiniteStateOptions};
 
 pub async fn get_current_options<'a>(
     data: &'a FiniteState,
-    context: &Vec<String>,
+    context: &[String],
 ) -> Option<&'a FiniteStateOptions> {
     let mut current_state = data;
     for choise in context {
@@ -17,7 +17,7 @@ pub async fn get_current_options<'a>(
     current_state.options.as_ref()
 }
 
-pub async fn make_keyboard(ordered_keys: &Vec<String>) -> KeyboardMarkup {
+pub async fn make_keyboard(ordered_keys: &[String]) -> KeyboardMarkup {
     let mut keyboard: Vec<Vec<KeyboardButton>> = vec![];
 
     for key_texts in ordered_keys.chunks(3) {
