@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::anyhow;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::{
     adaptors::DefaultParseMode,
@@ -82,7 +83,10 @@ async fn handle_dialogue(
         .await
         .options
         .as_ref()
-        .unwrap();
+        .ok_or_else(|| {
+            log::error!("There is no options but we're expecting an input: {context:#?}");
+            anyhow!("Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6")
+        })?;
     match msg.text() {
         Some(GO_TO_BEGINNING_TEXT) => {
             reset_dialogue(bot, msg, data, redis_con, dialogue).await?;
