@@ -1,7 +1,8 @@
 use teloxide::{
+    adaptors::DefaultParseMode,
     payloads::SendMessageSetters,
     prelude2::*,
-    types::{KeyboardButton, KeyboardMarkup, ParseMode}, adaptors::DefaultParseMode,
+    types::{KeyboardButton, KeyboardMarkup, ParseMode},
 };
 
 use crate::model::FiniteState;
@@ -38,18 +39,32 @@ pub async fn send_message(
     msg: &Message,
     state: &FiniteState,
 ) -> anyhow::Result<()> {
-    // TODO: Hide the link <28-02-22, astadnik> //
     if let Some(link) = &state.link {
         bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
             .parse_mode(ParseMode::Html)
             .await?;
     }
-    let msg = bot.send_message(msg.chat.id, &state.message);
-    if let Some(options) = &state.options {
-        msg.reply_markup(make_keyboard(&options.ordered_keys).await)
+    let sent_message = bot.send_message(msg.chat.id, &state.message);
+    #[allow(deprecated)]
+    if let Err(err) = if let Some(options) = &state.options {
+        sent_message.reply_markup(make_keyboard(&options.ordered_keys).await)
     } else {
-        msg
+        sent_message
     }
-    .await?;
+    .await
+    {
+        bot.send_message(
+            msg.chat.id,
+            "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6.",
+        )
+        .parse_mode(ParseMode::Markdown)
+        .await?;
+        bot.send_message(msg.chat.id, format!("{err:#?}"))
+            .parse_mode(ParseMode::Markdown)
+            .await?;
+        bot.send_message(msg.chat.id, &state.message)
+            .parse_mode(ParseMode::Markdown)
+            .await?;
+    };
     Ok(())
 }
