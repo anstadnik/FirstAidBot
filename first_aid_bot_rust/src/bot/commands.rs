@@ -1,11 +1,14 @@
-use std::sync::Arc;
+use std::{collections::VecDeque, sync::Arc};
 
 use redis::{aio::MultiplexedConnection, AsyncCommands};
-use teloxide::{prelude2::*, utils::command::BotCommand, adaptors::DefaultParseMode};
+use teloxide::{adaptors::DefaultParseMode, prelude2::*, utils::command::BotCommand};
 
 use crate::{model::FiniteState, REDIS_KEY};
 
-use super::dialogue::{reset_dialogue, FirstAidDialogue};
+use super::{
+    dialogue::{reset_dialogue, FirstAidDialogue},
+    helpers::send_message,
+};
 
 #[derive(BotCommand, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
@@ -19,6 +22,8 @@ pub enum FirstAidCommands {
 pub enum MaintainerCommands {
     #[command(description = "Get a number of unique users")]
     GetNumber,
+    #[command(description = "Test all messages")]
+    Test,
 }
 
 pub async fn commands_handler(
@@ -36,11 +41,12 @@ pub async fn commands_handler(
         }
     };
 }
+
 pub async fn maintainer_commands_handler(
     msg: Message,
     bot: AutoSend<DefaultParseMode<Bot>>,
     cmd: MaintainerCommands,
-    _data: Arc<FiniteState>,
+    data: Arc<FiniteState>,
     mut redis_con: MultiplexedConnection,
 ) -> anyhow::Result<()> {
     match cmd {
@@ -49,11 +55,25 @@ pub async fn maintainer_commands_handler(
                 Ok(num) => {
                     bot.send_message(msg.chat.id, num.to_string()).await?;
                 }
-                Err(_) => {
-                    log::error!("Error writing a user to the redis db.");
+                Err(err) => {
+                    bot.send_message(msg.chat.id, "Error getting a number of ppl")
+                        .await?;
+                    bot.send_message(msg.chat.id, format!("{err:#?}")).await?;
                 }
             };
-            Ok(())
         }
-    }
+        MaintainerCommands::Test => {
+            let mut states = VecDeque::new();
+            states.push_back(data.as_ref());
+            while let Some(state) = states.pop_front() {
+                if send_message(&bot, &msg, state).await.is_err() {
+                    break;
+                }
+                if let Some(children) = &state.options {
+                    states.extend(children.next_states.values());
+                }
+            }
+        }
+    };
+    Ok(())
 }

@@ -1,3 +1,4 @@
+use anyhow::Error;
 use teloxide::{
     adaptors::DefaultParseMode,
     payloads::SendMessageSetters,
@@ -65,6 +66,7 @@ pub async fn send_message(
         bot.send_message(msg.chat.id, &state.message)
             .parse_mode(ParseMode::Markdown)
             .await?;
-    };
+        return Err(Error::new(err));
+    }
     Ok(())
 }
