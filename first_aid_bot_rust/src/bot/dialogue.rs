@@ -2,9 +2,10 @@ use std::sync::Arc;
 
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::{
+    adaptors::DefaultParseMode,
     dispatching2::dialogue::{serializer::Bincode, RedisStorage},
     macros::DialogueState,
-    prelude2::*, adaptors::DefaultParseMode,
+    prelude2::*,
 };
 
 use crate::{
@@ -38,13 +39,14 @@ pub async fn reset_dialogue(
     mut redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
 ) -> anyhow::Result<()> {
-    let id = msg.from().unwrap().id.to_string();
-    if redis_con
-        .sadd::<&str, String, ()>(REDIS_KEY, id)
-        .await
-        .is_err()
-    {
-        log::error!("Error writing a user to the redis db.");
+    if let Some(user) = msg.from() {
+        if redis_con
+            .sadd::<&str, String, ()>(REDIS_KEY, user.id.to_string())
+            .await
+            .is_err()
+        {
+            log::error!("Error writing a user to the redis db.");
+        }
     }
     send_message(&bot, &msg, &data).await?;
     dialogue.update(State::Dialogue { context: vec![] }).await?;
