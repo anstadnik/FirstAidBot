@@ -15,6 +15,8 @@ use crate::{
     REDIS_KEY,
 };
 
+use super::helpers::KeyboardOptions;
+
 pub type FirstAidDialogue = Dialogue<State, RedisStorage<Bincode>>;
 
 #[derive(DialogueState, Clone, serde::Serialize, serde::Deserialize)]
@@ -49,7 +51,7 @@ pub async fn reset_dialogue(
             log::error!("Error writing a user to the redis db.");
         }
     }
-    send_message(&bot, &msg, &data).await?;
+    send_message(&bot, &msg, &data, KeyboardOptions::empty()).await?;
     dialogue.update(State::Dialogue { context: vec![] }).await?;
     Ok(())
 }
@@ -63,7 +65,7 @@ async fn move_to_state(
     context: Vec<String>,
 ) -> anyhow::Result<()> {
     let state = get_state(data.as_ref(), &context).await;
-    send_message(&bot, &msg, state).await?;
+    send_message(&bot, &msg, state, KeyboardOptions::new(&context)).await?;
     if state.options.is_none() {
         return reset_dialogue(bot, msg, data, redis_con, dialogue).await;
     }
@@ -100,7 +102,7 @@ async fn handle_dialogue(
             move_to_state(bot, msg, dialogue, data, redis_con, context).await?;
         }
         _ => {
-            let keyboard = make_keyboard(ordered_keys).await;
+            let keyboard = make_keyboard(ordered_keys, KeyboardOptions::new(&context)).await;
             bot.send_message(msg.chat.id, "Використайте кнопки")
                 .reply_markup(keyboard)
                 .await?;
