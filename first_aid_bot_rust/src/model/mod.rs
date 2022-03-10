@@ -53,18 +53,18 @@ fn fill_item(data: &[Record], key: Option<String>) -> Option<FiniteStateOptions>
     })
 }
 
-fn get_finite_state(sheet_id: &str, sheet_name: &str) -> FiniteState {
-    let data = get_csv(sheet_id, sheet_name);
+fn get_finite_state(sheet_id: &str, lang: &Lang) -> FiniteState {
+    let data = get_csv(sheet_id, lang.sheet);
     FiniteState {
         link: None,
-        message: "Що трапилось?".to_string(),
+        message: lang.greeting.to_string(),
         options: fill_item(&data, None),
     }
 }
 
-pub fn get_data(sheet_id: &str) -> HashMap<Lang, FiniteState> {
+pub fn get_data(sheet_id: &str) -> HashMap<String, FiniteState> {
     LANGS
         .iter()
-        .map(|lang| (lang.clone(), get_finite_state(sheet_id, lang.sheet)))
+        .map(|lang| (lang.name.to_string(), get_finite_state(sheet_id, lang)))
         .collect()
 }

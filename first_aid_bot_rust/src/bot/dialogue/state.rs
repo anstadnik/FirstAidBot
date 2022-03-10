@@ -1,11 +1,11 @@
 use super::{reset_dialogue, FirstAidDialogue};
 use crate::{
     bot::{
-        dialogue::{handle_dialogue, setup},
+        dialogue::handle_dialogue,
         helpers::{get_state, send_message, ExtraKeys},
         MultilangStates,
     },
-    Lang, LANGS,
+    LANGS,
 };
 use redis::aio::MultiplexedConnection;
 use std::sync::Arc;
@@ -21,9 +21,6 @@ use teloxide::{
 pub enum State {
     #[handler(reset_dialogue)]
     Start { lang: String },
-
-    #[handler(setup)]
-    ChangeLang,
 
     #[handler(handle_dialogue)]
     Dialogue { lang: String, context: Vec<String> },
@@ -44,14 +41,13 @@ pub async fn move_to_state(
     data: Arc<MultilangStates>,
     redis_con: MultiplexedConnection,
     context: Vec<String>,
-    lang: Lang,
+    lang: String,
 ) -> anyhow::Result<()> {
     let state = get_state(&data[&lang], &context).await;
     send_message(&bot, &msg, state, ExtraKeys::new(&context)).await?;
     if state.options.is_none() {
-        return reset_dialogue(bot, msg, data, redis_con, dialogue, lang).await;
+        return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await;
     }
-    let lang = lang.name.to_string();
     dialogue.update(State::Dialogue { lang, context }).await?;
     Ok(())
 }

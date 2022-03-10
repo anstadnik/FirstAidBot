@@ -12,11 +12,12 @@ pub struct Lang {
     name: &'static str,
     text: &'static str,
     sheet: &'static str,
+    greeting: &'static str,
 }
 
 impl Lang {
-    const fn new(name: &'static str, text: &'static str, sheet: &'static str) -> Self {
-        Self { name, text, sheet }
+    const fn new(name: &'static str, text: &'static str, sheet: &'static str, greeting: &'static str) -> Self {
+        Self { name, text, sheet , greeting}
     }
 }
 
@@ -25,8 +26,8 @@ const REDIS_KEY: &str = "user_ids";
 const SHEET_ID: &str = "Миші з'їли";
 
 pub const LANGS: [Lang; 2] = [
-    Lang::new("Ukrainian", "Ukrainian", "Ukrainian"),
-    Lang::new("English", "English", "English"),
+    Lang::new("Ukrainian", "Ukrainian", "Ukrainian", "Що трапилось?"),
+    Lang::new("English", "English", "English", "What happened?"),
 ];
 
 #[derive(Parser, Debug)]

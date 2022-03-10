@@ -50,7 +50,7 @@ impl ExtraKeys {
                 special_keys.push(KeyboardButton::new(lang.text));
             }
         };
-        Some(special_keys).filter(Vec::is_empty)
+        Some(special_keys).filter(|keys| !keys.is_empty())
     }
 }
 

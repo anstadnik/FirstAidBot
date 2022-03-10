@@ -1,16 +1,16 @@
-use std::{collections::VecDeque, sync::Arc};
+use super::{
+    dialogue::{reset_dialogue, FirstAidDialogue, State},
+    helpers::{send_message, ExtraKeys},
+    MultilangStates,
+};
+use crate::{LANGS, MAINTAINER_ID, REDIS_KEY};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
+use std::{collections::VecDeque, sync::Arc};
 use teloxide::{
     adaptors::DefaultParseMode,
     dispatching2::dialogue::{serializer::Bincode, RedisStorage},
     prelude2::*,
     utils::command::BotCommand,
-};
-use crate::{MAINTAINER_ID, REDIS_KEY};
-use super::{
-    dialogue::{FirstAidDialogue, setup, State},
-    helpers::{send_message, ExtraKeys},
-    MultilangStates,
 };
 
 #[derive(BotCommand, Clone)]
@@ -40,8 +40,8 @@ pub async fn commands_handler(
     let _ = match cmd {
         FirstAidCommands::Start => {
             dialogue.exit().await?;
-            // return reset_dialogue(bot, msg, data, redis_con, dialogue).await;
-            return setup(bot, msg, data, redis_con, dialogue).await;
+            let lang = LANGS[0].name.to_string();
+            return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await;
         }
     };
 }

@@ -4,7 +4,7 @@ mod helpers;
 
 use crate::bot::commands::{get_commands_branch, get_maintainer_commands_branch, FirstAidCommands};
 use crate::bot::dialogue::State;
-use crate::{model::FiniteState, Lang};
+use crate::model::FiniteState;
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
 use std::{collections::HashMap, sync::Arc};
@@ -14,7 +14,7 @@ use teloxide::{
     utils::command::BotCommand,
 };
 
-pub type MultilangStates = HashMap<Lang, FiniteState>;
+pub type MultilangStates = HashMap<String, FiniteState>;
 
 async fn connect_to_redis(
     urls: Vec<&str>,

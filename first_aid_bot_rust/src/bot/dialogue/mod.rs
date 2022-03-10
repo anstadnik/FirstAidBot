@@ -1,14 +1,12 @@
-mod preferences;
 mod state;
 
 use self::state::move_to_state;
 pub use self::state::State;
 use super::{helpers::ExtraKeys, MultilangStates};
-pub use crate::bot::dialogue::preferences::setup;
 use crate::{
     bot::helpers::{get_state, make_keyboard, send_message, GO_BACK_TEXT, GO_TO_BEGINNING_TEXT},
     model::FiniteStateOptions,
-    Lang, LANGS, REDIS_KEY,
+    LANGS, REDIS_KEY,
 };
 use anyhow::anyhow;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
@@ -27,7 +25,7 @@ pub async fn reset_dialogue(
     data: Arc<MultilangStates>,
     mut redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
-    lang: Lang,
+    (lang,): (String,),
 ) -> anyhow::Result<()> {
     if let Some(user) = msg.from() {
         if redis_con
@@ -39,7 +37,6 @@ pub async fn reset_dialogue(
         }
     }
     send_message(&bot, &msg, &data[&lang], ExtraKeys::empty()).await?;
-    let lang = lang.name.to_string();
     let context = vec![];
     dialogue.update(State::Dialogue { lang, context }).await?;
     Ok(())
@@ -51,7 +48,7 @@ pub async fn handle_dialogue(
     dialogue: FirstAidDialogue,
     data: Arc<MultilangStates>,
     redis_con: MultiplexedConnection,
-    (lang, mut context): (Lang, Vec<String>),
+    (lang, mut context): (String, Vec<String>),
 ) -> anyhow::Result<()> {
     let FiniteStateOptions { ordered_keys, .. } = get_state(&data[&lang], &context)
         .await
@@ -65,20 +62,15 @@ pub async fn handle_dialogue(
         })?;
     match msg.text() {
         Some(GO_TO_BEGINNING_TEXT) => {
-            reset_dialogue(bot, msg, data, redis_con, dialogue, lang).await?;
+            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await?;
         }
         Some(GO_BACK_TEXT) => {
             context.pop();
             move_to_state(bot, msg, dialogue, data, redis_con, context, lang).await?;
         }
         Some(text) if context.is_empty() && LANGS.iter().any(|lang| lang.text == text) => {
-            let lang = LANGS
-                .iter()
-                .find(|lang| lang.text == text)
-                .unwrap()
-                .name
-                .to_string();
-            dialogue.update(State::Dialogue { lang, context }).await?;
+            let lang = LANGS.iter().find(|lang| lang.text == text).unwrap().name;
+            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.to_string(),)).await?;
         }
         Some(text) if ordered_keys.contains(&text.to_string()) => {
             context.push(text.to_string());
