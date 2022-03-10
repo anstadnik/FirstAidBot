@@ -4,7 +4,7 @@ services:
   bot:
     build: first_aid_bot_rust/
     environment:
-      - TELOXIDE_TOKEN=5102517984:AAEcP7Exnth-GvEfA2wDH7NEmrzaXCUQ3dU
+      - TELOXIDE_TOKEN=5253437681:AAES1RtIBXBanwaWvFk3vWaty-_LH1xYge0
     restart: always
     # ports:
     #   - 8081:8081
