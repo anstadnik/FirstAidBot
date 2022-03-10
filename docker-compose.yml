@@ -5,6 +5,7 @@ services:
     build: first_aid_bot_rust/
     environment:
       - TELOXIDE_TOKEN=5102517984:AAEcP7Exnth-GvEfA2wDH7NEmrzaXCUQ3dU
+      # - RUST_LOG=debug
     restart: always
     # ports:
     #   - 8081:8081

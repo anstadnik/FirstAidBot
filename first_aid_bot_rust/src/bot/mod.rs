@@ -16,9 +16,10 @@ use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
 use std::sync::Arc;
 use teloxide::{
+    adaptors::DefaultParseMode,
     dispatching2::dialogue::{serializer::Bincode, RedisStorage},
     prelude2::*,
-    utils::command::BotCommand, adaptors::DefaultParseMode,
+    utils::command::BotCommand,
 };
 
 pub async fn run_bot(data: FiniteState) {

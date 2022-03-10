@@ -19,26 +19,60 @@ pub async fn get_state<'a>(data: &'a FiniteState, context: &[String]) -> &'a Fin
     current_state
 }
 
-pub async fn make_keyboard(ordered_keys: &[String]) -> KeyboardMarkup {
+#[derive(Debug, Clone)]
+pub struct KeyboardOptions {
+    back_button: bool,
+    home_button: bool,
+}
+
+impl KeyboardOptions {
+    pub fn new(context: &[String]) -> KeyboardOptions {
+        KeyboardOptions {
+            back_button: !context.is_empty(),
+            home_button: context.len() > 1,
+        }
+    }
+    pub fn empty() -> KeyboardOptions {
+        KeyboardOptions::new(&[])
+    }
+
+    fn get_special_keys(&self) -> Option<Vec<KeyboardButton>> {
+        if !(self.home_button || self.back_button) {
+            return None;
+        }
+        let mut special_keys = Vec::new();
+        if self.back_button {
+            special_keys.push(KeyboardButton::new(GO_BACK_TEXT));
+        };
+        if self.home_button {
+            special_keys.push(KeyboardButton::new(GO_TO_BEGINNING_TEXT));
+        };
+        Some(special_keys)
+    }
+}
+
+pub async fn make_keyboard(
+    ordered_keys: &[String],
+    keyboard_options: KeyboardOptions,
+) -> KeyboardMarkup {
     let mut keyboard: Vec<Vec<KeyboardButton>> = vec![];
 
     for key_texts in ordered_keys.chunks(2) {
         let row = key_texts.iter().map(KeyboardButton::new).collect();
-
         keyboard.push(row);
     }
-    keyboard.push(vec![
-        KeyboardButton::new(GO_BACK_TEXT),
-        KeyboardButton::new(GO_TO_BEGINNING_TEXT),
-    ]);
+    if let Some(special_keys) = keyboard_options.get_special_keys() {
+        keyboard.push(special_keys);
+    }
 
-    KeyboardMarkup::new(keyboard)
+    KeyboardMarkup::new(keyboard).resize_keyboard(true)
 }
 
 pub async fn send_message(
     bot: &AutoSend<DefaultParseMode<Bot>>,
     msg: &Message,
     state: &FiniteState,
+    keyboard_options: KeyboardOptions
 ) -> anyhow::Result<()> {
     if let Some(link) = &state.link {
         bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
@@ -48,7 +82,9 @@ pub async fn send_message(
     let sent_message = bot.send_message(msg.chat.id, &state.message);
     #[allow(deprecated)]
     if let Err(err) = if let Some(options) = &state.options {
-        sent_message.reply_markup(make_keyboard(&options.ordered_keys).await)
+        sent_message.reply_markup(
+            make_keyboard(&options.ordered_keys, keyboard_options).await,
+        )
     } else {
         sent_message
     }

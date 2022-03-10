@@ -7,7 +7,7 @@ use crate::{model::FiniteState, REDIS_KEY};
 
 use super::{
     dialogue::{reset_dialogue, FirstAidDialogue},
-    helpers::send_message,
+    helpers::{send_message, KeyboardOptions},
 };
 
 #[derive(BotCommand, Clone)]
@@ -66,7 +66,7 @@ pub async fn maintainer_commands_handler(
             let mut states = VecDeque::new();
             states.push_back(data.as_ref());
             while let Some(state) = states.pop_front() {
-                if send_message(&bot, &msg, state).await.is_err() {
+                if send_message(&bot, &msg, state, KeyboardOptions::empty()).await.is_err() {
                     break;
                 }
                 if let Some(children) = &state.options {
