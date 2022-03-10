@@ -2,27 +2,38 @@ mod commands;
 mod dialogue;
 mod helpers;
 
-use crate::{
-    bot::{
-        commands::{
-            commands_handler, maintainer_commands_handler, FirstAidCommands, MaintainerCommands,
-        },
-        dialogue::State,
-    },
-    model::FiniteState,
-    MAINTAINER_ID,
-};
+use crate::bot::commands::{get_commands_branch, get_maintainer_commands_branch, FirstAidCommands};
+use crate::bot::dialogue::State;
+use crate::{model::FiniteState, Lang};
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use teloxide::{
-    adaptors::DefaultParseMode,
     dispatching2::dialogue::{serializer::Bincode, RedisStorage},
     prelude2::*,
     utils::command::BotCommand,
 };
 
-pub async fn run_bot(data: FiniteState) {
+pub type MultilangStates = HashMap<Lang, FiniteState>;
+
+async fn connect_to_redis(
+    urls: Vec<&str>,
+) -> anyhow::Result<(MultiplexedConnection, Arc<RedisStorage<Bincode>>)> {
+    join_all(urls.into_iter().map(|url| async move {
+        Ok((
+            Client::open(url)?
+                .get_multiplexed_tokio_connection()
+                .await?,
+            RedisStorage::open(url, Bincode).await?,
+        ))
+    }))
+    .await
+    .into_iter()
+    .find(Result::is_ok)
+    .unwrap()
+}
+
+pub async fn run_bot(data: MultilangStates) {
     teloxide::enable_logging!();
     log::info!("Starting dialogue_bot...");
 
@@ -34,43 +45,12 @@ pub async fn run_bot(data: FiniteState) {
         .await
         .unwrap();
 
-    let possible_redis_urls = vec!["redis://redis:6379", "redis://127.0.0.1:6379"];
-    // Oh my god
-    let (redis_con, storage) = join_all(possible_redis_urls.into_iter().map(|url| async move {
-        Ok::<_, anyhow::Error>((
-            Client::open(url)?
-                .get_multiplexed_tokio_connection()
-                .await?,
-            RedisStorage::open(url, Bincode).await?,
-        ))
-    }))
-    .await
-    .into_iter()
-    .find(Result::is_ok)
-    .unwrap()
-    .unwrap();
+    let urls = vec!["redis://redis:6379", "redis://127.0.0.1:6379"];
+    let (redis_con, storage) = connect_to_redis(urls).await.unwrap();
 
     let handler = Update::filter_message()
-        .branch(
-            dptree::entry()
-                .filter_command::<FirstAidCommands>()
-                .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
-                .endpoint(commands_handler),
-        )
-        .branch(
-            dptree::filter(
-                |msg: Message,
-                 _bot: AutoSend<DefaultParseMode<Bot>>,
-                 _data: Arc<FiniteState>,
-                 _redis_con: MultiplexedConnection| {
-                    msg.from()
-                        .map(|user| user.id == MAINTAINER_ID)
-                        .unwrap_or_default()
-                },
-            )
-            .filter_command::<MaintainerCommands>()
-            .endpoint(maintainer_commands_handler),
-        )
+        .branch(get_commands_branch())
+        .branch(get_maintainer_commands_branch())
         .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
         .dispatch_by::<State>();
 

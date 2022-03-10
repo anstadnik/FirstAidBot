@@ -1,13 +1,21 @@
 mod finite_state;
-mod load_data;
 
-use self::{
-    finite_state::parse_link,
-    load_data::{get_csv, Record},
-};
+use self::finite_state::Record;
+use crate::{Lang, LANGS};
+use csv::Reader;
 pub use finite_state::{FiniteState, FiniteStateOptions};
+use std::collections::HashMap;
 
-fn get_order(options: &[&Record], key: Option<String>) -> Vec<String> {
+pub fn get_csv(sheet_id: &str, sheet_name: &str) -> Vec<Record> {
+    let url = format!(
+        "https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}",
+    );
+    let reader = reqwest::blocking::get(url).unwrap();
+    let rdr = Reader::from_reader(reader);
+    rdr.into_deserialize().map(|row| row.unwrap()).collect()
+}
+
+fn get_ordered_keys(options: &[&Record], key: Option<String>) -> Vec<String> {
     let key = key.unwrap_or_default();
     let get_index = |hierarchy: &String| hierarchy.replace(&key, "").parse().unwrap();
     let mut order: Vec<(u16, _)> = options
@@ -30,18 +38,14 @@ fn fill_item(data: &[Record], key: Option<String>) -> Option<FiniteStateOptions>
     if options.is_empty() {
         return None;
     }
-    let ordered_keys = get_order(&options, key);
+
     let convert_row = |row: &&Record| {
-        let link = parse_link(&row.link);
-        let message = row.answer.to_owned();
-        let options = fill_item(data, Some(format!("{}.", row.hierarchy)));
-        let state = FiniteState {
-            link,
-            message,
-            options,
-        };
-        (row.option.to_owned(), state)
+        (
+            row.option.to_owned(),
+            FiniteState::new(row, fill_item(data, Some(format!("{}.", row.hierarchy)))),
+        )
     };
+    let ordered_keys = get_ordered_keys(&options, key);
     let next_states = options.iter().map(convert_row).collect();
     Some(FiniteStateOptions {
         ordered_keys,
@@ -49,12 +53,18 @@ fn fill_item(data: &[Record], key: Option<String>) -> Option<FiniteStateOptions>
     })
 }
 
-pub fn get_data(sheet_id: &str, sheet_name: &str) -> FiniteState {
+fn get_finite_state(sheet_id: &str, sheet_name: &str) -> FiniteState {
     let data = get_csv(sheet_id, sheet_name);
     FiniteState {
         link: None,
         message: "Що трапилось?".to_string(),
-        // options: fill_item(&data, None),
         options: fill_item(&data, None),
     }
+}
+
+pub fn get_data(sheet_id: &str) -> HashMap<Lang, FiniteState> {
+    LANGS
+        .iter()
+        .map(|lang| (lang.clone(), get_finite_state(sheet_id, lang.sheet)))
+        .collect()
 }
