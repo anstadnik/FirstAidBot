@@ -4,18 +4,18 @@ services:
   bot:
     build: first_aid_bot_rust/
     environment:
-      - TELOXIDE_TOKEN=5253437681:AAES1RtIBXBanwaWvFk3vWaty-_LH1xYge0
+      - TELOXIDE_TOKEN=5102517984:AAEcP7Exnth-GvEfA2wDH7NEmrzaXCUQ3dU
     restart: always
-    ports:
-      - 8081:8081
+    # ports:
+    #   - 8081:8081
     depends_on:
       - "redis"
 
   redis:
     image: redis
     restart: always
-    ports:
-      - 6379:6379
+    # ports:
+    #   - 6379:6379
     volumes: 
       - cache:/bitnami/redis/data
 
