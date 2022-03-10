@@ -1,13 +1,16 @@
 use std::{collections::VecDeque, sync::Arc};
-
 use redis::{aio::MultiplexedConnection, AsyncCommands};
-use teloxide::{adaptors::DefaultParseMode, prelude2::*, utils::command::BotCommand};
-
-use crate::{model::FiniteState, REDIS_KEY};
-
+use teloxide::{
+    adaptors::DefaultParseMode,
+    dispatching2::dialogue::{serializer::Bincode, RedisStorage},
+    prelude2::*,
+    utils::command::BotCommand,
+};
+use crate::{MAINTAINER_ID, REDIS_KEY};
 use super::{
-    dialogue::{reset_dialogue, FirstAidDialogue},
-    helpers::{send_message, KeyboardOptions},
+    dialogue::{FirstAidDialogue, setup, State},
+    helpers::{send_message, ExtraKeys},
+    MultilangStates,
 };
 
 #[derive(BotCommand, Clone)]
@@ -30,14 +33,15 @@ pub async fn commands_handler(
     msg: Message,
     bot: AutoSend<DefaultParseMode<Bot>>,
     cmd: FirstAidCommands,
-    data: Arc<FiniteState>,
+    data: Arc<MultilangStates>,
     redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
 ) -> anyhow::Result<()> {
     let _ = match cmd {
         FirstAidCommands::Start => {
             dialogue.exit().await?;
-            return reset_dialogue(bot, msg, data, redis_con, dialogue).await;
+            // return reset_dialogue(bot, msg, data, redis_con, dialogue).await;
+            return setup(bot, msg, data, redis_con, dialogue).await;
         }
     };
 }
@@ -46,7 +50,7 @@ pub async fn maintainer_commands_handler(
     msg: Message,
     bot: AutoSend<DefaultParseMode<Bot>>,
     cmd: MaintainerCommands,
-    data: Arc<FiniteState>,
+    data: Arc<MultilangStates>,
     mut redis_con: MultiplexedConnection,
 ) -> anyhow::Result<()> {
     match cmd {
@@ -63,17 +67,46 @@ pub async fn maintainer_commands_handler(
             };
         }
         MaintainerCommands::Test => {
-            let mut states = VecDeque::new();
-            states.push_back(data.as_ref());
-            while let Some(state) = states.pop_front() {
-                if send_message(&bot, &msg, state, KeyboardOptions::empty()).await.is_err() {
-                    break;
-                }
-                if let Some(children) = &state.options {
-                    states.extend(children.next_states.values());
+            'outer: for states in data.values() {
+                let mut state_deque = VecDeque::new();
+                state_deque.push_back(states);
+                while let Some(state) = state_deque.pop_front() {
+                    if send_message(&bot, &msg, state, ExtraKeys::empty())
+                        .await
+                        .is_err()
+                    {
+                        break 'outer;
+                    }
+                    if let Some(children) = &state.options {
+                        state_deque.extend(children.next_states.values());
+                    }
                 }
             }
         }
     };
     Ok(())
+}
+
+pub fn get_commands_branch(
+) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, std::convert::Infallible> {
+    dptree::entry()
+        .filter_command::<FirstAidCommands>()
+        .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
+        .endpoint(commands_handler)
+}
+
+pub fn get_maintainer_commands_branch(
+) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, std::convert::Infallible> {
+    dptree::filter(
+        |msg: Message,
+         _bot: AutoSend<DefaultParseMode<Bot>>,
+         _data: Arc<MultilangStates>,
+         _redis_con: MultiplexedConnection| {
+            msg.from()
+                .map(|user| user.id == MAINTAINER_ID)
+                .unwrap_or_default()
+        },
+    )
+    .filter_command::<MaintainerCommands>()
+    .endpoint(maintainer_commands_handler)
 }
