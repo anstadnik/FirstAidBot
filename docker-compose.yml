@@ -6,16 +6,16 @@ services:
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
     restart: always
-    ports:
-      - 8081:8081
+    # ports:
+    #   - 8081:8081
     depends_on:
       - "redis"
 
   redis:
     image: redis
     restart: always
-    ports:
-      - 6379:6379
+    # ports:
+    #   - 6379:6379
     volumes: 
       - cache:/bitnami/redis/data
 
