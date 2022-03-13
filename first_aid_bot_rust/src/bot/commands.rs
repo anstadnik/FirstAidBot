@@ -1,9 +1,11 @@
 use super::{
     dialogue::{reset_dialogue, FirstAidDialogue, State},
     helpers::{send_message, ExtraKeys},
-    MultilangStates,
 };
-use crate::{LANGS, MAINTAINER_ID, REDIS_KEY};
+use crate::{
+    model::prelude::*,
+    LANGS, MAINTAINER_ID, REDIS_KEY,
+};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
 use teloxide::{
@@ -33,7 +35,7 @@ pub async fn commands_handler(
     msg: Message,
     bot: AutoSend<DefaultParseMode<Bot>>,
     cmd: FirstAidCommands,
-    data: Arc<MultilangStates>,
+    data: Arc<Data>,
     redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
 ) -> anyhow::Result<()> {
@@ -50,7 +52,7 @@ pub async fn maintainer_commands_handler(
     msg: Message,
     bot: AutoSend<DefaultParseMode<Bot>>,
     cmd: MaintainerCommands,
-    data: Arc<MultilangStates>,
+    data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
 ) -> anyhow::Result<()> {
     match cmd {
@@ -67,7 +69,7 @@ pub async fn maintainer_commands_handler(
             };
         }
         MaintainerCommands::Test => {
-            'outer: for states in data.values() {
+            'outer: for states in data.get().await.values() {
                 let mut state_deque = VecDeque::new();
                 state_deque.push_back(states);
                 while let Some(state) = state_deque.pop_front() {
@@ -100,7 +102,7 @@ pub fn get_maintainer_commands_branch(
     dptree::filter(
         |msg: Message,
          _bot: AutoSend<DefaultParseMode<Bot>>,
-         _data: Arc<MultilangStates>,
+         _data: Arc<Data>,
          _redis_con: MultiplexedConnection| {
             msg.from()
                 .map(|user| user.id == MAINTAINER_ID)

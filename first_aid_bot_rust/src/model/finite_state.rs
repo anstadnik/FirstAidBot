@@ -18,10 +18,12 @@ pub struct Record {
 //                                       Finite State types                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+pub type MultilangStates = HashMap<String, FiniteState>;
+
 #[derive(Debug, Clone)]
 pub struct FiniteStateOptions {
     pub ordered_keys: Vec<String>,
-    pub next_states: HashMap<String, FiniteState>,
+    pub next_states: MultilangStates,
 }
 
 #[derive(Debug, Clone)]

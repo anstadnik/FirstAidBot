@@ -1,4 +1,4 @@
-use crate::{model::FiniteState, LANGS};
+use crate::{model::prelude::*, LANGS};
 use anyhow::Error;
 use teloxide::{
     adaptors::DefaultParseMode,

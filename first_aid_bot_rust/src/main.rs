@@ -2,22 +2,30 @@ mod bot;
 mod model;
 
 use crate::bot::run_bot;
-use crate::model::get_data;
-use clap::Parser;
+use model::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(
-    Clone, std::hash::Hash, std::cmp::Eq, std::cmp::PartialEq, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Clone, std::hash::Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Lang {
     name: &'static str,
     text: &'static str,
     sheet: &'static str,
-    greeting: &'static str,
+    greet: &'static str,
 }
 
 impl Lang {
-    const fn new(name: &'static str, text: &'static str, sheet: &'static str, greeting: &'static str) -> Self {
-        Self { name, text, sheet , greeting}
+    const fn new(
+        name: &'static str,
+        text: &'static str,
+        sheet: &'static str,
+        greet: &'static str,
+    ) -> Self {
+        Self {
+            name,
+            text,
+            sheet,
+            greet,
+        }
     }
 }
 
@@ -26,20 +34,12 @@ const REDIS_KEY: &str = "user_ids";
 const SHEET_ID: &str = "1cO0sPRhIvt71J-iB313BeRfNXzXM0FjiQ4bDYmwddBQ";
 
 pub const LANGS: [Lang; 2] = [
-    Lang::new("Ukrainian", "Ukrainian", "Ukrainian", "Що трапилось?"),
+    Lang::new("Ukrainian", "Українська", "Ukrainian", "Що трапилось?"),
     Lang::new("English", "English", "English", "What happened?"),
 ];
 
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-pub struct Args {
-    #[clap( short, long, default_value = SHEET_ID)]
-    pub sheet_id: String,
-}
-
 fn main() {
-    let args = Args::parse();
-    let data = get_data(args.sheet_id.as_str());
+    let data = Data::dynamic();
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
