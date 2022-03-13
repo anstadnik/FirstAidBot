@@ -1,17 +1,25 @@
+mod data;
 mod finite_state;
 
-use self::finite_state::Record;
-use crate::{Lang, LANGS};
-use csv::Reader;
-pub use finite_state::{FiniteState, FiniteStateOptions};
-use std::collections::HashMap;
+pub mod prelude {
+    pub use super::data::Data;
+    pub use super::finite_state::{FiniteState, FiniteStateOptions, MultilangStates};
+    pub use super::get_data;
+}
 
-pub fn get_csv(sheet_id: &str, sheet_name: &str) -> Vec<Record> {
+use self::finite_state::Record;
+use crate::{Lang, LANGS, SHEET_ID};
+use bytes::Buf;
+use csv::Reader;
+use futures::{stream, StreamExt};
+use prelude::*;
+
+async fn get_csv(sheet_id: &str, sheet_name: &str) -> Vec<Record> {
     let url = format!(
         "https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}",
     );
-    let reader = reqwest::blocking::get(url).unwrap();
-    let rdr = Reader::from_reader(reader);
+    let reader = reqwest::get(url).await.unwrap();
+    let rdr = Reader::from_reader(reader.bytes().await.unwrap().reader());
     rdr.into_deserialize().map(|row| row.unwrap()).collect()
 }
 
@@ -40,10 +48,9 @@ fn fill_item(data: &[Record], key: Option<String>) -> Option<FiniteStateOptions>
     }
 
     let convert_row = |row: &&Record| {
-        (
-            row.option.to_owned(),
-            FiniteState::new(row, fill_item(data, Some(format!("{}.", row.hierarchy)))),
-        )
+        let options = fill_item(data, Some(format!("{}.", row.hierarchy)));
+        let state = FiniteState::new(row, options);
+        (row.option.to_owned(), state)
     };
     let ordered_keys = get_ordered_keys(&options, key);
     let next_states = options.iter().map(convert_row).collect();
@@ -53,18 +60,17 @@ fn fill_item(data: &[Record], key: Option<String>) -> Option<FiniteStateOptions>
     })
 }
 
-fn get_finite_state(sheet_id: &str, lang: &Lang) -> FiniteState {
-    let data = get_csv(sheet_id, lang.sheet);
+async fn get_finite_state(lang: &Lang) -> FiniteState {
     FiniteState {
         link: None,
-        message: lang.greeting.to_string(),
-        options: fill_item(&data, None),
+        message: lang.greet.to_string(),
+        options: fill_item(&get_csv(SHEET_ID, lang.sheet).await, None),
     }
 }
 
-pub fn get_data(sheet_id: &str) -> HashMap<String, FiniteState> {
-    LANGS
-        .iter()
-        .map(|lang| (lang.name.to_string(), get_finite_state(sheet_id, lang)))
-        .collect()
+pub async fn get_data() -> MultilangStates {
+    stream::iter(LANGS.iter())
+        .then(|lang| async { (lang.name.to_string(), get_finite_state(lang).await) })
+        .collect::<MultilangStatesHashMap<_, _>>()
+        .await
 }

@@ -3,7 +3,7 @@ use crate::{
     bot::{
         dialogue::handle_dialogue,
         helpers::{get_state, send_message, ExtraKeys},
-        MultilangStates,
+        Data,
     },
     LANGS,
 };
@@ -38,12 +38,13 @@ pub async fn move_to_state(
     bot: AutoSend<DefaultParseMode<Bot>>,
     msg: Message,
     dialogue: FirstAidDialogue,
-    data: Arc<MultilangStates>,
+    data: Arc<Data>,
     redis_con: MultiplexedConnection,
     context: Vec<String>,
     lang: String,
 ) -> anyhow::Result<()> {
-    let state = get_state(&data[&lang], &context).await;
+    let state = &data.get().await[&lang];
+    let state = get_state(state, &context).await;
     send_message(&bot, &msg, state, ExtraKeys::new(&context)).await?;
     if state.options.is_none() {
         return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await;

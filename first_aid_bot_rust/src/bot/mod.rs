@@ -4,36 +4,25 @@ mod helpers;
 
 use crate::bot::commands::{get_commands_branch, get_maintainer_commands_branch, FirstAidCommands};
 use crate::bot::dialogue::State;
-use crate::model::FiniteState;
+use crate::model::prelude::*;
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
-use std::{collections::HashMap, sync::Arc};
-use teloxide::{
-    dispatching2::dialogue::{serializer::Bincode, RedisStorage},
-    prelude2::*,
-    utils::command::BotCommand,
-};
+use std::sync::Arc;
+use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::{prelude2::*, utils::command::BotCommand};
 
-pub type MultilangStates = HashMap<String, FiniteState>;
-
-async fn connect_to_redis(
-    urls: Vec<&str>,
+async fn try_connect(
+    url: &str,
 ) -> anyhow::Result<(MultiplexedConnection, Arc<RedisStorage<Bincode>>)> {
-    join_all(urls.into_iter().map(|url| async move {
-        Ok((
-            Client::open(url)?
-                .get_multiplexed_tokio_connection()
-                .await?,
-            RedisStorage::open(url, Bincode).await?,
-        ))
-    }))
-    .await
-    .into_iter()
-    .find(Result::is_ok)
-    .unwrap()
+    anyhow::Ok((
+        Client::open(url)?
+            .get_multiplexed_tokio_connection()
+            .await?,
+        RedisStorage::open(url, Bincode).await?,
+    ))
 }
 
-pub async fn run_bot(data: MultilangStates) {
+pub async fn run_bot(data: Data) {
     teloxide::enable_logging!();
     log::info!("Starting dialogue_bot...");
 
@@ -46,7 +35,12 @@ pub async fn run_bot(data: MultilangStates) {
         .unwrap();
 
     let urls = vec!["redis://redis:6379", "redis://127.0.0.1:6379"];
-    let (redis_con, storage) = connect_to_redis(urls).await.unwrap();
+
+    let (redis_con, storage) = join_all(urls.into_iter().map(try_connect))
+        .await
+        .into_iter()
+        .find_map(Result::ok)
+        .unwrap();
 
     let handler = Update::filter_message()
         .branch(get_commands_branch())

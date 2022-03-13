@@ -2,27 +2,23 @@ mod state;
 
 use self::state::move_to_state;
 pub use self::state::State;
-use super::{helpers::ExtraKeys, MultilangStates};
-use crate::{
-    bot::helpers::{get_state, make_keyboard, send_message, GO_BACK_TEXT, GO_TO_BEGINNING_TEXT},
-    model::FiniteStateOptions,
-    LANGS, REDIS_KEY,
+use super::{helpers::ExtraKeys, Data};
+use crate::bot::helpers::{
+    get_state, make_keyboard, send_message, GO_BACK_TEXT, GO_TO_BEGINNING_TEXT,
 };
+use crate::{model::prelude::*, LANGS, REDIS_KEY};
 use anyhow::anyhow;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
-use teloxide::{
-    adaptors::DefaultParseMode,
-    dispatching2::dialogue::{serializer::Bincode, RedisStorage},
-    prelude2::*,
-};
+use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::{adaptors::DefaultParseMode, prelude2::*};
 
 pub type FirstAidDialogue = Dialogue<State, RedisStorage<Bincode>>;
 
 pub async fn reset_dialogue(
     bot: AutoSend<DefaultParseMode<Bot>>,
     msg: Message,
-    data: Arc<MultilangStates>,
+    data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
     (lang,): (String,),
@@ -36,7 +32,7 @@ pub async fn reset_dialogue(
             log::error!("Error writing a user to the redis db.");
         }
     }
-    send_message(&bot, &msg, &data[&lang], ExtraKeys::empty()).await?;
+    send_message(&bot, &msg, &data.get().await[&lang], ExtraKeys::empty()).await?;
     let context = vec![];
     dialogue.update(State::Dialogue { lang, context }).await?;
     Ok(())
@@ -46,11 +42,12 @@ pub async fn handle_dialogue(
     bot: AutoSend<DefaultParseMode<Bot>>,
     msg: Message,
     dialogue: FirstAidDialogue,
-    data: Arc<MultilangStates>,
+    data: Arc<Data>,
     redis_con: MultiplexedConnection,
     (lang, mut context): (String, Vec<String>),
 ) -> anyhow::Result<()> {
-    let FiniteStateOptions { ordered_keys, .. } = get_state(&data[&lang], &context)
+    let state = &data.get().await[&lang];
+    let FiniteStateOptions { ordered_keys, .. } = get_state(state, &context)
         .await
         .options
         .as_ref()
