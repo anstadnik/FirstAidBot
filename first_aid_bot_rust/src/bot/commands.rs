@@ -2,18 +2,11 @@ use super::{
     dialogue::{reset_dialogue, FirstAidDialogue, State},
     helpers::{send_message, ExtraKeys},
 };
-use crate::{
-    model::prelude::*,
-    LANGS, MAINTAINER_ID, REDIS_KEY,
-};
+use crate::{model::prelude::*, LANGS, MAINTAINER_ID, REDIS_KEY};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
-use teloxide::{
-    adaptors::DefaultParseMode,
-    dispatching2::dialogue::{serializer::Bincode, RedisStorage},
-    prelude2::*,
-    utils::command::BotCommand,
-};
+use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::{adaptors::DefaultParseMode, prelude2::*, utils::command::BotCommand};
 
 #[derive(BotCommand, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
@@ -69,11 +62,11 @@ pub async fn maintainer_commands_handler(
             };
         }
         MaintainerCommands::Test => {
-            'outer: for states in data.get().await.values() {
+            'outer: for (lang, states) in &*data.get().await? {
                 let mut state_deque = VecDeque::new();
                 state_deque.push_back(states);
                 while let Some(state) = state_deque.pop_front() {
-                    if send_message(&bot, &msg, state, ExtraKeys::empty())
+                    if send_message(&bot, &msg, state, ExtraKeys::empty(lang))
                         .await
                         .is_err()
                     {
@@ -105,7 +98,7 @@ pub fn get_maintainer_commands_branch(
          _data: Arc<Data>,
          _redis_con: MultiplexedConnection| {
             msg.from()
-                .map(|user| user.id == MAINTAINER_ID)
+                .map(|user| cfg!(debug_assertions) || user.id == MAINTAINER_ID)
                 .unwrap_or_default()
         },
     )
