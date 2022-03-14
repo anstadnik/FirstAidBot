@@ -1,20 +1,13 @@
 use super::{reset_dialogue, FirstAidDialogue};
+use crate::bot::helpers::{get_state, send_message, ExtraKeys};
 use crate::{
-    bot::{
-        dialogue::handle_dialogue,
-        helpers::{get_state, send_message, ExtraKeys},
-        Data,
-    },
+    bot::{dialogue::handle_dialogue, Data},
     LANGS,
 };
 use redis::aio::MultiplexedConnection;
 use std::sync::Arc;
-use teloxide::{
-    adaptors::{AutoSend, DefaultParseMode},
-    macros::DialogueState,
-    types::Message,
-    Bot,
-};
+use teloxide::adaptors::{AutoSend, DefaultParseMode};
+use teloxide::{macros::DialogueState, types::Message, Bot};
 
 #[derive(DialogueState, Clone, serde::Serialize, serde::Deserialize)]
 #[handler_out(anyhow::Result<()>)]
@@ -43,9 +36,9 @@ pub async fn move_to_state(
     context: Vec<String>,
     lang: String,
 ) -> anyhow::Result<()> {
-    let state = &data.get().await[&lang];
-    let state = get_state(state, &context).await;
-    send_message(&bot, &msg, state, ExtraKeys::new(&context)).await?;
+    let state = &data.get().await?[&lang];
+    let state = get_state(state, &context);
+    send_message(&bot, &msg, state, ExtraKeys::new(&context, None)).await?;
     if state.options.is_none() {
         return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await;
     }

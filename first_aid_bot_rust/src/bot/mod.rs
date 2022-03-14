@@ -9,17 +9,17 @@ use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
 use std::sync::Arc;
 use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::types::ParseMode;
 use teloxide::{prelude2::*, utils::command::BotCommand};
 
 async fn try_connect(
     url: &str,
 ) -> anyhow::Result<(MultiplexedConnection, Arc<RedisStorage<Bincode>>)> {
-    anyhow::Ok((
-        Client::open(url)?
-            .get_multiplexed_tokio_connection()
-            .await?,
-        RedisStorage::open(url, Bincode).await?,
-    ))
+    let con = Client::open(url)?
+        .get_multiplexed_tokio_connection()
+        .await?;
+    let storage = RedisStorage::open(url, Bincode).await?;
+    anyhow::Ok((con, storage))
 }
 
 pub async fn run_bot(data: Data) {
@@ -27,7 +27,7 @@ pub async fn run_bot(data: Data) {
     log::info!("Starting dialogue_bot...");
 
     let bot = Bot::from_env()
-        .parse_mode(teloxide::types::ParseMode::MarkdownV2)
+        .parse_mode(ParseMode::MarkdownV2)
         .auto_send();
 
     bot.set_my_commands(FirstAidCommands::bot_commands())
@@ -36,11 +36,8 @@ pub async fn run_bot(data: Data) {
 
     let urls = vec!["redis://redis:6379", "redis://127.0.0.1:6379"];
 
-    let (redis_con, storage) = join_all(urls.into_iter().map(try_connect))
-        .await
-        .into_iter()
-        .find_map(Result::ok)
-        .unwrap();
+    let redis_results = join_all(urls.into_iter().map(try_connect)).await;
+    let (redis_con, storage) = redis_results.into_iter().find_map(Result::ok).unwrap();
 
     let handler = Update::filter_message()
         .branch(get_commands_branch())

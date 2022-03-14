@@ -2,7 +2,10 @@ version: "3"
 
 services:
   bot:
-    build: first_aid_bot_rust/
+    build: 
+      context: first_aid_bot_rust/
+      args:
+        - PROFILE=debug
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
       # - RUST_LOG=debug

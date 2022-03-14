@@ -5,27 +5,16 @@ use crate::bot::run_bot;
 use model::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, std::hash::Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, std::hash::Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Lang {
     name: &'static str,
     text: &'static str,
-    sheet: &'static str,
     greet: &'static str,
 }
 
 impl Lang {
-    const fn new(
-        name: &'static str,
-        text: &'static str,
-        sheet: &'static str,
-        greet: &'static str,
-    ) -> Self {
-        Self {
-            name,
-            text,
-            sheet,
-            greet,
-        }
+    const fn new(name: &'static str, text: &'static str, greet: &'static str) -> Self {
+        Self { name, text, greet }
     }
 }
 
@@ -33,17 +22,19 @@ const MAINTAINER_ID: i64 = 131596643;
 const REDIS_KEY: &str = "user_ids";
 const SHEET_ID: &str = "Миші з'їли";
 
-pub const LANGS: [Lang; 2] = [
-    Lang::new("Ukrainian", "Українська", "Ukrainian", "Що трапилось?"),
-    Lang::new("English", "English", "English", "What happened?"),
+pub const LANGS: [Lang; 3] = [
+    Lang::new("Ukrainian", "Українська", "Що трапилось?"),
+    Lang::new("Russian", "Русский", "Что произошло?"),
+    Lang::new("English", "English", "What happened?"),
 ];
 
-fn main() {
-    let data = Data::dynamic();
+#[tokio::main]
+async fn main() {
+    let data = if cfg!(debug_assertions) {
+        Data::dynamic()
+    } else {
+        Data::cached().await
+    };
 
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(run_bot(data))
+    run_bot(data).await;
 }

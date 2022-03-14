@@ -32,7 +32,7 @@ pub async fn reset_dialogue(
             log::error!("Error writing a user to the redis db.");
         }
     }
-    send_message(&bot, &msg, &data.get().await[&lang], ExtraKeys::empty()).await?;
+    send_message(&bot, &msg, &data.get().await?[&lang], ExtraKeys::empty(&lang)).await?;
     let context = vec![];
     dialogue.update(State::Dialogue { lang, context }).await?;
     Ok(())
@@ -46,13 +46,10 @@ pub async fn handle_dialogue(
     redis_con: MultiplexedConnection,
     (lang, mut context): (String, Vec<String>),
 ) -> anyhow::Result<()> {
-    let state = &data.get().await[&lang];
-    let FiniteStateOptions { ordered_keys, .. } = get_state(state, &context)
-        .await
-        .options
-        .as_ref()
-        .ok_or_else(|| {
-            log::error!("There is no options but we're expecting an input: {context:#?}");
+    let state = &data.get().await?[&lang];
+    let FiniteStateOptions { ordered_keys, .. } =
+        get_state(state, &context).options.as_ref().ok_or_else(|| {
+            log::error!("There are no options but we're expecting an input: {context:#?}");
             anyhow!(
                 "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6"
             )
@@ -74,7 +71,7 @@ pub async fn handle_dialogue(
             move_to_state(bot, msg, dialogue, data, redis_con, context, lang).await?;
         }
         _ => {
-            let keyboard = make_keyboard(ordered_keys, ExtraKeys::new(&context)).await;
+            let keyboard = make_keyboard(ordered_keys, ExtraKeys::new(&context, Some(&lang)));
             bot.send_message(msg.chat.id, "Використайте кнопки")
                 .reply_markup(keyboard)
                 .await?;
