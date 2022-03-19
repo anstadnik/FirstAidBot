@@ -12,6 +12,7 @@ use anyhow::anyhow;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
 use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::types::ParseMode;
 use teloxide::{adaptors::DefaultParseMode, prelude2::*};
 
 pub type FirstAidDialogue = Dialogue<State, RedisStorage<Bincode>>;
@@ -82,7 +83,9 @@ pub async fn handle_dialogue(
         }
         _ => {
             let keyboard = make_keyboard(ordered_keys, ExtraKeys::new(&context, Some(lang)));
+            #[allow(deprecated)]
             bot.send_message(msg.chat.id, lang.details().use_buttons_text)
+                .parse_mode(ParseMode::Markdown)
                 .reply_markup(keyboard)
                 .await?;
         }
