@@ -61,7 +61,7 @@ const UA_LD: LangDetails = LangDetails {
     name: "Ukrainian",
     button_text: "Українська",
     error: "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6",
-    use_buttons_text: "Використайте кнопки",
+    use_buttons_text: "Використайте кнопки, або перезавантажте бота (/start)",
     greeting: "Що трапилось?",
 };
 
@@ -69,7 +69,7 @@ const EN_LD: LangDetails = LangDetails {
     name: "English",
     button_text: "English",
     error: "An error occured, please tell us about it at https://t.me/+SvnzzsxStydmNGI6",
-    use_buttons_text: "Use buttons",
+    use_buttons_text: "Use buttons, or restart bot if something is wrong (/start)",
     greeting: "What happened?",
 };
 
@@ -77,6 +77,6 @@ const RU_LD: LangDetails = LangDetails {
     name: "Russian",
     button_text: "Русский",
     error: "Произошла ошибка, пожалуйста, сообщине о ней в https://t.me/+SvnzzsxStydmNGI6",
-    use_buttons_text: "Используйте кнопки",
+    use_buttons_text: "Используйте кнопки, или перезагрузите бота, если что-то сломалось (/start)",
     greeting: "Что произошло?",
 };
