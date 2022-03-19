@@ -6,7 +6,8 @@ use super::{helpers::ExtraKeys, Data};
 use crate::bot::helpers::{
     get_state, make_keyboard, send_message, GO_BACK_TEXT, GO_TO_BEGINNING_TEXT,
 };
-use crate::{model::prelude::*, LANGS, REDIS_KEY};
+use crate::lang::Lang;
+use crate::{model::prelude::*, REDIS_KEY};
 use anyhow::anyhow;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
@@ -21,7 +22,7 @@ pub async fn reset_dialogue(
     data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
-    (lang,): (String,),
+    (lang,): (Lang,),
 ) -> anyhow::Result<()> {
     if let Some(user) = msg.from() {
         if redis_con
@@ -32,7 +33,13 @@ pub async fn reset_dialogue(
             log::error!("Error writing a user to the redis db.");
         }
     }
-    send_message(&bot, &msg, &data.get().await?[&lang], ExtraKeys::empty(&lang)).await?;
+    send_message(
+        &bot,
+        &msg,
+        &data.get().await?[&lang],
+        ExtraKeys::empty(lang),
+    )
+    .await?;
     let context = vec![];
     dialogue.update(State::Dialogue { lang, context }).await?;
     Ok(())
@@ -44,15 +51,13 @@ pub async fn handle_dialogue(
     dialogue: FirstAidDialogue,
     data: Arc<Data>,
     redis_con: MultiplexedConnection,
-    (lang, mut context): (String, Vec<String>),
+    (lang, mut context): (Lang, Vec<String>),
 ) -> anyhow::Result<()> {
     let state = &data.get().await?[&lang];
     let FiniteStateOptions { ordered_keys, .. } =
         get_state(state, &context).options.as_ref().ok_or_else(|| {
             log::error!("There are no options but we're expecting an input: {context:#?}");
-            anyhow!(
-                "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6"
-            )
+            anyhow!(lang.details().error)
         })?;
     match msg.text() {
         Some(GO_TO_BEGINNING_TEXT) => {
@@ -62,17 +67,22 @@ pub async fn handle_dialogue(
             context.pop();
             move_to_state(bot, msg, dialogue, data, redis_con, context, lang).await?;
         }
-        Some(text) if context.is_empty() && LANGS.iter().any(|lang| lang.text == text) => {
-            let lang = LANGS.iter().find(|lang| lang.text == text).unwrap().name;
-            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.to_string(),)).await?;
+        Some(text)
+            if context.is_empty()
+                && Lang::iter().any(|lang| lang.details().button_text == text) =>
+        {
+            let lang = Lang::iter()
+                .find(|lang| lang.details().button_text == text)
+                .unwrap();
+            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await?;
         }
         Some(text) if ordered_keys.contains(&text.to_string()) => {
             context.push(text.to_string());
             move_to_state(bot, msg, dialogue, data, redis_con, context, lang).await?;
         }
         _ => {
-            let keyboard = make_keyboard(ordered_keys, ExtraKeys::new(&context, Some(&lang)));
-            bot.send_message(msg.chat.id, "Використайте кнопки")
+            let keyboard = make_keyboard(ordered_keys, ExtraKeys::new(&context, Some(lang)));
+            bot.send_message(msg.chat.id, lang.details().use_buttons_text)
                 .reply_markup(keyboard)
                 .await?;
         }

@@ -2,7 +2,7 @@ use super::{
     dialogue::{reset_dialogue, FirstAidDialogue, State},
     helpers::{send_message, ExtraKeys},
 };
-use crate::{model::prelude::*, LANGS, MAINTAINER_ID, REDIS_KEY};
+use crate::{lang::Lang, model::prelude::*, MAINTAINER_ID, REDIS_KEY};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
 use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
@@ -11,7 +11,7 @@ use teloxide::{adaptors::DefaultParseMode, prelude2::*, utils::command::BotComma
 #[derive(BotCommand, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
 pub enum FirstAidCommands {
-    #[command(description = "Перезавантажити")]
+    #[command(description = "Reboot")]
     Start,
 }
 
@@ -35,7 +35,7 @@ pub async fn commands_handler(
     let _ = match cmd {
         FirstAidCommands::Start => {
             dialogue.exit().await?;
-            let lang = LANGS[0].name.to_string();
+            let lang = Lang::default();
             return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await;
         }
     };
@@ -66,7 +66,7 @@ pub async fn maintainer_commands_handler(
                 let mut state_deque = VecDeque::new();
                 state_deque.push_back(states);
                 while let Some(state) = state_deque.pop_front() {
-                    if send_message(&bot, &msg, state, ExtraKeys::empty(lang))
+                    if send_message(&bot, &msg, state, ExtraKeys::empty(*lang))
                         .await
                         .is_err()
                     {

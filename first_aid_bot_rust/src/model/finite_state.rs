@@ -2,6 +2,8 @@ use regex::Regex;
 use serde::Deserialize;
 use std::collections::HashMap;
 
+use crate::lang::Lang;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                           CSV entry                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,12 +20,12 @@ pub struct Record {
 //                                       Finite State types                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub type MultilangStates = HashMap<String, FiniteState>;
+pub type MultilangStates = HashMap<Lang, FiniteState>;
 
 #[derive(Debug, Clone)]
 pub struct FiniteStateOptions {
     pub ordered_keys: Vec<String>,
-    pub next_states: MultilangStates,
+    pub next_states: HashMap<String, FiniteState>,
 }
 
 #[derive(Debug, Clone)]
