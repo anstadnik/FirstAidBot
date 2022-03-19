@@ -1,5 +1,6 @@
-use crate::{model::prelude::*, LANGS};
-use anyhow::Error;
+use crate::lang::Lang;
+use crate::model::prelude::*;
+use anyhow::bail;
 use teloxide::types::{KeyboardButton, KeyboardMarkup, ParseMode};
 use teloxide::{adaptors::DefaultParseMode, payloads::SendMessageSetters, prelude2::*};
 
@@ -15,21 +16,21 @@ pub fn get_state<'a>(data: &'a FiniteState, context: &[String]) -> &'a FiniteSta
 }
 
 #[derive(Debug, Clone)]
-pub struct ExtraKeys<'a> {
+pub struct ExtraKeys {
     back: bool,
     home: bool,
-    select_lang: Option<&'a str>,
+    select_lang: Option<Lang>,
 }
 
-impl<'a> ExtraKeys<'a> {
-    pub fn new(context: &[String], select_lang: Option<&'a str>) -> ExtraKeys<'a> {
+impl ExtraKeys {
+    pub fn new(context: &[String], select_lang: Option<Lang>) -> ExtraKeys {
         ExtraKeys {
             back: !context.is_empty(),
             home: context.len() > 1,
             select_lang,
         }
     }
-    pub fn empty(select_lang: &'a str) -> ExtraKeys<'a> {
+    pub fn empty(select_lang: Lang) -> ExtraKeys {
         ExtraKeys {
             back: false,
             home: false,
@@ -46,9 +47,9 @@ impl<'a> ExtraKeys<'a> {
             special_keys.push(KeyboardButton::new(GO_TO_BEGINNING_TEXT));
         };
         if let Some(current_lang) = self.select_lang {
-            for lang in LANGS {
-                if lang.name != current_lang {
-                    special_keys.push(KeyboardButton::new(lang.text));
+            for lang in Lang::iter() {
+                if lang != current_lang {
+                    special_keys.push(KeyboardButton::new(lang.details().button_text));
                 }
             }
         };
@@ -74,22 +75,24 @@ pub async fn send_message(
     bot: &AutoSend<DefaultParseMode<Bot>>,
     msg: &Message,
     state: &FiniteState,
-    extra_keys: ExtraKeys<'_>,
+    extra_keys: ExtraKeys,
 ) -> anyhow::Result<()> {
     if let Some(link) = &state.link {
         bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
             .parse_mode(ParseMode::Html)
             .await?;
     }
+
     let sent_message = bot.send_message(msg.chat.id, &state.message);
-    #[allow(deprecated)]
-    if let Err(err) = if let Some(options) = &state.options {
+    let rez = if let Some(options) = &state.options {
         sent_message.reply_markup(make_keyboard(&options.ordered_keys, extra_keys))
     } else {
         sent_message
     }
-    .await
-    {
+    .await;
+
+    #[allow(deprecated)]
+    if let Err(err) = rez {
         bot.send_message(
             msg.chat.id,
             "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6.",
@@ -102,7 +105,7 @@ pub async fn send_message(
         bot.send_message(msg.chat.id, &state.message)
             .parse_mode(ParseMode::Markdown)
             .await?;
-        return Err(Error::new(err));
+        bail!(err);
     }
     Ok(())
 }

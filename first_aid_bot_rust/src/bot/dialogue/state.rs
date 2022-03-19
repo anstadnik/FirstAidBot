@@ -1,9 +1,7 @@
 use super::{reset_dialogue, FirstAidDialogue};
 use crate::bot::helpers::{get_state, send_message, ExtraKeys};
-use crate::{
-    bot::{dialogue::handle_dialogue, Data},
-    LANGS,
-};
+use crate::bot::{dialogue::handle_dialogue, Data};
+use crate::lang::Lang;
 use redis::aio::MultiplexedConnection;
 use std::sync::Arc;
 use teloxide::adaptors::{AutoSend, DefaultParseMode};
@@ -13,16 +11,16 @@ use teloxide::{macros::DialogueState, types::Message, Bot};
 #[handler_out(anyhow::Result<()>)]
 pub enum State {
     #[handler(reset_dialogue)]
-    Start { lang: String },
+    Start { lang: Lang },
 
     #[handler(handle_dialogue)]
-    Dialogue { lang: String, context: Vec<String> },
+    Dialogue { lang: Lang, context: Vec<String> },
 }
 
 impl Default for State {
     fn default() -> Self {
         Self::Start {
-            lang: LANGS[0].name.to_string(),
+            lang: Lang::default()
         }
     }
 }
@@ -34,7 +32,7 @@ pub async fn move_to_state(
     data: Arc<Data>,
     redis_con: MultiplexedConnection,
     context: Vec<String>,
-    lang: String,
+    lang: Lang,
 ) -> anyhow::Result<()> {
     let state = &data.get().await?[&lang];
     let state = get_state(state, &context);

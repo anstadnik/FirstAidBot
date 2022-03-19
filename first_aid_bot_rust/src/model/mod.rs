@@ -8,7 +8,8 @@ pub mod prelude {
 }
 
 use self::finite_state::Record;
-use crate::{Lang, LANGS, SHEET_ID};
+use crate::lang::Lang;
+use crate::SHEET_ID;
 use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
@@ -67,17 +68,17 @@ fn fill_item(data: &[Record], key: Option<String>) -> anyhow::Result<Option<Fini
     }))
 }
 
-async fn get_finite_state(lang: &Lang) -> anyhow::Result<FiniteState> {
+async fn get_finite_state(lang: Lang) -> anyhow::Result<FiniteState> {
     Ok(FiniteState {
         link: None,
-        message: lang.greet.to_string(),
-        options: fill_item(&get_csv(SHEET_ID, lang.name).await?, None)?,
+        message: lang.details().greeting.to_string(),
+        options: fill_item(&get_csv(SHEET_ID, lang.details().name).await?, None)?,
     })
 }
 
 pub async fn get_data() -> anyhow::Result<MultilangStates> {
-    stream::iter(LANGS.iter())
-        .then(|lang| async { Ok((lang.name.to_string(), get_finite_state(lang).await?)) })
+    stream::iter(Lang::iter())
+        .then(|lang| async move { Ok((lang, get_finite_state(lang).await?)) })
         .try_collect()
         .await
 }
