@@ -8,20 +8,20 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum Lang {
     Ua,
-    En,
-    Ru,
+    /* En,
+    Ru, */
 }
 
 impl Lang {
     // https://github.com/rust-lang/rfcs/issues/284
     pub fn iter() -> impl Iterator<Item = Lang> {
-        [Ua, En, Ru].iter().copied()
+        [Ua, /* En, Ru */].iter().copied()
     }
     pub fn details(self) -> LangDetails {
         match self {
             Ua => UA_LD,
-            En => EN_LD,
-            Ru => RU_LD,
+            /* En => EN_LD,
+            Ru => RU_LD, */
         }
     }
 }
@@ -32,8 +32,8 @@ impl TryFrom<&str> for Lang {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
             "Ukrainian" => Ok(Ua),
-            "English" => Ok(En),
-            "Russian" => Ok(Ru),
+            /* "English" => Ok(En),
+            "Russian" => Ok(Ru), */
             wtf => Err(format!("Cannot create a language from {wtf}")),
         }
     }
@@ -65,7 +65,7 @@ const UA_LD: LangDetails = LangDetails {
     greeting: "Що трапилось?",
 };
 
-const EN_LD: LangDetails = LangDetails {
+/* const EN_LD: LangDetails = LangDetails {
     name: "English",
     button_text: "English",
     error: "An error occured, please tell us about it at https://t.me/+SvnzzsxStydmNGI6",
@@ -79,4 +79,4 @@ const RU_LD: LangDetails = LangDetails {
     error: "Произошла ошибка, пожалуйста, сообщине о ней в https://t.me/+SvnzzsxStydmNGI6",
     use_buttons_text: "Используйте кнопки, или перезагрузите бота, если что-то сломалось (/start)",
     greeting: "Что произошло?",
-};
+}; */
