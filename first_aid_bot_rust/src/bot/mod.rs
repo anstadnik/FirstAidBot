@@ -23,7 +23,6 @@ async fn try_connect(
 }
 
 pub async fn run_bot(data: Data) {
-    teloxide::enable_logging!();
     log::info!("Starting dialogue_bot...");
 
     let bot = Bot::from_env()
@@ -47,6 +46,7 @@ pub async fn run_bot(data: Data) {
 
     Dispatcher::builder(bot, handler)
         .dependencies(dptree::deps![Arc::new(data), redis_con, storage])
+        .error_handler(LoggingErrorHandler::new())
         .build()
         .setup_ctrlc_handler()
         .dispatch()

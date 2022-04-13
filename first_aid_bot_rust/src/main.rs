@@ -11,6 +11,7 @@ const SHEET_ID: &str = "1cO0sPRhIvt71J-iB313BeRfNXzXM0FjiQ4bDYmwddBQ";
 
 #[tokio::main]
 async fn main() {
+    pretty_env_logger::init();
     let data = if cfg!(debug_assertions) {
         Data::dynamic()
     } else {
