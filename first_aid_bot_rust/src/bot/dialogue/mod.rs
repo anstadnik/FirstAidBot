@@ -51,7 +51,7 @@ pub async fn reset_dialogue(
     )
     .await?;
     let context = vec![];
-    dialogue.update(State::Dialogue { lang, context }).await?;
+    dialogue.update(State::Dialogue { lang: lang.name(), context }).await?;
     Ok(())
 }
 

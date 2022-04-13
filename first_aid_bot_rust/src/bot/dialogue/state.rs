@@ -11,16 +11,16 @@ use teloxide::{macros::DialogueState, types::Message, Bot};
 #[handler_out(anyhow::Result<()>)]
 pub enum State {
     #[handler(reset_dialogue)]
-    Start { lang: Lang },
+    Start { lang: String },
 
     #[handler(handle_dialogue)]
-    Dialogue { lang: Lang, context: Vec<String> },
+    Dialogue { lang: String, context: Vec<String> },
 }
 
 impl Default for State {
     fn default() -> Self {
         Self::Start {
-            lang: Lang::default()
+            lang: Lang::default().name(),
         }
     }
 }
@@ -40,6 +40,11 @@ pub async fn move_to_state(
     if state.options.is_none() {
         return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.name(),)).await;
     }
-    dialogue.update(State::Dialogue { lang, context }).await?;
+    dialogue
+        .update(State::Dialogue {
+            lang: lang.name(),
+            context,
+        })
+        .await?;
     Ok(())
 }

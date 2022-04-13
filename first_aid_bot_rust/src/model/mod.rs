@@ -30,7 +30,7 @@ fn get_ordered_keys(options: &[&Record], key: Option<String>) -> anyhow::Result<
         .iter()
         .map(|row| {
             Ok((
-                row.hierarchy.replace(&key, "").parse()?,
+                row.hierarchy.trim().replace(&key, "").parse()?,
                 row.option.to_owned(),
             ))
         })
