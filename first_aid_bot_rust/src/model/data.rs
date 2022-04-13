@@ -17,6 +17,7 @@ impl<'a> Deref for BoxOrBorrow<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct Data {
     data: Option<MultilangStates>,
 }

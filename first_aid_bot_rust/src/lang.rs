@@ -1,11 +1,10 @@
 use self::Lang::*;
-use serde::{Deserialize, Serialize};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                              Lang                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Lang {
     Ua,
     /* En,
@@ -15,7 +14,7 @@ pub enum Lang {
 impl Lang {
     // https://github.com/rust-lang/rfcs/issues/284
     pub fn iter() -> impl Iterator<Item = Lang> {
-        [Ua, /* En, Ru */].iter().copied()
+        [Ua /* En, Ru */].iter().copied()
     }
     pub fn details(self) -> LangDetails {
         match self {
@@ -62,7 +61,7 @@ pub struct LangDetails {
 
 const UA_STR: &str = "Ukrainian";
 const UA_LD: LangDetails = LangDetails {
-    name: UA_STR, 
+    name: UA_STR,
     button_text: "Українська",
     error: "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6",
     use_buttons_text: "Використайте кнопки, або перезавантажте бота (/start)",
