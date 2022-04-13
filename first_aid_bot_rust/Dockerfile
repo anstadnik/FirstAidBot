@@ -26,4 +26,4 @@ RUN cargo build
 # FROM debian:buster-slim AS runtime
 # WORKDIR /app
 # COPY --from=builder /app/target/release/first_aid_bot_rust /usr/local/bin
-ENTRYPOINT ["cargo run"]
+ENTRYPOINT ["cargo", "run"]

@@ -11,6 +11,7 @@ const SHEET_ID: &str = "Миші з'їли";
 
 #[tokio::main]
 async fn main() {
+    pretty_env_logger::init();
     let data = if cfg!(debug_assertions) {
         Data::dynamic()
     } else {
