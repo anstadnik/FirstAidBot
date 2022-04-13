@@ -109,3 +109,14 @@ pub async fn send_message(
     }
     Ok(())
 }
+
+pub async fn send_error(
+    bot: &AutoSend<DefaultParseMode<Bot>>,
+    msg: &Message,
+    err: String,
+) -> anyhow::Result<()> {
+    bot.send_message(msg.chat.id, err)
+        .parse_mode(ParseMode::Markdown)
+        .await?;
+    Ok(())
+}

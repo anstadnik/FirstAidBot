@@ -4,7 +4,7 @@ use self::state::move_to_state;
 pub use self::state::State;
 use super::{helpers::ExtraKeys, Data};
 use crate::bot::helpers::{
-    get_state, make_keyboard, send_message, GO_BACK_TEXT, GO_TO_BEGINNING_TEXT,
+    get_state, make_keyboard, send_error, send_message, GO_BACK_TEXT, GO_TO_BEGINNING_TEXT,
 };
 use crate::lang::Lang;
 use crate::{model::prelude::*, REDIS_KEY};
@@ -23,8 +23,17 @@ pub async fn reset_dialogue(
     data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
-    (lang,): (Lang,),
+    (lang,): (String,),
 ) -> anyhow::Result<()> {
+    let lang = match lang.as_str().try_into() {
+        Ok(lang) => lang,
+        Err(_) => {
+            log::error!("Unknown language: {lang}");
+            let err = "Error, please choose a language again. Ask for help in https://t.me/+SvnzzsxStydmNGI6 if needed";
+            send_error(&bot, &msg, err.to_string()).await?;
+            Lang::default()
+        }
+    };
     if let Some(user) = msg.from() {
         if redis_con
             .sadd::<&str, String, ()>(REDIS_KEY, user.id.to_string())
@@ -52,8 +61,17 @@ pub async fn handle_dialogue(
     dialogue: FirstAidDialogue,
     data: Arc<Data>,
     redis_con: MultiplexedConnection,
-    (lang, mut context): (Lang, Vec<String>),
+    (lang, mut context): (String, Vec<String>),
 ) -> anyhow::Result<()> {
+    let lang = match lang.as_str().try_into() {
+        Ok(lang) => lang,
+        Err(_) => {
+            log::error!("Unknown language: {lang}");
+            let err = "Unknown language, please report it to https://t.me/+SvnzzsxStydmNGI6";
+            send_error(&bot, &msg, err.to_string()).await?;
+            Lang::default()
+        }
+    };
     let state = &data.get().await?[&lang];
     let FiniteStateOptions { ordered_keys, .. } =
         get_state(state, &context).options.as_ref().ok_or_else(|| {
@@ -62,7 +80,7 @@ pub async fn handle_dialogue(
         })?;
     match msg.text() {
         Some(GO_TO_BEGINNING_TEXT) => {
-            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await?;
+            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.name(),)).await?;
         }
         Some(GO_BACK_TEXT) => {
             context.pop();
@@ -75,7 +93,7 @@ pub async fn handle_dialogue(
             let lang = Lang::iter()
                 .find(|lang| lang.details().button_text == text)
                 .unwrap();
-            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang,)).await?;
+            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.name(),)).await?;
         }
         Some(text) if ordered_keys.contains(&text.to_string()) => {
             context.push(text.to_string());
