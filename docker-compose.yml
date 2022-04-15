@@ -7,7 +7,7 @@ services:
       args:
         - PROFILE=debug
     environment:
-      - TELOXIDE_TOKEN=5102517984:AAEcP7Exnth-GvEfA2wDH7NEmrzaXCUQ3dU
+      - TELOXIDE_TOKEN=5102517984:AAErbkUtig1PiOl1iSo3nAjzQ4MxV9w1gIU
       # - RUST_LOG=debug
     restart: always
     # ports:
