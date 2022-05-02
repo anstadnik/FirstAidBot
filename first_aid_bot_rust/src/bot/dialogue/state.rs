@@ -1,19 +1,21 @@
 use super::{reset_dialogue, FirstAidDialogue};
-use crate::bot::helpers::{get_state, send_message, ExtraKeys};
-use crate::bot::{dialogue::handle_dialogue, Data};
+use crate::bot::{
+    helpers::{get_state, send_message, ExtraKeys},
+    Data,
+};
 use crate::lang::Lang;
 use redis::aio::MultiplexedConnection;
 use std::sync::Arc;
 use teloxide::adaptors::{AutoSend, DefaultParseMode};
-use teloxide::{macros::DialogueState, types::Message, Bot};
+use teloxide::{types::Message, Bot};
 
-#[derive(DialogueState, Clone, serde::Serialize, serde::Deserialize)]
-#[handler_out(anyhow::Result<()>)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+// #[handler_out(anyhow::Result<()>)]
 pub enum State {
-    #[handler(reset_dialogue)]
+    // #[handler(reset_dialogue)]
     Start { lang: String },
 
-    #[handler(handle_dialogue)]
+    // #[handler(handle_dialogue)]
     Dialogue { lang: String, context: Vec<String> },
 }
 
