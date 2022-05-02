@@ -1,3 +1,5 @@
+use crate::HELP_CHAT_URL;
+
 use self::Lang::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,25 +65,28 @@ const UA_STR: &str = "Ukrainian";
 const UA_LD: LangDetails = LangDetails {
     name: UA_STR,
     button_text: "Українська",
-    error: "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6",
+    error: const_concat!(
+        "Сталась помилка, будь ласка, повідомте про це у ",
+        HELP_CHAT_URL
+    ),
     use_buttons_text: "Використайте кнопки, або перезавантажте бота (/start)",
     greeting: "Що трапилось?",
 };
 
-/* const EN_STR: &str = "Ukrainian";
-const EN_LD: LangDetails = LangDetails {
-    name: EN_STR,
-    button_text: "English",
-    error: "An error occured, please tell us about it at https://t.me/+SvnzzsxStydmNGI6",
-    use_buttons_text: "Use buttons, or restart bot if something is wrong (/start)",
-    greeting: "What happened?",
-};
-
-const RU_STR: &str = "Ukrainian";
-const RU_LD: LangDetails = LangDetails {
-    name: RU_STR,
-    button_text: "Русский",
-    error: "Произошла ошибка, пожалуйста, сообщине о ней в https://t.me/+SvnzzsxStydmNGI6",
-    use_buttons_text: "Используйте кнопки, или перезагрузите бота, если что-то сломалось (/start)",
-    greeting: "Что произошло?",
-}; */
+// const EN_STR: &str = "Ukrainian";
+// const EN_LD: LangDetails = LangDetails {
+//     name: EN_STR,
+//     button_text: "English",
+//     error: "An error occured, please tell us about it at " + HELP_CHAT_URL,
+//     use_buttons_text: "Use buttons, or restart bot if something is wrong (/start)",
+//     greeting: "What happened?",
+// };
+//
+// const RU_STR: &str = "Ukrainian";
+// const RU_LD: LangDetails = LangDetails {
+//     name: RU_STR,
+//     button_text: "Русский",
+//     error: "Произошла ошибка, пожалуйста, сообщине о ней в " + HELP_CHAT_URL,
+//     use_buttons_text: "Используйте кнопки, или перезагрузите бота, если что-то сломалось (/start)",
+//     greeting: "Что произошло?",
+// };

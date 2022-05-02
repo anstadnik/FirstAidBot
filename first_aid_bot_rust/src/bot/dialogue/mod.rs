@@ -3,6 +3,7 @@ mod state;
 use self::state::move_to_state;
 pub use self::state::State;
 use super::{helpers::ExtraKeys, Data};
+use crate::HELP_CHAT_URL;
 use crate::bot::helpers::{
     get_state, make_keyboard, send_error, send_message, GO_BACK_TEXT, GO_TO_BEGINNING_TEXT,
 };
@@ -29,7 +30,7 @@ pub async fn reset_dialogue(
         Ok(lang) => lang,
         Err(_) => {
             log::error!("Unknown language: {lang}");
-            let err = "Error, please choose a language again. Ask for help in https://t.me/+SvnzzsxStydmNGI6 if needed";
+            let err = "Error, please choose a language again. Ask for help in ".to_string() + HELP_CHAT_URL;
             send_error(&bot, &msg, err.to_string()).await?;
             Lang::default()
         }
@@ -67,7 +68,7 @@ pub async fn handle_dialogue(
         Ok(lang) => lang,
         Err(_) => {
             log::error!("Unknown language: {lang}");
-            let err = "Unknown language, please report it to https://t.me/+SvnzzsxStydmNGI6";
+            let err = "Unknown language, please report it to ".to_string() + HELP_CHAT_URL;
             send_error(&bot, &msg, err.to_string()).await?;
             Lang::default()
         }

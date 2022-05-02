@@ -1,3 +1,4 @@
+use crate::HELP_CHAT_URL;
 use crate::lang::Lang;
 use crate::model::prelude::*;
 use anyhow::bail;
@@ -95,7 +96,7 @@ pub async fn send_message(
     if let Err(err) = rez {
         bot.send_message(
             msg.chat.id,
-            "Сталась помилка, будь ласка, повідомте про це у https://t.me/+SvnzzsxStydmNGI6.",
+            "Сталась помилка, будь ласка, повідомте про це у ".to_string() + HELP_CHAT_URL,
         )
         .parse_mode(ParseMode::Markdown)
         .await?;
