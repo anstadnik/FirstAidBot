@@ -6,6 +6,7 @@ use crate::{lang::Lang, model::prelude::*, MAINTAINER_ID, REDIS_KEY};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
 use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::dispatching::DpHandlerDescription;
 use teloxide::{adaptors::DefaultParseMode, prelude::*, utils::command::BotCommands};
 
 #[derive(BotCommands, Clone)]
@@ -83,7 +84,7 @@ pub async fn maintainer_commands_handler(
 }
 
 pub fn get_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, teloxide::dispatching::DpHandlerDescription> {
+) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
     dptree::entry()
         .filter_command::<FirstAidCommands>()
         .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
@@ -91,7 +92,7 @@ pub fn get_commands_branch(
 }
 
 pub fn get_maintainer_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, teloxide::dispatching::DpHandlerDescription> {
+) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
     dptree::filter(
         |msg: Message,
          _bot: AutoSend<DefaultParseMode<Bot>>,
