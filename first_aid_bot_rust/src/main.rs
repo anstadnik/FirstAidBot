@@ -4,8 +4,9 @@ mod model;
 
 use crate::bot::run_bot;
 use model::prelude::*;
+use teloxide::types::UserId;
 
-const MAINTAINER_ID: i64 = 131596643;
+const MAINTAINER_ID: UserId = UserId(131596643);
 const REDIS_KEY: &str = "user_ids";
 const SHEET_ID: &str = "Миші з'їли";
 

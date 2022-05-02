@@ -2,7 +2,7 @@ use crate::lang::Lang;
 use crate::model::prelude::*;
 use anyhow::bail;
 use teloxide::types::{KeyboardButton, KeyboardMarkup, ParseMode};
-use teloxide::{adaptors::DefaultParseMode, payloads::SendMessageSetters, prelude2::*};
+use teloxide::{adaptors::DefaultParseMode, payloads::SendMessageSetters, prelude::*};
 
 pub const GO_TO_BEGINNING_TEXT: &str = "◀️ На початок";
 pub const GO_BACK_TEXT: &str = "◀️ Повернутись";
@@ -85,7 +85,7 @@ pub async fn send_message(
 
     let sent_message = bot.send_message(msg.chat.id, &state.message);
     let rez = if let Some(options) = &state.options {
-        sent_message.reply_markup(make_keyboard(&options.ordered_keys, extra_keys))
+        sent_message.reply_markup(make_keyboard(&options.ordered_keys, extra_keys.clone()))
     } else {
         sent_message
     }
@@ -115,6 +115,7 @@ pub async fn send_error(
     msg: &Message,
     err: String,
 ) -> anyhow::Result<()> {
+    #[allow(deprecated)]
     bot.send_message(msg.chat.id, err)
         .parse_mode(ParseMode::Markdown)
         .await?;

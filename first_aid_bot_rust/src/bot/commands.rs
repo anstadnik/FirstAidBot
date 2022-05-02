@@ -5,17 +5,17 @@ use super::{
 use crate::{lang::Lang, model::prelude::*, MAINTAINER_ID, REDIS_KEY};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
-use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
-use teloxide::{adaptors::DefaultParseMode, prelude2::*, utils::command::BotCommand};
+use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::{adaptors::DefaultParseMode, prelude::*, utils::command::BotCommands};
 
-#[derive(BotCommand, Clone)]
+#[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
 pub enum FirstAidCommands {
     #[command(description = "Reboot")]
     Start,
 }
 
-#[derive(BotCommand, Clone)]
+#[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "Maintainer commands")]
 pub enum MaintainerCommands {
     #[command(description = "Get a number of unique users")]
@@ -83,7 +83,7 @@ pub async fn maintainer_commands_handler(
 }
 
 pub fn get_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, std::convert::Infallible> {
+) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, teloxide::dispatching::DpHandlerDescription> {
     dptree::entry()
         .filter_command::<FirstAidCommands>()
         .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
@@ -91,7 +91,7 @@ pub fn get_commands_branch(
 }
 
 pub fn get_maintainer_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, std::convert::Infallible> {
+) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, teloxide::dispatching::DpHandlerDescription> {
     dptree::filter(
         |msg: Message,
          _bot: AutoSend<DefaultParseMode<Bot>>,

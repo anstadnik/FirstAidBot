@@ -3,14 +3,15 @@ mod dialogue;
 mod helpers;
 
 use crate::bot::commands::{get_commands_branch, get_maintainer_commands_branch, FirstAidCommands};
-use crate::bot::dialogue::State;
+use crate::bot::dialogue::{handle_dialogue, reset_dialogue, State};
 use crate::model::prelude::*;
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
+use teloxide::adaptors::throttle::Limits;
 use std::sync::Arc;
-use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 use teloxide::types::ParseMode;
-use teloxide::{prelude2::*, utils::command::BotCommand};
+use teloxide::{prelude::*, utils::command::BotCommands};
 
 async fn try_connect(
     url: &str,
@@ -26,6 +27,7 @@ pub async fn run_bot(data: Data) {
     log::info!("Starting dialogue_bot...");
 
     let bot = Bot::from_env()
+        .throttle(Limits::default())
         .parse_mode(ParseMode::MarkdownV2)
         .auto_send();
 
@@ -42,7 +44,8 @@ pub async fn run_bot(data: Data) {
         .branch(get_commands_branch())
         .branch(get_maintainer_commands_branch())
         .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
-        .dispatch_by::<State>();
+        .branch(teloxide::handler![State::Start { lang }].endpoint(reset_dialogue))
+        .branch(teloxide::handler![State::Dialogue { lang, context }].endpoint(handle_dialogue));
 
     Dispatcher::builder(bot, handler)
         .dependencies(dptree::deps![Arc::new(data), redis_con, storage])

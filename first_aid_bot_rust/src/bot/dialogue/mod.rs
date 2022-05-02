@@ -11,9 +11,9 @@ use crate::{model::prelude::*, REDIS_KEY};
 use anyhow::anyhow;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
-use teloxide::dispatching2::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 use teloxide::types::ParseMode;
-use teloxide::{adaptors::DefaultParseMode, prelude2::*};
+use teloxide::{adaptors::DefaultParseMode, prelude::*};
 
 pub type FirstAidDialogue = Dialogue<State, RedisStorage<Bincode>>;
 
