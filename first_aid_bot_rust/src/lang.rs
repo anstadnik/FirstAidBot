@@ -1,3 +1,5 @@
+use const_format::concatcp;
+
 use crate::HELP_CHAT_URL;
 
 use self::Lang::*;
@@ -65,7 +67,7 @@ const UA_STR: &str = "Ukrainian";
 const UA_LD: LangDetails = LangDetails {
     name: UA_STR,
     button_text: "Українська",
-    error: const_concat!(
+    error: concatcp!(
         "Сталась помилка, будь ласка, повідомте про це у ",
         HELP_CHAT_URL
     ),
