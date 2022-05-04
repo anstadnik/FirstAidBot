@@ -5,7 +5,7 @@ use super::{
 use crate::{lang::Lang, model::prelude::*, MAINTAINER_ID, REDIS_KEY};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
-use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::{dispatching::dialogue::{serializer::Bincode, RedisStorage}, adaptors::Throttle};
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::{adaptors::DefaultParseMode, prelude::*, utils::command::BotCommands};
 
@@ -27,7 +27,7 @@ pub enum MaintainerCommands {
 
 pub async fn commands_handler(
     msg: Message,
-    bot: AutoSend<DefaultParseMode<Bot>>,
+    bot: AutoSend<DefaultParseMode<Throttle<Bot>>>,
     cmd: FirstAidCommands,
     data: Arc<Data>,
     redis_con: MultiplexedConnection,
@@ -44,7 +44,7 @@ pub async fn commands_handler(
 
 pub async fn maintainer_commands_handler(
     msg: Message,
-    bot: AutoSend<DefaultParseMode<Bot>>,
+    bot: AutoSend<DefaultParseMode<Throttle<Bot>>>,
     cmd: MaintainerCommands,
     data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
@@ -95,7 +95,7 @@ pub fn get_maintainer_commands_branch(
 ) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
     dptree::filter(
         |msg: Message,
-         _bot: AutoSend<DefaultParseMode<Bot>>,
+         _bot: AutoSend<DefaultParseMode<Throttle<Bot>>>,
          _data: Arc<Data>,
          _redis_con: MultiplexedConnection| {
             msg.from()

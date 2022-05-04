@@ -1,7 +1,8 @@
-use crate::HELP_CHAT_URL;
 use crate::lang::Lang;
 use crate::model::prelude::*;
+use crate::HELP_CHAT_URL;
 use anyhow::bail;
+use teloxide::adaptors::Throttle;
 use teloxide::types::{KeyboardButton, KeyboardMarkup, ParseMode};
 use teloxide::{adaptors::DefaultParseMode, payloads::SendMessageSetters, prelude::*};
 
@@ -73,7 +74,7 @@ pub fn make_keyboard(ordered_keys: &[String], extra_keys: ExtraKeys) -> Keyboard
 }
 
 pub async fn send_message(
-    bot: &AutoSend<DefaultParseMode<Bot>>,
+    bot: &AutoSend<DefaultParseMode<Throttle<Bot>>>,
     msg: &Message,
     state: &FiniteState,
     extra_keys: ExtraKeys,
@@ -112,7 +113,7 @@ pub async fn send_message(
 }
 
 pub async fn send_error(
-    bot: &AutoSend<DefaultParseMode<Bot>>,
+    bot: &AutoSend<DefaultParseMode<Throttle<Bot>>>,
     msg: &Message,
     err: String,
 ) -> anyhow::Result<()> {
