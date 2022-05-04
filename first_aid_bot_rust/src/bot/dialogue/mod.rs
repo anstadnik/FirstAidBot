@@ -11,6 +11,7 @@ use crate::lang::Lang;
 use crate::{model::prelude::*, REDIS_KEY};
 use anyhow::anyhow;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
+use teloxide::adaptors::Throttle;
 use std::sync::Arc;
 use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 use teloxide::types::ParseMode;
@@ -19,7 +20,7 @@ use teloxide::{adaptors::DefaultParseMode, prelude::*};
 pub type FirstAidDialogue = Dialogue<State, RedisStorage<Bincode>>;
 
 pub async fn reset_dialogue(
-    bot: AutoSend<DefaultParseMode<Bot>>,
+    bot: AutoSend<DefaultParseMode<Throttle<Bot>>>,
     msg: Message,
     data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
@@ -57,7 +58,7 @@ pub async fn reset_dialogue(
 }
 
 pub async fn handle_dialogue(
-    bot: AutoSend<DefaultParseMode<Bot>>,
+    bot: AutoSend<DefaultParseMode<Throttle<Bot>>>,
     msg: Message,
     dialogue: FirstAidDialogue,
     data: Arc<Data>,

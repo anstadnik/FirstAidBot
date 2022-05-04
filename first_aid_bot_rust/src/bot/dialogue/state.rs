@@ -6,7 +6,7 @@ use crate::bot::{
 use crate::lang::Lang;
 use redis::aio::MultiplexedConnection;
 use std::sync::Arc;
-use teloxide::adaptors::{AutoSend, DefaultParseMode};
+use teloxide::adaptors::{AutoSend, DefaultParseMode, Throttle};
 use teloxide::{types::Message, Bot};
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -28,7 +28,7 @@ impl Default for State {
 }
 
 pub async fn move_to_state(
-    bot: AutoSend<DefaultParseMode<Bot>>,
+    bot: AutoSend<DefaultParseMode<Throttle<Bot>>>,
     msg: Message,
     dialogue: FirstAidDialogue,
     data: Arc<Data>,
