@@ -82,7 +82,7 @@ pub async fn handle_dialogue(
         })?;
     match msg.text() {
         Some(GO_TO_BEGINNING_TEXT) => {
-            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.name(),)).await?;
+            reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await?;
         }
         Some(GO_BACK_TEXT) => {
             context.pop();
@@ -95,7 +95,7 @@ pub async fn handle_dialogue(
             let lang = Lang::iter()
                 .find(|lang| lang.details().button_text == text)
                 .unwrap();
-            reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.name(),)).await?;
+            reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await?;
         }
         Some(text) if ordered_keys.contains(&text.to_string()) => {
             context.push(text.to_string());

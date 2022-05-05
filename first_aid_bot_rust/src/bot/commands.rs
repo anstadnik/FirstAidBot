@@ -37,7 +37,7 @@ pub async fn commands_handler(
         FirstAidCommands::Start => {
             dialogue.exit().await?;
             let lang = Lang::default();
-            return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.name(),)).await;
+            return reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await;
         }
     };
 }

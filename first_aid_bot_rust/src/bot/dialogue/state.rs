@@ -40,7 +40,7 @@ pub async fn move_to_state(
     let state = get_state(state, &context);
     send_message(&bot, &msg, state, ExtraKeys::new(&context, None)).await?;
     if state.options.is_none() {
-        return reset_dialogue(bot, msg, data, redis_con, dialogue, (lang.name(),)).await;
+        return reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await;
     }
     dialogue
         .update(State::Dialogue {
