@@ -25,7 +25,7 @@ pub async fn reset_dialogue(
     data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
-    (lang,): (String,),
+    lang: String,
 ) -> anyhow::Result<()> {
     let lang = match lang.as_str().try_into() {
         Ok(lang) => lang,
