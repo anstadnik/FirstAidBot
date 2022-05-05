@@ -7,8 +7,8 @@ use crate::bot::dialogue::{handle_dialogue, reset_dialogue, State};
 use crate::model::prelude::*;
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
-use teloxide::adaptors::throttle::Limits;
 use std::sync::Arc;
+use teloxide::adaptors::throttle::Limits;
 use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 use teloxide::types::ParseMode;
 use teloxide::{prelude::*, utils::command::BotCommands};
@@ -44,8 +44,8 @@ pub async fn run_bot(data: Data) {
         .branch(get_commands_branch())
         .branch(get_maintainer_commands_branch())
         .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
-        .branch(teloxide::handler![State::Start { lang }].endpoint(reset_dialogue))
-        .branch(teloxide::handler![State::Dialogue { lang, context }].endpoint(handle_dialogue));
+        .branch(dptree::case![State::Start { lang }].endpoint(reset_dialogue))
+        .branch(dptree::case![State::Dialogue { lang, context }].endpoint(handle_dialogue));
 
     Dispatcher::builder(bot, handler)
         .dependencies(dptree::deps![Arc::new(data), redis_con, storage])
