@@ -8,6 +8,7 @@ services:
         - PROFILE=release
     environment:
       - TELOXIDE_TOKEN=5253437681:AAES1RtIBXBanwaWvFk3vWaty-_LH1xYge0
+      - RUST_LOG=info
     restart: always
     # ports:
     #   - 8081:8081
