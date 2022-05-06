@@ -5,9 +5,12 @@ use super::{
 use crate::{lang::Lang, model::prelude::*, MAINTAINER_ID, REDIS_KEY};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
-use teloxide::{dispatching::dialogue::{serializer::Bincode, RedisStorage}, adaptors::Throttle};
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::{adaptors::DefaultParseMode, prelude::*, utils::command::BotCommands};
+use teloxide::{
+    adaptors::Throttle,
+    dispatching::dialogue::{serializer::Bincode, RedisStorage},
+};
 
 #[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
