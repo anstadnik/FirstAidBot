@@ -4,8 +4,7 @@ services:
   bot:
     build: 
       context: first_aid_bot_rust/
-      args:
-        - PROFILE=release
+      dockerfile: Dockerfile.prod
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
       - RUST_LOG=info
@@ -14,7 +13,6 @@ services:
     #   - 8081:8081
     depends_on:
       - "redis"
-    entrypoint: /app/target/release/first_aid_bot_rust
 
   redis:
     image: redis
