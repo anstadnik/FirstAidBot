@@ -1,8 +1,7 @@
+use crate::Lang;
 use regex::Regex;
 use serde::Deserialize;
 use std::collections::HashMap;
-
-use crate::lang::Lang;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                           CSV entry                                            //
@@ -32,27 +31,47 @@ pub struct FiniteStateOptions {
 pub struct FiniteState {
     pub link: Option<String>,
     pub message: String,
-    pub options: Option<FiniteStateOptions>,
+    options: Option<FiniteStateOptions>,
 }
 
 fn parse_link(link: &Option<String>) -> Option<String> {
-    match link.to_owned() {
+    match link.as_ref() {
         None => None,
         Some(link) if link.contains("file/d") => {
-            let link = Regex::new(r".*file/d/").unwrap().replace(&link, "");
+            let link = Regex::new(r".*file/d/").unwrap().replace(link, "");
             let link = Regex::new(r"/.*").unwrap().replace(&link, "").to_string();
             Some(format!("https://drive.google.com/uc?id={link}"))
         }
-        Some(link) => Some(link),
+        Some(link) => Some(link.to_string()),
     }
 }
 
 impl FiniteState {
-    pub fn new(row: &&Record, options: Option<FiniteStateOptions>) -> FiniteState {
+    pub fn new(
+        link: Option<String>,
+        message: String,
+        options: Option<FiniteStateOptions>,
+    ) -> FiniteState {
+        FiniteState {
+            link,
+            message,
+            options,
+        }
+    }
+    pub fn parse_row(row: &&Record, options: Option<FiniteStateOptions>) -> FiniteState {
         FiniteState {
             link: parse_link(&row.link),
             message: row.answer.to_owned(),
             options,
         }
+    }
+    pub fn get_options(&self) -> &[String] {
+        self.options
+            .as_ref()
+            .map(|opts| &opts.ordered_keys[..])
+            .unwrap_or_default()
+    }
+    pub fn get_next_state(&self, option: &String) -> Option<&FiniteState> {
+        self.options.as_ref()?.next_states.get(option)
     }
 }

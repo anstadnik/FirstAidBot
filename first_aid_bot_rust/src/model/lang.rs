@@ -1,8 +1,7 @@
-use const_format::concatcp;
-
-use crate::HELP_CHAT_URL;
-
 use self::Lang::*;
+use crate::HELP_CHAT_URL;
+use const_format::concatcp;
+use std::fmt::Display;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                              Lang                                              //
@@ -40,7 +39,12 @@ impl TryFrom<&str> for Lang {
             UA_STR => Ok(Ua),
             /* EN_STR => Ok(En),
             RU_STR => Ok(Ru), */
-            wtf => Err(format!("Cannot create a language from {wtf}")),
+            unknown_lang => {
+                log::error!("Cannot create a language from {unknown_lang}");
+                Err(format!(
+                    "Error, please choose a language again. Ask for help in {HELP_CHAT_URL}"
+                ))
+            }
         }
     }
 }
@@ -51,13 +55,21 @@ impl Default for Lang {
     }
 }
 
+impl Display for Lang {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                           LangDetails                                          //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub struct LangDetails {
     pub name: &'static str,
-    pub button_text: &'static str,
+    pub button_lang_name: &'static str,
+    pub button_back: &'static str,
+    pub button_home: &'static str,
     pub error: &'static str,
     pub use_buttons_text: &'static str,
     pub greeting: &'static str,
@@ -66,7 +78,9 @@ pub struct LangDetails {
 const UA_STR: &str = "Ukrainian";
 const UA_LD: LangDetails = LangDetails {
     name: UA_STR,
-    button_text: "Українська",
+    button_lang_name: "Українська",
+    button_back: "◀️ Повернутись",
+    button_home: "◀️ На початок",
     error: concatcp!(
         "Сталась помилка, будь ласка, повідомте про це у ",
         HELP_CHAT_URL
@@ -78,7 +92,7 @@ const UA_LD: LangDetails = LangDetails {
 // const EN_STR: &str = "Ukrainian";
 // const EN_LD: LangDetails = LangDetails {
 //     name: EN_STR,
-//     button_text: "English",
+//     button_lang_name: "English",
 //     error: "An error occured, please tell us about it at " + HELP_CHAT_URL,
 //     use_buttons_text: "Use buttons, or restart bot if something is wrong (/start)",
 //     greeting: "What happened?",
@@ -87,7 +101,7 @@ const UA_LD: LangDetails = LangDetails {
 // const RU_STR: &str = "Ukrainian";
 // const RU_LD: LangDetails = LangDetails {
 //     name: RU_STR,
-//     button_text: "Русский",
+//     button_lang_name: "Русский",
 //     error: "Произошла ошибка, пожалуйста, сообщине о ней в " + HELP_CHAT_URL,
 //     use_buttons_text: "Используйте кнопки, или перезагрузите бота, если что-то сломалось (/start)",
 //     greeting: "Что произошло?",

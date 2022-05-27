@@ -1,21 +1,12 @@
-use super::{reset_dialogue, FirstAidDialogue};
-use crate::bot::{
-    helpers::{get_state, send_message, ExtraKeys},
-    Data,
-};
-use crate::lang::Lang;
+use super::prelude::*;
+use anyhow::Context;
 use redis::aio::MultiplexedConnection;
 use std::sync::Arc;
-use teloxide::adaptors::{AutoSend, DefaultParseMode, Throttle};
-use teloxide::{types::Message, Bot};
+use teloxide::types::Message;
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
-// #[handler_out(anyhow::Result<()>)]
 pub enum State {
-    // #[handler(reset_dialogue)]
     Start { lang: String },
-
-    // #[handler(handle_dialogue)]
     Dialogue { lang: String, context: Vec<String> },
 }
 
@@ -27,8 +18,21 @@ impl Default for State {
     }
 }
 
+pub fn get_state<'a>(
+    state: &'a FiniteState,
+    context: &[String],
+) -> anyhow::Result<&'a FiniteState> {
+    let mut current_state = state;
+    for choise in context {
+        current_state = current_state.get_next_state(choise).context(format!(
+            "Cannot find next state: {state:?} being on {context:?}"
+        ))?;
+    }
+    Ok(current_state)
+}
+
 pub async fn move_to_state(
-    bot: AutoSend<DefaultParseMode<Throttle<Bot>>>,
+    bot: FirstAidBot,
     msg: Message,
     dialogue: FirstAidDialogue,
     data: Arc<Data>,
@@ -37,9 +41,10 @@ pub async fn move_to_state(
     lang: Lang,
 ) -> anyhow::Result<()> {
     let state = &data.get().await?[&lang];
-    let state = get_state(state, &context);
-    send_message(&bot, &msg, state, ExtraKeys::new(&context, None)).await?;
-    if state.options.is_none() {
+    let state = get_state(state, &context)?;
+    let keyboard = make_keyboard(state.get_options(), lang, &context);
+    send_state(&bot, &msg, state, lang, keyboard).await?;
+    if state.get_options().is_empty() {
         return reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await;
     }
     dialogue

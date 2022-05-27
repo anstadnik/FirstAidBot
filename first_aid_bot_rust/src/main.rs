@@ -1,16 +1,14 @@
 mod bot;
-mod lang;
 mod model;
 
-use crate::bot::run_bot;
+use bot::run_bot;
 use log::info;
 use model::prelude::*;
 use teloxide::types::UserId;
 
 const MAINTAINER_ID: UserId = UserId(131596643);
-const REDIS_KEY: &str = "user_ids";
-const SHEET_ID: &str = "Миші з'їли";
 const HELP_CHAT_URL: &str = "https://t.me/+VOd-pnzhWvU2Yjg6";
+const REDIS_URLS: [&str; 2] = ["redis://redis:6379", "redis://127.0.0.1:6379"];
 
 #[tokio::main]
 async fn main() {
