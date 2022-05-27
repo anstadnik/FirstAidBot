@@ -20,11 +20,15 @@ ARG PROFILE
 COPY --from=planner /app/recipe.json recipe.json
 
 # Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
 
 # Build application
 COPY . .
 # Build dependencies - this is the caching Docker layer!
-RUN cargo build
+RUN cargo build --release
 
-ENTRYPOINT cargo run
+# We do not need the Rust toolchain to run the binary!
+FROM debian:buster-slim AS runtime
+WORKDIR /app
+COPY --from=builder /app/target/release/first_aid_bot_rust /usr/local/bin
+ENTRYPOINT first_aid_bot_rust
