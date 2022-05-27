@@ -4,8 +4,6 @@ services:
   bot:
     build: 
       context: first_aid_bot_rust/
-      args:
-        - PROFILE=debug
     environment:
       - TELOXIDE_TOKEN=5102517984:AAErbkUtig1PiOl1iSo3nAjzQ4MxV9w1gIU
       # - RUST_LOG=debug

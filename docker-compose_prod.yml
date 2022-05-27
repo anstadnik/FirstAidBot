@@ -4,8 +4,7 @@ services:
   bot:
     build: 
       context: first_aid_bot_rust/
-      args:
-        - PROFILE=release
+      dockerfile: Dockerfile.prod
     environment:
       - TELOXIDE_TOKEN=5253437681:AAES1RtIBXBanwaWvFk3vWaty-_LH1xYge0
       - RUST_LOG=info
