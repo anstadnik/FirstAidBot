@@ -4,8 +4,6 @@ services:
   bot:
     build: 
       context: first_aid_bot_rust/
-      args:
-        - PROFILE=debug
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
       # https://docs.google.com/spreadsheets/d/Миші з'їли/edit

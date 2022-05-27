@@ -4,8 +4,7 @@ services:
   bot:
     build: 
       context: first_aid_bot_rust/
-      args:
-        - PROFILE=release
+      dockerfile: Dockerfile.prod
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
       # https://docs.google.com/spreadsheets/d/Миші з'їли/edit
