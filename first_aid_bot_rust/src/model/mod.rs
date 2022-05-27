@@ -1,27 +1,35 @@
 mod data;
 mod finite_state;
+mod lang;
 
 pub mod prelude {
     pub use super::data::Data;
     pub use super::finite_state::{FiniteState, FiniteStateOptions, MultilangStates};
     pub use super::get_data;
+    pub use super::lang::Lang;
 }
 
-use self::finite_state::Record;
-use crate::lang::Lang;
-use crate::SHEET_ID;
 use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
 use prelude::*;
 
-async fn get_csv(sheet_id: &str, sheet_name: &str) -> anyhow::Result<Vec<Record>> {
+use self::finite_state::Record;
+
+async fn get_csv_records(sheet_id: &str, sheet_name: String) -> anyhow::Result<Vec<Record>> {
     let url = format!(
-        "https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}",
+        "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
+        sheet_id, sheet_name
     );
     let reader = reqwest::get(url).await?;
     let rdr = Reader::from_reader(reader.bytes().await?.reader());
-    rdr.into_deserialize().map(|row| Ok(row?)).collect()
+    rdr.into_deserialize()
+        .map(|row: Result<Record, _>| {
+            let mut row = row?;
+            row.hierarchy = row.hierarchy.trim().to_string();
+            Ok(row)
+        })
+        .collect()
 }
 
 fn get_ordered_keys(options: &[&Record], key: Option<String>) -> anyhow::Result<Vec<String>> {
@@ -30,7 +38,7 @@ fn get_ordered_keys(options: &[&Record], key: Option<String>) -> anyhow::Result<
         .iter()
         .map(|row| {
             Ok((
-                row.hierarchy.trim().replace(&key, "").parse()?,
+                row.hierarchy.replace(&key, "").parse()?,
                 row.option.to_owned(),
             ))
         })
@@ -40,21 +48,23 @@ fn get_ordered_keys(options: &[&Record], key: Option<String>) -> anyhow::Result<
 }
 
 fn fill_item(data: &[Record], key: Option<String>) -> anyhow::Result<Option<FiniteStateOptions>> {
-    let predicate: Box<dyn Fn(&&Record) -> bool> = match &key {
-        None => Box::new(|row| !row.hierarchy.contains('.')),
-        Some(parent_key) => Box::new(move |row| {
-            row.hierarchy.starts_with(parent_key)
-                && !row.hierarchy.replacen(parent_key, "", 1).contains('.')
-        }),
-    };
-    let options: Vec<_> = data.iter().filter(predicate).collect();
+    let options: Vec<_> = data
+        .iter()
+        .filter(|row| match &key {
+            None => !row.hierarchy.contains('.'),
+            Some(parent_key) => {
+                row.hierarchy.starts_with(parent_key)
+                    && !row.hierarchy.replacen(parent_key, "", 1).contains('.')
+            }
+        })
+        .collect();
     if options.is_empty() {
         return Ok(None);
     }
 
     let convert_row = |row: &&Record| {
         let options = fill_item(data, Some(format!("{}.", row.hierarchy)))?;
-        let state = FiniteState::new(row, options);
+        let state = FiniteState::parse_row(row, options);
         Ok((row.option.to_owned(), state))
     };
     let ordered_keys = get_ordered_keys(&options, key)?;
@@ -69,16 +79,18 @@ fn fill_item(data: &[Record], key: Option<String>) -> anyhow::Result<Option<Fini
 }
 
 async fn get_finite_state(lang: Lang) -> anyhow::Result<FiniteState> {
-    Ok(FiniteState {
-        link: None,
-        message: lang.details().greeting.to_string(),
-        options: fill_item(&get_csv(SHEET_ID, lang.details().name).await?, None)?,
-    })
+    let sheet_id = env!("SHEET_ID", "Please define a SHEET_ID env variable");
+    let csv_records = get_csv_records(sheet_id, lang.name()).await?;
+    Ok(FiniteState::new(
+         None,
+         lang.details().greeting.to_string(),
+         fill_item(&csv_records, None)?,
+    ))
 }
 
 pub async fn get_data() -> anyhow::Result<MultilangStates> {
     stream::iter(Lang::iter())
-        .then(|lang| async move { Ok((lang, get_finite_state(lang).await?)) })
+        .then(|lang| async move { get_finite_state(lang).await.map(|fs| (lang, fs)) })
         .try_collect()
         .await
 }

@@ -1,27 +1,34 @@
-mod commands;
 mod dialogue;
+mod error_handler;
 mod helpers;
+mod keyboard;
 
-use crate::bot::commands::{get_commands_branch, get_maintainer_commands_branch, FirstAidCommands};
-use crate::bot::dialogue::{handle_dialogue, reset_dialogue, State};
-use crate::model::prelude::*;
-use futures::future::join_all;
-use redis::{aio::MultiplexedConnection, Client};
-use std::sync::Arc;
+mod prelude {
+    use crate::bot::State;
+    use teloxide::adaptors::{DefaultParseMode, Throttle};
+    use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
+
+    pub use super::keyboard::make_keyboard;
+    pub use crate::bot::helpers::send_message;
+    pub use crate::model::prelude::*;
+    pub use std::sync::Arc;
+    pub use teloxide::prelude::*;
+
+    pub type FirstAidDialogue = Dialogue<State, RedisStorage<Bincode>>;
+    pub type FirstAidBot = AutoSend<DefaultParseMode<Throttle<Bot>>>;
+    pub type FirstAidStorage = RedisStorage<Bincode>;
+} /* prelude */
+
+use dialogue::{
+    get_commands_branch, get_maintainer_commands_branch, handle_dialogue, reset_dialogue,
+    FirstAidCommands, State,
+};
+use error_handler::FirstAidErrorHandler;
+use helpers::connect_to_redis;
+use prelude::*;
 use teloxide::adaptors::throttle::Limits;
-use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 use teloxide::types::ParseMode;
-use teloxide::{prelude::*, utils::command::BotCommands};
-
-async fn try_connect(
-    url: &str,
-) -> anyhow::Result<(MultiplexedConnection, Arc<RedisStorage<Bincode>>)> {
-    let con = Client::open(url)?
-        .get_multiplexed_tokio_connection()
-        .await?;
-    let storage = RedisStorage::open(url, Bincode).await?;
-    anyhow::Ok((con, storage))
-}
+use teloxide::utils::command::BotCommands;
 
 pub async fn run_bot(data: Data) {
     log::info!("Starting dialogue_bot...");
@@ -35,21 +42,18 @@ pub async fn run_bot(data: Data) {
         .await
         .unwrap();
 
-    let urls = vec!["redis://redis:6379", "redis://127.0.0.1:6379"];
-
-    let redis_results = join_all(urls.into_iter().map(try_connect)).await;
-    let (redis_con, storage) = redis_results.into_iter().find_map(Result::ok).unwrap();
+    let (redis_con, storage) = connect_to_redis().await;
 
     let handler = Update::filter_message()
         .branch(get_commands_branch())
         .branch(get_maintainer_commands_branch())
-        .enter_dialogue::<Message, RedisStorage<Bincode>, State>()
+        .enter_dialogue::<Message, FirstAidStorage, State>()
         .branch(dptree::case![State::Start { lang }].endpoint(reset_dialogue))
         .branch(dptree::case![State::Dialogue { lang, context }].endpoint(handle_dialogue));
 
-    Dispatcher::builder(bot, handler)
+    Dispatcher::builder(bot.clone(), handler)
         .dependencies(dptree::deps![Arc::new(data), redis_con, storage])
-        .error_handler(LoggingErrorHandler::new())
+        .error_handler(FirstAidErrorHandler::new(bot))
         .build()
         .setup_ctrlc_handler()
         .dispatch()
