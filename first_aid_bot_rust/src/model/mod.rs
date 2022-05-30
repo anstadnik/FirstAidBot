@@ -13,10 +13,11 @@ use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
 use prelude::*;
+use std::env;
 
 use self::finite_state::Record;
 
-async fn get_csv_records(sheet_id: &str, sheet_name: String) -> anyhow::Result<Vec<Record>> {
+async fn get_csv_records(sheet_id: String, sheet_name: String) -> anyhow::Result<Vec<Record>> {
     let url = format!(
         "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
         sheet_id, sheet_name
@@ -79,12 +80,12 @@ fn fill_item(data: &[Record], key: Option<String>) -> anyhow::Result<Option<Fini
 }
 
 async fn get_finite_state(lang: Lang) -> anyhow::Result<FiniteState> {
-    let sheet_id = env!("SHEET_ID", "Please define a SHEET_ID env variable");
+    let sheet_id = env::var("SHEET_ID").expect("Please define a SHEET_ID env variable");
     let csv_records = get_csv_records(sheet_id, lang.name()).await?;
     Ok(FiniteState::new(
-         None,
-         lang.details().greeting.to_string(),
-         fill_item(&csv_records, None)?,
+        None,
+        lang.details().greeting.to_string(),
+        fill_item(&csv_records, None)?,
     ))
 }
 
