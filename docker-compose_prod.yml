@@ -8,7 +8,7 @@ services:
     environment:
       - TELOXIDE_TOKEN=5253437681:AAES1RtIBXBanwaWvFk3vWaty-_LH1xYge0
       # https://docs.google.com/spreadsheets/d/1lPJgwtDRFul3klRKOrRDiF3ca5PjjUvFQmzF1ugOZUU/edit
-      - SHEED_ID=1cO0sPRhIvt71J-iB313BeRfNXzXM0FjiQ4bDYmwddBQ
+      - SHEET_ID=1cO0sPRhIvt71J-iB313BeRfNXzXM0FjiQ4bDYmwddBQ
       - RUST_LOG=info
     restart: always
     # ports:
