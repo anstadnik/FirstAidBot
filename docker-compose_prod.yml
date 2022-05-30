@@ -8,7 +8,7 @@ services:
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
       # https://docs.google.com/spreadsheets/d/Миші з'їли/edit
-      - SHEED_ID=Миші з'їли
+      - SHEET_ID=Миші з'їли
       - RUST_LOG=info
     restart: always
     # ports:
