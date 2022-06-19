@@ -31,4 +31,7 @@ RUN cargo build --release
 FROM debian:buster-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/first_aid_bot_rust /usr/local/bin
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates
+RUN update-ca-certificates
 ENTRYPOINT first_aid_bot_rust
