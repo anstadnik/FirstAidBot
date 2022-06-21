@@ -1,5 +1,5 @@
 use super::prelude::*;
-use crate::MAINTAINER_ID;
+use crate::MAINTAINER_IDS;
 use futures::future::BoxFuture;
 use std::{fmt::Debug, sync::Arc};
 use teloxide::error_handlers::ErrorHandler;
@@ -23,10 +23,15 @@ where
         log::error!("{:?}", err);
         #[allow(deprecated)]
         Box::pin(async move {
-            if send_message(&self.bot, MAINTAINER_ID.into(), err.clone()).await.is_err() {
-                log::error!("OH MY GOD SOMETHING BROKE AND I CAN'T EVEN REPORT IT");
-                log::error!("{}", err);
-            };
+            for &maintainer_id in &MAINTAINER_IDS {
+                if send_message(&self.bot, maintainer_id.into(), err.clone())
+                    .await
+                    .is_err()
+                {
+                    log::error!("OH MY GOD SOMETHING BROKE AND I CAN'T EVEN REPORT IT");
+                    log::error!("{}", err);
+                };
+            }
         })
     }
 }
