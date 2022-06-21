@@ -43,15 +43,18 @@ pub struct FiniteState {
     options: Option<FiniteStateOptions>,
 }
 
-fn parse_link(link: &Option<String>) -> Option<String> {
+fn parse_link(link: &Option<String>) -> Result<Option<String>, String> {
     match link.as_ref() {
-        None => None,
+        None => Ok(None),
         Some(link) if link.contains("file/d") => {
             let link = Regex::new(r".*file/d/").unwrap().replace(link, "");
             let link = Regex::new(r"/.*").unwrap().replace(&link, "").to_string();
-            Some(format!("https://drive.google.com/uc?id={link}"))
+            Ok(Some(format!("https://drive.google.com/uc?id={link}")))
         }
-        Some(link) => Some(link.to_string()),
+        Some(link) => Err(format!(
+            "Cannot parse link {} (not a google drive link)",
+            link.to_string(),
+        )),
     }
 }
 
@@ -67,12 +70,15 @@ impl FiniteState {
             options,
         }
     }
-    pub fn parse_row(row: &&Record, options: Option<FiniteStateOptions>) -> FiniteState {
-        FiniteState {
-            link: parse_link(&row.link),
+    pub fn parse_row(
+        row: &&Record,
+        options: Option<FiniteStateOptions>,
+    ) -> Result<FiniteState, String> {
+        Ok(FiniteState {
+            link: parse_link(&row.link)?,
             message: row.answer.to_owned(),
             options,
-        }
+        })
     }
     pub fn get_options(&self) -> &[String] {
         self.options
