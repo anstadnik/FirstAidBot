@@ -63,10 +63,10 @@ fn fill_item(data: &[Record], key: Option<String>) -> anyhow::Result<Option<Fini
         return Ok(None);
     }
 
-    let convert_row = |row: &&Record| {
+    let convert_row = |row: &&Record| -> anyhow::Result<(String, FiniteState)> {
         let options = fill_item(data, Some(format!("{}.", row.hierarchy)))?;
-        let state = FiniteState::parse_row(row, options);
-        Ok((row.option.to_owned(), state))
+        let state = FiniteState::parse_row(row, options).map_err(anyhow::Error::msg)?;
+        anyhow::Ok((row.option.to_owned(), state))
     };
     let ordered_keys = get_ordered_keys(&options, key)?;
     let next_states = options
