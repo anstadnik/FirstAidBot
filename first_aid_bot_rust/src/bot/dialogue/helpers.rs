@@ -24,13 +24,28 @@ pub async fn log_to_redis(
     redis_con: &mut MultiplexedConnection,
     lang: &Lang,
     context: Option<&Vec<String>>,
+    add_to_set: bool,
 ) {
     if let Some(user) = msg.from() {
+        let user_id = user.id.0.to_string();
+
+        // TODO: Remove it when we'll have dashboards <21-06-22, astadnik> //
+        if add_to_set
+            && redis_con
+                .sadd::<_, _, ()>("all_users", &user_id)
+                .await
+                .is_err()
+        {
+            {
+                log::error!("Error writing a user to the redis db.");
+            }
+        }
+
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_millis() as u64;
-        let key = "user_".to_string() + &user.id.0.to_string();
+        let key = "user_".to_string() + &user_id;
         let context = context
             .map(|context| context.join("->"))
             .unwrap_or_default();

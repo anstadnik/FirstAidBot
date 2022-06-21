@@ -15,6 +15,15 @@ pub struct Record {
     pub link: Option<String>,
 }
 
+impl Record {
+    pub fn is_empty(self: &Record) -> bool {
+        self.hierarchy.is_empty()
+            && self.option.is_empty()
+            && self.answer.is_empty()
+            && self.link.is_none()
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                       Finite State types                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////

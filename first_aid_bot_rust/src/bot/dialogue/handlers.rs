@@ -13,7 +13,7 @@ pub async fn reset_dialogue(
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn_and_default(&bot, &msg, lang).await?;
     let state = &data.get().await?[&lang];
-    log_to_redis(&msg, &mut redis_con, &lang, None).await;
+    log_to_redis(&msg, &mut redis_con, &lang, None, true).await;
     let keyboard = make_keyboard(state.get_options(), lang, &[]);
     send_state(&bot, &msg, state, lang, keyboard).await?;
     let new_dialogue = State::Dialogue {
@@ -34,7 +34,7 @@ pub async fn handle_dialogue(
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn_and_default(&bot, &msg, lang).await?;
     let state = &data.get().await?[&lang];
-    log_to_redis(&msg, &mut redis_con, &lang, Some(&context)).await;
+    log_to_redis(&msg, &mut redis_con, &lang, Some(&context), false).await;
     let ordered_keys = &get_state(state, &context)
         .context(format!(
             "Cannot get context {context:?} being on state {state:?}"

@@ -81,7 +81,8 @@ fn fill_item(data: &[Record], key: Option<String>) -> anyhow::Result<Option<Fini
 
 async fn get_finite_state(lang: Lang) -> anyhow::Result<FiniteState> {
     let sheet_id = env::var("SHEET_ID").expect("Please define a SHEET_ID env variable");
-    let csv_records = get_csv_records(sheet_id, lang.name()).await?;
+    let mut csv_records = get_csv_records(sheet_id, lang.name()).await?;
+    csv_records.retain(|record| !record.is_empty());
     Ok(FiniteState::new(
         None,
         lang.details().greeting.to_string(),

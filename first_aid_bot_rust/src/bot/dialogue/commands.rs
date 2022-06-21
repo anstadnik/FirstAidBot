@@ -1,8 +1,8 @@
-use crate::MAINTAINER_ID;
+use crate::{MAINTAINER_IDS, REDIS_USERS_SET_KEY};
 
 use super::prelude::*;
 use anyhow::{bail, Context};
-use futures::StreamExt;
+// use futures::StreamExt;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::{collections::VecDeque, sync::Arc};
 use teloxide::dispatching::DpHandlerDescription;
@@ -49,10 +49,9 @@ pub async fn maintainer_commands_handler(
 ) -> anyhow::Result<()> {
     match cmd {
         MaintainerCommands::GetNumber => {
-            match redis_con.scan_match::<&str, String>("user_*").await {
-                Ok(keys) => {
-                    bot.send_message(msg.chat.id, keys.count().await.to_string())
-                        .await?;
+            match redis_con.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
+                Ok(n) => {
+                    bot.send_message(msg.chat.id, n.to_string()).await?;
                 }
                 Err(err) => {
                     bot.send_message(msg.chat.id, "Error getting a number of users")
@@ -107,7 +106,7 @@ pub fn get_maintainer_commands_branch(
     dptree::filter(
         |msg: Message, _bot: FirstAidBot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
             msg.from()
-                .map(|user| cfg!(debug_assertions) || user.id == MAINTAINER_ID)
+                .map(|user| cfg!(debug_assertions) || MAINTAINER_IDS.contains(&user.id))
                 .unwrap_or_default()
         },
     )
