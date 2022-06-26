@@ -1,24 +1,25 @@
 use crate::Lang;
+use anyhow::{anyhow, Context};
 use regex::Regex;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                           CSV entry                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Debug, Deserialize)]
-pub struct Record {
+pub struct Row {
     pub hierarchy: String,
-    pub option: String,
+    pub question: String,
     pub answer: String,
     pub link: Option<String>,
 }
 
-impl Record {
-    pub fn is_empty(self: &Record) -> bool {
+impl Row {
+    pub fn is_empty(self: &Row) -> bool {
         self.hierarchy.is_empty()
-            && self.option.is_empty()
+            && self.question.is_empty()
             && self.answer.is_empty()
             && self.link.is_none()
     }
@@ -28,22 +29,18 @@ impl Record {
 //                                       Finite State types                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub type MultilangStates = HashMap<Lang, FiniteState>;
+pub type MultilangStates = HashMap<Lang, FS>;
+
+pub type FSNextStates = BTreeMap<String, FS>;
 
 #[derive(Debug, Clone)]
-pub struct FiniteStateOptions {
-    pub ordered_keys: Vec<String>,
-    pub next_states: HashMap<String, FiniteState>,
-}
-
-#[derive(Debug, Clone)]
-pub struct FiniteState {
+pub struct FS {
     pub link: Option<String>,
     pub message: String,
-    options: Option<FiniteStateOptions>,
+    pub next_states: FSNextStates,
 }
 
-fn parse_link(link: &Option<String>) -> Result<Option<String>, String> {
+fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
     match link.as_ref() {
         None => Ok(None),
         Some(link) if link.contains("file/d") => {
@@ -51,42 +48,32 @@ fn parse_link(link: &Option<String>) -> Result<Option<String>, String> {
             let link = Regex::new(r"/.*").unwrap().replace(&link, "").to_string();
             Ok(Some(format!("https://drive.google.com/uc?id={link}")))
         }
-        Some(link) => Err(format!(
-            "Cannot parse link {} (not a google drive link)",
-            link.to_string(),
-        )),
+        Some(link) => Err(anyhow!("{link} is not a google drive link",)),
     }
 }
 
-impl FiniteState {
-    pub fn new(
-        link: Option<String>,
-        message: String,
-        options: Option<FiniteStateOptions>,
-    ) -> FiniteState {
-        FiniteState {
-            link,
-            message,
-            options,
+impl FS {
+    pub fn entry(lang: &Lang, next_states: FSNextStates) -> FS {
+        FS {
+            link: None,
+            message: lang.details().greeting.to_string(),
+            next_states,
         }
     }
-    pub fn parse_row(
-        row: &&Record,
-        options: Option<FiniteStateOptions>,
-    ) -> Result<FiniteState, String> {
-        Ok(FiniteState {
+    pub fn parse_row(row: &Row, options: FSNextStates) -> anyhow::Result<FS> {
+        Ok(FS {
             link: parse_link(&row.link)?,
             message: row.answer.to_owned(),
-            options,
+            next_states: options,
         })
     }
-    pub fn get_options(&self) -> &[String] {
-        self.options
-            .as_ref()
-            .map(|opts| &opts.ordered_keys[..])
-            .unwrap_or_default()
-    }
-    pub fn get_next_state(&self, option: &String) -> Option<&FiniteState> {
-        self.options.as_ref()?.next_states.get(option)
+    pub fn get_state<'a>(&'a self, context: &[String]) -> anyhow::Result<&'a FS> {
+        if context.is_empty() {
+            return Ok(self);
+        }
+        let next_state = self.next_states.get(&context[0]).context(format!(
+            "Cannot find next state: {self:?} being on {context:?}"
+        ))?;
+        next_state.get_state(&context[1..])
     }
 }

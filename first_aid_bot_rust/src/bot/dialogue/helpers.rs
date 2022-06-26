@@ -6,7 +6,7 @@ use teloxide::types::{Message, ReplyMarkup};
 use teloxide::{prelude::*, types::ParseMode};
 
 pub async fn get_lang_or_warn_and_default(
-    bot: &FirstAidBot,
+    bot: &FirstAirBot,
     msg: &Message,
     lang: String,
 ) -> anyhow::Result<Lang> {
@@ -61,9 +61,9 @@ pub async fn log_to_redis(
 }
 
 pub async fn send_state(
-    bot: &FirstAidBot,
+    bot: &FirstAirBot,
     msg: &Message,
-    state: &FiniteState,
+    state: &FS,
     lang: Lang,
     keyboard: ReplyMarkup,
 ) -> anyhow::Result<()> {

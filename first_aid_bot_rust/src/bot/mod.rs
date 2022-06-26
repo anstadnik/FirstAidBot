@@ -8,20 +8,20 @@ mod prelude {
     use teloxide::adaptors::{DefaultParseMode, Throttle};
     use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 
-    pub use super::keyboard::make_keyboard;
+    pub use super::keyboard::make_keyboard_from_state;
     pub use crate::bot::helpers::send_message;
     pub use crate::model::prelude::*;
     pub use std::sync::Arc;
     pub use teloxide::prelude::*;
 
     pub type FirstAidDialogue = Dialogue<State, RedisStorage<Bincode>>;
-    pub type FirstAidBot = AutoSend<DefaultParseMode<Throttle<Bot>>>;
+    pub type FirstAirBot = AutoSend<DefaultParseMode<Throttle<Bot>>>;
     pub type FirstAidStorage = RedisStorage<Bincode>;
 } /* prelude */
 
 use dialogue::{
     get_commands_branch, get_maintainer_commands_branch, handle_dialogue, reset_dialogue,
-    FirstAidCommands, State,
+    FACommands, State,
 };
 use error_handler::FirstAidErrorHandler;
 use helpers::connect_to_redis;
@@ -38,7 +38,7 @@ pub async fn run_bot(data: Data) {
         .parse_mode(ParseMode::MarkdownV2)
         .auto_send();
 
-    bot.set_my_commands(FirstAidCommands::bot_commands())
+    bot.set_my_commands(FACommands::bot_commands())
         .await
         .unwrap();
 

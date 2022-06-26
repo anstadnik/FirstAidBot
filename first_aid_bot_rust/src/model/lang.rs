@@ -86,6 +86,7 @@ const UA_LD: LangDetails = LangDetails {
         HELP_CHAT_URL
     ),
     use_buttons_text: "Використайте кнопки, або перезавантажте бота (/start)",
+    // TODO: Change it <26-06-22, astadnik> //
     greeting: "Що трапилось?",
 };
 

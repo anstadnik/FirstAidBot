@@ -5,11 +5,11 @@ use std::{fmt::Debug, sync::Arc};
 use teloxide::error_handlers::ErrorHandler;
 
 pub struct FirstAidErrorHandler {
-    bot: FirstAidBot,
+    bot: FirstAirBot,
 }
 
 impl FirstAidErrorHandler {
-    pub fn new(bot: FirstAidBot) -> Arc<Self> {
+    pub fn new(bot: FirstAirBot) -> Arc<Self> {
         Arc::new(Self { bot })
     }
 }

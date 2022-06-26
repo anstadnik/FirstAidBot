@@ -7,7 +7,7 @@ use teloxide::{payloads::SendMessageSetters, prelude::*};
 
 use super::prelude::*;
 
-pub async fn send_message(bot: &FirstAidBot, id: ChatId, msg: String) -> anyhow::Result<()> {
+pub async fn send_message(bot: &FirstAirBot, id: ChatId, msg: String) -> anyhow::Result<()> {
     #[allow(deprecated)]
     bot.send_message(id, msg)
         .parse_mode(ParseMode::Markdown)

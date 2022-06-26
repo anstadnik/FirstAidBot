@@ -1,17 +1,18 @@
+use crate::bot::keyboard::make_keyboard_from_state;
 use crate::{MAINTAINER_IDS, REDIS_USERS_SET_KEY};
 
 use super::prelude::*;
-use anyhow::{bail, Context};
-// use futures::StreamExt;
+use anyhow::bail;
+use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
-use std::{collections::VecDeque, sync::Arc};
+use std::sync::Arc;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::types::ParseMode;
 use teloxide::utils::command::BotCommands;
 
 #[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
-pub enum FirstAidCommands {
+pub enum FACommands {
     #[command(description = "Reboot")]
     Start,
 }
@@ -27,14 +28,14 @@ pub enum MaintainerCommands {
 
 pub async fn commands_handler(
     msg: Message,
-    bot: FirstAidBot,
-    cmd: FirstAidCommands,
+    bot: FirstAirBot,
+    cmd: FACommands,
     data: Arc<Data>,
     redis_con: MultiplexedConnection,
     dialogue: FirstAidDialogue,
 ) -> anyhow::Result<()> {
     match cmd {
-        FirstAidCommands::Start => {
+        FACommands::Start => {
             reset_dialogue(bot, msg, data, redis_con, dialogue, Lang::default().name()).await
         }
     }
@@ -42,7 +43,7 @@ pub async fn commands_handler(
 
 pub async fn maintainer_commands_handler(
     msg: Message,
-    bot: FirstAidBot,
+    bot: FirstAirBot,
     cmd: MaintainerCommands,
     data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
@@ -73,30 +74,39 @@ pub async fn maintainer_commands_handler(
     Ok(())
 }
 
-async fn test(data: Arc<Data>, bot: &FirstAidBot, msg: &Message) -> anyhow::Result<()> {
-    for (&lang, states) in &*data.get().await? {
-        let mut state_deque = VecDeque::new();
-        state_deque.push_back((Vec::new(), states));
-        while let Some((context, state)) = state_deque.pop_front() {
-            let keyboard = make_keyboard(state.get_options(), lang, &context);
+async fn test(data: Arc<Data>, bot: &FirstAirBot, msg: &Message) -> anyhow::Result<()> {
+    fn recursive_test<'a>(
+        state: &'a FS,
+        lang: Lang,
+        context: Vec<String>,
+        bot: &'a FirstAirBot,
+        msg: &'a Message,
+    ) -> BoxFuture<'a, anyhow::Result<()>> {
+        let keyboard = make_keyboard_from_state(state, lang, &context);
+        async move {
             send_state(bot, msg, state, lang, keyboard).await?;
-            for option in state.get_options() {
+            for (key, next_state) in state.next_states.iter() {
                 let mut context = context.clone();
-                context.push(option.to_string());
-                let next_state = state.get_next_state(option).context(format!(
-                    "Cannot find next state: {state:?} being on {context:?}"
-                ));
-                state_deque.push_back((context, next_state?))
+                context.push(key.to_string());
+                recursive_test(next_state, lang, context, bot, msg).await?;
             }
+            anyhow::Ok(())
+        }
+        .boxed()
+    }
+    for lang in Lang::iter() {
+        if let Ok(state) = data.get(lang, &[]).await {
+            recursive_test(&state, lang, Vec::new(), bot, msg).await?;
         }
     }
+
     Ok(())
 }
 
 pub fn get_commands_branch(
 ) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
     dptree::entry()
-        .filter_command::<FirstAidCommands>()
+        .filter_command::<FACommands>()
         .enter_dialogue::<Message, FirstAidStorage, State>()
         .endpoint(commands_handler)
 }
@@ -104,7 +114,7 @@ pub fn get_commands_branch(
 pub fn get_maintainer_commands_branch(
 ) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
     dptree::filter(
-        |msg: Message, _bot: FirstAidBot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
+        |msg: Message, _bot: FirstAirBot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
             msg.from()
                 .map(|user| cfg!(debug_assertions) || MAINTAINER_IDS.contains(&user.id))
                 .unwrap_or_default()

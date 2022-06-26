@@ -4,7 +4,7 @@ mod lang;
 
 pub mod prelude {
     pub use super::data::Data;
-    pub use super::finite_state::{FiniteState, FiniteStateOptions, MultilangStates};
+    pub use super::finite_state::{FSNextStates, MultilangStates, FS};
     pub use super::get_data;
     pub use super::lang::Lang;
 }
@@ -13,81 +13,40 @@ use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
 use prelude::*;
-use std::env;
+use std::{collections::BTreeMap, env};
 
-use self::finite_state::Record;
+use self::finite_state::Row;
 
-async fn get_csv_records(sheet_id: String, sheet_name: String) -> anyhow::Result<Vec<Record>> {
+async fn get_rows(sheet_id: String, sheet_name: String) -> anyhow::Result<Vec<Row>> {
     let url = format!(
-        "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
-        sheet_id, sheet_name
+        "https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
     );
     let reader = reqwest::get(url).await?;
     let rdr = Reader::from_reader(reader.bytes().await?.reader());
-    rdr.into_deserialize()
-        .map(|row: Result<Record, _>| {
-            let mut row = row?;
-            row.hierarchy = row.hierarchy.trim().to_string();
-            Ok(row)
-        })
-        .collect()
+    Ok(rdr.into_deserialize().collect::<Result<Vec<_>, _>>()?)
 }
 
-fn get_ordered_keys(options: &[&Record], key: Option<String>) -> anyhow::Result<Vec<String>> {
-    let key = key.unwrap_or_default();
-    let mut order = options
-        .iter()
-        .map(|row| {
-            Ok((
-                row.hierarchy.replace(&key, "").parse()?,
-                row.option.to_owned(),
-            ))
+fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStates> {
+    data.iter()
+        .filter_map(|row| {
+            (row.hierarchy.starts_with(key) && !row.hierarchy.replacen(key, "", 1).contains('.'))
+                .then(|| {
+                    let next_states =
+                        get_next_states_for_key(data, &(row.hierarchy.clone() + "."))?;
+                    Ok((row.question.to_owned(), FS::parse_row(row, next_states)?))
+                })
         })
-        .collect::<anyhow::Result<Vec<(u16, _)>>>()?;
-    order.sort();
-    Ok(order.into_iter().map(|x| x.1).collect())
+        .collect::<anyhow::Result<BTreeMap<String, FS>>>()
 }
 
-fn fill_item(data: &[Record], key: Option<String>) -> anyhow::Result<Option<FiniteStateOptions>> {
-    let options: Vec<_> = data
-        .iter()
-        .filter(|row| match &key {
-            None => !row.hierarchy.contains('.'),
-            Some(parent_key) => {
-                row.hierarchy.starts_with(parent_key)
-                    && !row.hierarchy.replacen(parent_key, "", 1).contains('.')
-            }
-        })
-        .collect();
-    if options.is_empty() {
-        return Ok(None);
-    }
-
-    let convert_row = |row: &&Record| -> anyhow::Result<(String, FiniteState)> {
-        let options = fill_item(data, Some(format!("{}.", row.hierarchy)))?;
-        let state = FiniteState::parse_row(row, options).map_err(anyhow::Error::msg)?;
-        anyhow::Ok((row.option.to_owned(), state))
-    };
-    let ordered_keys = get_ordered_keys(&options, key)?;
-    let next_states = options
-        .iter()
-        .map(convert_row)
-        .collect::<anyhow::Result<_>>()?;
-    Ok(Some(FiniteStateOptions {
-        ordered_keys,
-        next_states,
-    }))
-}
-
-async fn get_finite_state(lang: Lang) -> anyhow::Result<FiniteState> {
+async fn get_finite_state(lang: Lang) -> anyhow::Result<FS> {
     let sheet_id = env::var("SHEET_ID").expect("Please define a SHEET_ID env variable");
-    let mut csv_records = get_csv_records(sheet_id, lang.name()).await?;
-    csv_records.retain(|record| !record.is_empty());
-    Ok(FiniteState::new(
-        None,
-        lang.details().greeting.to_string(),
-        fill_item(&csv_records, None)?,
-    ))
+    let mut rows = get_rows(sheet_id, lang.name()).await?;
+    rows.retain(|record| !record.is_empty());
+    rows.iter_mut().for_each(|row| {
+        row.hierarchy = row.hierarchy.trim().to_string();
+    });
+    Ok(FS::entry(&lang, get_next_states_for_key(&rows, "")?))
 }
 
 pub async fn get_data() -> anyhow::Result<MultilangStates> {

@@ -1,7 +1,7 @@
 use super::prelude::*;
 use teloxide::types::{KeyboardButton, KeyboardMarkup, ReplyMarkup};
 
-pub fn make_keyboard(keys: &[String], lang: Lang, context: &[String]) -> ReplyMarkup {
+pub fn make_keyboard(keys: &Vec<String>, lang: Lang, context: &[String]) -> ReplyMarkup {
     let mut keyboard: Vec<Vec<KeyboardButton>> = vec![];
 
     if keys.is_empty() {
@@ -28,4 +28,8 @@ pub fn make_keyboard(keys: &[String], lang: Lang, context: &[String]) -> ReplyMa
     }
 
     ReplyMarkup::Keyboard(KeyboardMarkup::new(keyboard).resize_keyboard(true))
+}
+
+pub fn make_keyboard_from_state(state: &FS, lang: Lang, context: &[String]) -> ReplyMarkup {
+    make_keyboard(&state.next_states.keys().cloned().collect(), lang, context)
 }
