@@ -9,6 +9,7 @@ pub mod prelude {
     pub use super::lang::Lang;
 }
 
+use anyhow::anyhow;
 use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
@@ -21,20 +22,25 @@ async fn get_rows(sheet_id: String, sheet_name: String) -> anyhow::Result<Vec<Ro
     let url = format!(
         "https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
     );
-    let reader = reqwest::get(url).await?;
-    let rdr = Reader::from_reader(reader.bytes().await?.reader());
+    let rdr = Reader::from_reader(reqwest::get(url).await?.bytes().await?.reader());
     Ok(rdr.into_deserialize().collect::<Result<Vec<_>, _>>()?)
 }
 
 fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStates> {
     data.iter()
-        .filter_map(|row| {
-            (row.hierarchy.starts_with(key) && !row.hierarchy.replacen(key, "", 1).contains('.'))
-                .then(|| {
-                    let next_states =
-                        get_next_states_for_key(data, &(row.hierarchy.clone() + "."))?;
-                    Ok((row.question.to_owned(), FS::parse_row(row, next_states)?))
-                })
+        .filter(|row| {
+            row.hierarchy.starts_with(key) && !row.hierarchy.replacen(key, "", 1).contains('.')
+        })
+        .map(|mut row| {
+            if row.question.starts_with('#') {
+                row = data
+                    .iter()
+                    .find(|row_| row_.hierarchy == row.question.strip_prefix('#').unwrap())
+                    .ok_or_else(|| anyhow!("Didn't find referenced row for {}", row.question))?;
+            };
+            let key = row.hierarchy.clone() + ".";
+            let next_states = get_next_states_for_key(data, &key)?;
+            Ok((row.question.to_owned(), FS::parse_row(row, next_states)?))
         })
         .collect::<anyhow::Result<BTreeMap<String, FS>>>()
 }
