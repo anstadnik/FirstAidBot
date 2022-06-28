@@ -28,17 +28,15 @@ async fn get_rows(sheet_id: String, sheet_name: String) -> anyhow::Result<Vec<Ro
 
 fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStates> {
     data.iter()
-        .filter(|row| {
-            row.hierarchy.starts_with(key) && !row.hierarchy.replacen(key, "", 1).contains('.')
-        })
+        .filter(|row| row.key.starts_with(key) && !row.key.replacen(key, "", 1).contains('.'))
         .map(|mut row| {
             if row.question.starts_with('#') {
                 row = data
                     .iter()
-                    .find(|row_| row_.hierarchy == row.question.strip_prefix('#').unwrap())
+                    .find(|row_| row_.key == row.question.strip_prefix('#').unwrap())
                     .ok_or_else(|| anyhow!("Didn't find referenced row for {}", row.question))?;
             };
-            let key = row.hierarchy.clone() + ".";
+            let key = row.key.clone() + ".";
             let next_states = get_next_states_for_key(data, &key)?;
             Ok((row.question.to_owned(), FS::parse_row(row, next_states)?))
         })
@@ -49,9 +47,9 @@ async fn get_finite_state(lang: Lang) -> anyhow::Result<FS> {
     let sheet_id = env::var("SHEET_ID").expect("Please define a SHEET_ID env variable");
     let mut rows = get_rows(sheet_id, lang.name()).await?;
     rows.retain(|record| !record.is_empty());
-    rows.iter_mut().for_each(|row| {
-        row.hierarchy = row.hierarchy.trim().to_string();
-    });
+    for row in &mut rows {
+        row.key = row.key.trim().to_string();
+    }
     Ok(FS::entry(&lang, get_next_states_for_key(&rows, "")?))
 }
 

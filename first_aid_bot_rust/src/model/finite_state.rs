@@ -10,7 +10,7 @@ use std::collections::{BTreeMap, HashMap};
 
 #[derive(Debug, Deserialize)]
 pub struct Row {
-    pub hierarchy: String,
+    pub key: String,
     pub question: String,
     pub answer: String,
     pub link: Option<String>,
@@ -18,7 +18,7 @@ pub struct Row {
 
 impl Row {
     pub fn is_empty(self: &Row) -> bool {
-        self.hierarchy.is_empty()
+        self.key.is_empty()
             && self.question.is_empty()
             && self.answer.is_empty()
             && self.link.is_none()

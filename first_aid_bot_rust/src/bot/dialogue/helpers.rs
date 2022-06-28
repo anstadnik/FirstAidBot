@@ -23,14 +23,13 @@ pub async fn log_to_redis(
     msg: &Message,
     redis_con: &mut MultiplexedConnection,
     lang: &Lang,
-    context: Option<&Vec<String>>,
-    add_to_set: bool,
+    context: &[String],
 ) {
     if let Some(user) = msg.from() {
         let user_id = user.id.0.to_string();
 
         // TODO: Remove it when we'll have dashboards <21-06-22, astadnik> //
-        if add_to_set
+        if context.is_empty()
             && redis_con
                 .sadd::<_, _, ()>("all_users", &user_id)
                 .await
@@ -46,9 +45,7 @@ pub async fn log_to_redis(
             .unwrap()
             .as_millis() as u64;
         let key = "user_".to_string() + &user_id;
-        let context = context
-            .map(|context| context.join("->"))
-            .unwrap_or_default();
+        let context = context.join("->");
         let value = format!("{context}; {lang}");
         if redis_con
             .hset::<_, _, _, ()>(key, time, value)

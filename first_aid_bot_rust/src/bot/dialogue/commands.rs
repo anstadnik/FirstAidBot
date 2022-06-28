@@ -1,5 +1,5 @@
 use crate::bot::keyboard::make_keyboard_from_state;
-use crate::{MAINTAINER_IDS, REDIS_USERS_SET_KEY};
+use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
 
 use super::prelude::*;
 use anyhow::bail;
@@ -116,7 +116,11 @@ pub fn get_maintainer_commands_branch(
     dptree::filter(
         |msg: Message, _bot: FirstAirBot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
             msg.from()
-                .map(|user| cfg!(debug_assertions) || MAINTAINER_IDS.contains(&user.id))
+                .map(|user| {
+                    cfg!(debug_assertions)
+                        || (user.username.is_some()
+                            && MAINTAINER_USERNAMES.contains(&user.username.as_ref().unwrap().as_str()))
+                })
                 .unwrap_or_default()
         },
     )
