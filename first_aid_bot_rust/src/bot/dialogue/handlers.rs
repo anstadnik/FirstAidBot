@@ -1,6 +1,7 @@
 use crate::bot::keyboard::make_keyboard_from_state;
 
 use super::prelude::*;
+use anyhow::anyhow;
 use redis::aio::MultiplexedConnection;
 use teloxide::types::ParseMode;
 
@@ -50,7 +51,7 @@ pub async fn handle_dialogue(
         {
             let lang = Lang::iter()
                 .find(|lang| lang.details().button_lang_name == text)
-                .unwrap();
+                .ok_or_else(|| anyhow!("Wrong language WTF?"))?;
             reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await?;
         }
         Some(text) if state.next_states.contains_key(&text.to_string()) => {

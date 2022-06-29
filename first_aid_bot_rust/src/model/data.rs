@@ -17,7 +17,7 @@ impl Data {
         }
     }
     pub async fn get(&self, lang: Lang, context: &[String]) -> anyhow::Result<Cow<FS>> {
-        Ok(match &self.data {
+        let state = match &self.data {
             Some(data) => Cow::Borrowed(
                 data.get(&lang)
                     .ok_or_else(|| Error::msg("No such lang {lang}"))?
@@ -31,6 +31,7 @@ impl Data {
                     .get_state(context)?
                     .to_owned(),
             ),
-        })
+        };
+        Ok(state)
     }
 }
