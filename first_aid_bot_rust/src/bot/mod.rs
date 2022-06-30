@@ -9,7 +9,7 @@ mod prelude {
     use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 
     pub use super::keyboard::make_keyboard_from_state;
-    pub use crate::bot::helpers::send_message;
+    pub use crate::bot::helpers::send_plain_string;
     pub use crate::model::prelude::*;
     pub use std::sync::Arc;
     pub use teloxide::prelude::*;

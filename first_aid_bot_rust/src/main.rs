@@ -5,6 +5,7 @@ use bot::run_bot;
 use log::info;
 use model::prelude::*;
 use teloxide::types::UserId;
+// use teloxide::types::UserId;
 
 const MAINTAINER_IDS: [teloxide::types::UserId; 1] = [UserId(131596643)];
 const MAINTAINER_USERNAMES: [&str; 2] = ["astadnik", "AL_Lev"];

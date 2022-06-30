@@ -1,17 +1,38 @@
 use crate::REDIS_URLS;
 use futures::future::join_all;
+use itertools::Itertools;
 use redis::{aio::MultiplexedConnection, Client};
 use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
-use teloxide::types::{ChatId, ParseMode};
-use teloxide::{payloads::SendMessageSetters, prelude::*};
+use teloxide::prelude::*;
+use teloxide::utils::markdown::escape;
 
 use super::prelude::*;
 
-pub async fn send_message(bot: &FirstAirBot, id: ChatId, msg: String) -> anyhow::Result<()> {
-    #[allow(deprecated)]
-    bot.send_message(id, msg)
-        .parse_mode(ParseMode::Markdown)
-        .await?;
+fn split_msg(msg: &str) -> Vec<String> {
+    let mut ret: Vec<String> = Vec::new();
+    for msg in msg.split_inclusive('\n') {
+        if ret.is_empty() || ret.last().unwrap().len() + msg.len() >= 4000 {
+            ret.push(msg.to_string());
+        } else {
+            *ret.last_mut().unwrap() += msg;
+        }
+    }
+    ret.into_iter()
+        .flat_map(|msg| {
+            msg.chars()
+                .chunks(4000)
+                .into_iter()
+                .map(|c| c.collect::<String>())
+                .collect::<Vec<_>>()
+        })
+        .collect()
+}
+
+pub async fn send_plain_string(bot: &FirstAirBot, id: ChatId, msg: &str) -> anyhow::Result<()> {
+    for msg in &split_msg(msg) {
+        bot.send_message(id, "```".to_string() + &escape(msg) + "```")
+            .await?;
+    }
     Ok(())
 }
 

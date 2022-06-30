@@ -9,6 +9,7 @@ services:
       # https://docs.google.com/spreadsheets/d/Миші з'їли/edit
       - SHEET_ID=Миші з'їли
       # - RUST_LOG=debug
+      - RUST_BACKTRACE=1
     restart: always
     # ports:
     #   - 8081:8081

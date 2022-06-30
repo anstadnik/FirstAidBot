@@ -119,7 +119,8 @@ pub fn get_maintainer_commands_branch(
                 .map(|user| {
                     cfg!(debug_assertions)
                         || (user.username.is_some()
-                            && MAINTAINER_USERNAMES.contains(&user.username.as_ref().unwrap().as_str()))
+                            && MAINTAINER_USERNAMES
+                                .contains(&user.username.as_ref().unwrap().as_str()))
                 })
                 .unwrap_or_default()
         },

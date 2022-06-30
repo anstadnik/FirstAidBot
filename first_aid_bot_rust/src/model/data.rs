@@ -16,7 +16,7 @@ impl Data {
             data: Some(get_data().await.unwrap()),
         }
     }
-    pub async fn get(&self, lang: Lang, context: &[String]) -> anyhow::Result<Cow<FS>> {
+    pub async fn get<'a>(&'a self, lang: Lang, context: &'_ [String]) -> anyhow::Result<Cow<'a, FS>> {
         let state = match &self.data {
             Some(data) => Cow::Borrowed(
                 data.get(&lang)

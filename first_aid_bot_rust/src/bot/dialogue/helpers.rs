@@ -13,7 +13,7 @@ pub async fn get_lang_or_warn_and_default(
     Ok(match lang.as_str().try_into() {
         Ok(lang) => lang,
         Err(err) => {
-            send_message(bot, msg.chat.id, err).await?;
+            send_plain_string(bot, msg.chat.id, &err).await?;
             Lang::default()
         }
     })
@@ -76,9 +76,9 @@ pub async fn send_state(
         .await;
 
     if let Err(err) = rez {
-        send_message(bot, msg.chat.id, lang.details().error.to_string()).await?;
-        send_message(bot, msg.chat.id, format!("{err:#?}")).await?;
-        send_message(bot, msg.chat.id, state.message.to_owned()).await?;
+        send_plain_string(bot, msg.chat.id, lang.details().error).await?;
+        send_plain_string(bot, msg.chat.id, &format!("{err:#?}")).await?;
+        send_plain_string(bot, msg.chat.id, &state.message).await?;
         bail!(err);
     }
     Ok(())
