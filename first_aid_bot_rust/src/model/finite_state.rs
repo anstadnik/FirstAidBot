@@ -1,8 +1,9 @@
 use crate::Lang;
 use anyhow::{anyhow, Context};
+use indexmap::IndexMap;
 use regex::Regex;
 use serde::Deserialize;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                           CSV entry                                            //
@@ -31,7 +32,7 @@ impl Row {
 
 pub type MultilangStates = HashMap<Lang, FS>;
 
-pub type FSNextStates = BTreeMap<String, FS>;
+pub type FSNextStates = IndexMap<String, FS>;
 
 #[derive(Debug, Clone)]
 pub struct FS {

@@ -13,8 +13,9 @@ use anyhow::anyhow;
 use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
+use indexmap::IndexMap;
 use prelude::*;
-use std::{collections::BTreeMap, env};
+use std::env;
 
 use self::finite_state::Row;
 
@@ -40,7 +41,7 @@ fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStat
             let next_states = get_next_states_for_key(data, &key)?;
             Ok((row.question.to_owned(), FS::parse_row(row, next_states)?))
         })
-        .collect::<anyhow::Result<BTreeMap<String, FS>>>()
+        .collect::<anyhow::Result<IndexMap<String, FS>>>()
 }
 
 async fn get_finite_state(lang: Lang) -> anyhow::Result<FS> {
