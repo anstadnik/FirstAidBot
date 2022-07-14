@@ -9,7 +9,7 @@ pub mod prelude {
     pub use super::lang::Lang;
 }
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
@@ -39,7 +39,10 @@ fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStat
             };
             let key = row.key.clone() + ".";
             let next_states = get_next_states_for_key(data, &key)?;
-            Ok((row.question.to_owned(), FS::parse_row(row, next_states)?))
+            Ok((
+                row.question.to_owned(),
+                FS::parse_row(row, next_states).context(format!("Error in {}", row.key))?,
+            ))
         })
         .collect::<anyhow::Result<IndexMap<String, FS>>>()
 }
