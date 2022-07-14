@@ -1,3 +1,4 @@
+use super::handlers::move_to_state;
 use super::prelude::*;
 use crate::bot::keyboard::make_keyboard_from_state;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
@@ -29,12 +30,13 @@ pub async fn commands_handler(
     bot: FABot,
     cmd: FACommands,
     data: Arc<Data>,
-    redis_con: MultiplexedConnection,
+    mut redis_con: MultiplexedConnection,
     dialogue: FADialogue,
 ) -> anyhow::Result<()> {
     match cmd {
         FACommands::Start => {
-            reset_dialogue(bot, msg, data, redis_con, dialogue, Lang::default().name()).await
+            let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
+            move_to_state(&args, Vec::new(), Lang::default()).await
         }
     }
 }

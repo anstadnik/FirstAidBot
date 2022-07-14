@@ -1,8 +1,8 @@
 use super::prelude::*;
-use crate::bot::keyboard::make_keyboard_from_state;
-use redis::aio::MultiplexedConnection;
-use std::sync::Arc;
-use teloxide::types::Message;
+// use crate::bot::keyboard::make_keyboard_from_state;
+// use redis::aio::MultiplexedConnection;
+// use std::sync::Arc;
+// use teloxide::types::Message;
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub enum State {
@@ -16,29 +16,4 @@ impl Default for State {
             lang: Lang::default().name(),
         }
     }
-}
-
-pub async fn move_to_state(
-    bot: FABot,
-    msg: Message,
-    dialogue: FADialogue,
-    data: Arc<Data>,
-    redis_con: MultiplexedConnection,
-    context: Vec<String>,
-    lang: Lang,
-) -> anyhow::Result<()> {
-    let state = &data.get(lang, &context).await?;
-    // let state = get_state(state, &context)?;
-    let keyboard = make_keyboard_from_state(state, lang, &context);
-    send_state(&bot, &msg, state, lang, keyboard).await?;
-    if state.next_states.is_empty() {
-        return reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await;
-    }
-    dialogue
-        .update(State::Dialogue {
-            lang: lang.name(),
-            context,
-        })
-        .await?;
-    Ok(())
 }

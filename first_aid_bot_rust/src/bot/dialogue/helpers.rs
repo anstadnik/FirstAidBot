@@ -5,26 +5,31 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use teloxide::types::{Message, ReplyMarkup};
 use teloxide::{prelude::*, types::ParseMode};
 
-pub async fn get_lang_or_warn_and_default(
-    bot: &FABot,
-    msg: &Message,
-    lang: String,
-) -> anyhow::Result<Lang> {
-    Ok(match lang.as_str().try_into() {
-        Ok(lang) => lang,
+pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
+    match lang.as_str().try_into() {
+        Ok(lang) => Ok(lang),
         Err(err) => {
             send_plain_string(bot, msg.chat.id, &err).await?;
-            Lang::default()
+            bail!(err)
         }
-    })
+    }
 }
 
 pub async fn log_to_redis(
-    msg: &Message,
-    redis_con: &mut MultiplexedConnection,
+    // msg: &Message,
+    // redis_con: &mut MultiplexedConnection,
+    args: &FAMsgArgs<'_>,
     lang: &Lang,
     context: &[String],
 ) {
+    let FAMsgArgs {
+        bot,
+        msg,
+        dialogue,
+        data,
+        redis_con,
+    } = args;
+    let mut redis_con = redis_con.clone();
     if let Some(user) = msg.from() {
         let user_id = user.id.0.to_string();
 

@@ -28,3 +28,4 @@ anyhow = { version = "1.0.58", features = ["backtrace"] }
 tokio = { version =  "1.19.2", features = ["rt-multi-thread", "macros"] }
 const_format = "0.2.25"
 itertools = "0.10.3"
+async-recursion = "1.0.0"

@@ -20,7 +20,7 @@ mod prelude {
 } /* prelude */
 
 use dialogue::{
-    get_commands_branch, get_maintainer_commands_branch, handle_dialogue, reset_dialogue,
+    get_commands_branch, get_maintainer_commands_branch, handle_dialogue, start_handler,
     FACommands, State,
 };
 use error_handler::FAErrorHandler;
@@ -48,7 +48,7 @@ pub async fn run_bot(data: Data) {
         .branch(get_commands_branch())
         .branch(get_maintainer_commands_branch())
         .enter_dialogue::<Message, FirstAidStorage, State>()
-        .branch(dptree::case![State::Start { lang }].endpoint(reset_dialogue))
+        .branch(dptree::case![State::Start { lang }].endpoint(start_handler))
         .branch(dptree::case![State::Dialogue { lang, context }].endpoint(handle_dialogue));
 
     Dispatcher::builder(bot.clone(), handler)

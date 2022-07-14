@@ -35,10 +35,10 @@ pub async fn send_plain_string(bot: &FABot, id: ChatId, msg: &str) -> anyhow::Re
     Ok(())
 }
 
-pub async fn send_err(bot: &FABot, id: ChatId, lang: &Lang, err: impl Display) {
+pub async fn send_err(bot: &FABot, id: ChatId, lang: &Lang, err: String) {
     if let Err(err) = async move {
         send_plain_string(bot, id, lang.details().error).await?;
-        send_plain_string(bot, id, &err.to_string()).await?;
+        send_plain_string(bot, id, &err).await?;
         anyhow::Ok(())
     }
     .await
@@ -65,10 +65,17 @@ where
 {
     fn handle_error(self: Arc<Self>, err: E) -> BoxFuture<'static, ()> {
         log::error!("{}", err.to_string());
+        let err = err.to_string();
         Box::pin(async move {
             if !cfg!(debug_assertions) {
                 for &maintainer_id in &MAINTAINER_IDS {
-                    send_err(&self.bot, maintainer_id.into(), &Default::default(), err).await;
+                    send_err(
+                        &self.bot,
+                        maintainer_id.into(),
+                        &Default::default(),
+                        err.clone(),
+                    )
+                    .await;
                 }
             }
         })
