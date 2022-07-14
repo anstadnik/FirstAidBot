@@ -1,6 +1,5 @@
-use crate::bot::keyboard::make_keyboard_from_state;
-
 use super::prelude::*;
+use crate::bot::keyboard::make_keyboard_from_state;
 use redis::aio::MultiplexedConnection;
 use std::sync::Arc;
 use teloxide::types::Message;
@@ -20,9 +19,9 @@ impl Default for State {
 }
 
 pub async fn move_to_state(
-    bot: FirstAirBot,
+    bot: FABot,
     msg: Message,
-    dialogue: FirstAidDialogue,
+    dialogue: FADialogue,
     data: Arc<Data>,
     redis_con: MultiplexedConnection,
     context: Vec<String>,

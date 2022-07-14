@@ -1,13 +1,11 @@
+use super::prelude::*;
 use crate::bot::keyboard::make_keyboard_from_state;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
-
-use super::prelude::*;
 use anyhow::bail;
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
 use teloxide::dispatching::DpHandlerDescription;
-use teloxide::types::ParseMode;
 use teloxide::utils::command::BotCommands;
 
 #[derive(BotCommands, Clone)]
@@ -28,11 +26,11 @@ pub enum MaintainerCommands {
 
 pub async fn commands_handler(
     msg: Message,
-    bot: FirstAirBot,
+    bot: FABot,
     cmd: FACommands,
     data: Arc<Data>,
     redis_con: MultiplexedConnection,
-    dialogue: FirstAidDialogue,
+    dialogue: FADialogue,
 ) -> anyhow::Result<()> {
     match cmd {
         FACommands::Start => {
@@ -43,7 +41,7 @@ pub async fn commands_handler(
 
 pub async fn maintainer_commands_handler(
     msg: Message,
-    bot: FirstAirBot,
+    bot: FABot,
     cmd: MaintainerCommands,
     data: Arc<Data>,
     mut redis_con: MultiplexedConnection,
@@ -64,9 +62,7 @@ pub async fn maintainer_commands_handler(
         #[allow(deprecated)]
         MaintainerCommands::Test => {
             if let Err(err) = test(data, &bot, &msg).await {
-                bot.send_message(msg.chat.id, err.to_string())
-                    .parse_mode(ParseMode::Markdown)
-                    .await?;
+                send_plain_string(&bot, msg.chat.id, &err.to_string()).await?;
                 bail!(err)
             }
         }
@@ -74,12 +70,12 @@ pub async fn maintainer_commands_handler(
     Ok(())
 }
 
-async fn test(data: Arc<Data>, bot: &FirstAirBot, msg: &Message) -> anyhow::Result<()> {
+async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
     fn recursive_test<'a>(
         state: &'a FS,
         lang: Lang,
         context: Vec<String>,
-        bot: &'a FirstAirBot,
+        bot: &'a FABot,
         msg: &'a Message,
     ) -> BoxFuture<'a, anyhow::Result<()>> {
         let keyboard = make_keyboard_from_state(state, lang, &context);
@@ -114,7 +110,7 @@ pub fn get_commands_branch(
 pub fn get_maintainer_commands_branch(
 ) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
     dptree::filter(
-        |msg: Message, _bot: FirstAirBot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
+        |msg: Message, _bot: FABot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
             msg.from()
                 .map(|user| {
                     cfg!(debug_assertions)

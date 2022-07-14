@@ -6,7 +6,7 @@ use teloxide::types::{Message, ReplyMarkup};
 use teloxide::{prelude::*, types::ParseMode};
 
 pub async fn get_lang_or_warn_and_default(
-    bot: &FirstAirBot,
+    bot: &FABot,
     msg: &Message,
     lang: String,
 ) -> anyhow::Result<Lang> {
@@ -35,9 +35,7 @@ pub async fn log_to_redis(
                 .await
                 .is_err()
         {
-            {
-                log::error!("Error writing a user to the redis db.");
-            }
+            log::error!("Error writing a user to the redis db.");
         }
 
         let time = SystemTime::now()
@@ -58,7 +56,7 @@ pub async fn log_to_redis(
 }
 
 pub async fn send_state(
-    bot: &FirstAirBot,
+    bot: &FABot,
     msg: &Message,
     state: &FS,
     lang: Lang,
