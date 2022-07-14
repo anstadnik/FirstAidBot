@@ -2,7 +2,6 @@ mod bot;
 mod model;
 
 use bot::run_bot;
-use log::info;
 use model::prelude::*;
 use teloxide::types::UserId;
 // use teloxide::types::UserId;
@@ -17,10 +16,8 @@ const REDIS_USERS_SET_KEY: &str = "all_users";
 async fn main() {
     pretty_env_logger::init();
     let data = if cfg!(debug_assertions) {
-        info!("Dynamic data!");
         Data::dynamic()
     } else {
-        info!("Cached data!");
         Data::cached().await
     };
 

@@ -1,15 +1,13 @@
 mod dialogue;
 mod error_handler;
 mod helpers;
-mod keyboard;
 
 mod prelude {
     use crate::bot::State;
     use teloxide::adaptors::{DefaultParseMode, Throttle};
     use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 
-    pub use super::keyboard::make_keyboard_from_state;
-    pub use crate::bot::error_handler::send_plain_string;
+    pub use crate::bot::helpers::send_plain_string;
     pub use crate::model::prelude::*;
     pub use std::sync::Arc;
     pub use teloxide::prelude::*;
@@ -28,7 +26,6 @@ use helpers::connect_to_redis;
 use prelude::*;
 use teloxide::types::ParseMode;
 use teloxide::utils::command::BotCommands;
-
 
 pub async fn run_bot(data: Data) {
     log::info!("Starting dialogue_bot...");

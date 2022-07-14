@@ -1,8 +1,4 @@
 use super::prelude::*;
-// use crate::bot::keyboard::make_keyboard_from_state;
-// use redis::aio::MultiplexedConnection;
-// use std::sync::Arc;
-// use teloxide::types::Message;
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub enum State {

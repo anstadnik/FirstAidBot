@@ -1,5 +1,6 @@
 use super::prelude::*;
 use anyhow::Error;
+use log::info;
 use std::borrow::Cow;
 
 #[derive(Debug)]
@@ -9,9 +10,11 @@ pub struct Data {
 
 impl Data {
     pub fn dynamic() -> Self {
+        info!("Dynamic data!");
         Self { data: None }
     }
     pub async fn cached() -> Self {
+        info!("Cached data!");
         Self {
             data: Some(get_data().await.unwrap()),
         }

@@ -1,5 +1,4 @@
 use super::prelude::*;
-use crate::bot::keyboard::make_keyboard_from_state;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
 use anyhow::bail;
 use futures::{future::BoxFuture, FutureExt};
@@ -79,9 +78,8 @@ async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()>
         bot: &'a FABot,
         msg: &'a Message,
     ) -> BoxFuture<'a, anyhow::Result<()>> {
-        let keyboard = make_keyboard_from_state(state, lang, &context);
         async move {
-            send_state(bot, msg, state, lang, keyboard).await?;
+            send_state(bot, msg.chat.id, state, lang, &context).await?;
             for (key, next_state) in state.next_states.iter() {
                 let mut context = context.clone();
                 context.push(key.to_string());

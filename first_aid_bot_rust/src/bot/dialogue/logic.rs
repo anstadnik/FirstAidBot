@@ -1,7 +1,7 @@
-use async_recursion::async_recursion;
-use anyhow::anyhow;
-use teloxide::types::ParseMode;
 use super::prelude::*;
+use anyhow::anyhow;
+use async_recursion::async_recursion;
+use teloxide::types::ParseMode;
 
 #[async_recursion]
 pub async fn move_to_state(
@@ -18,8 +18,7 @@ pub async fn move_to_state(
     } = args;
     let state = &data.get(lang, &context).await?;
     log_to_redis(args, &lang, &context).await;
-    let keyboard = make_keyboard_from_state(state, lang, &context);
-    send_state(bot, msg, state, lang, keyboard).await?;
+    send_state(bot, msg.chat.id, state, lang, &context).await?;
     if state.next_states.is_empty() {
         return move_to_state(args, Vec::new(), lang).await;
     }

@@ -3,6 +3,16 @@ use crate::bot::error_handler::send_err;
 use anyhow::bail;
 use redis::aio::MultiplexedConnection;
 
+pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
+    match lang.as_str().try_into() {
+        Ok(lang) => Ok(lang),
+        Err(err) => {
+            send_plain_string(bot, msg.chat.id, &err).await?;
+            bail!(err)
+        }
+    }
+}
+
 pub struct FAMsgArgs<'a> {
     pub bot: &'a FABot,
     pub msg: &'a Message,

@@ -2,18 +2,7 @@ use super::prelude::*;
 use anyhow::bail;
 use redis::AsyncCommands;
 use std::time::{SystemTime, UNIX_EPOCH};
-use teloxide::types::{Message, ReplyMarkup};
 use teloxide::{prelude::*, types::ParseMode};
-
-pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
-    match lang.as_str().try_into() {
-        Ok(lang) => Ok(lang),
-        Err(err) => {
-            send_plain_string(bot, msg.chat.id, &err).await?;
-            bail!(err)
-        }
-    }
-}
 
 pub async fn log_to_redis(args: &FAMsgArgs<'_>, lang: &Lang, context: &[String]) {
     let FAMsgArgs { msg, redis_con, .. }: &FAMsgArgs = args;
@@ -50,26 +39,27 @@ pub async fn log_to_redis(args: &FAMsgArgs<'_>, lang: &Lang, context: &[String])
 
 pub async fn send_state(
     bot: &FABot,
-    msg: &Message,
+    id: ChatId,
     state: &FS,
     lang: Lang,
-    keyboard: ReplyMarkup,
+    context: &[String],
 ) -> anyhow::Result<()> {
     if let Some(link) = &state.link {
-        bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
+        bot.send_message(id, format!("<a href='{link}'>&#8288;</a>"))
             .parse_mode(ParseMode::Html)
             .await?;
     }
 
+    let keyboard = make_keyboard_from_state(state, lang, context);
     let rez = bot
-        .send_message(msg.chat.id, &state.message)
+        .send_message(id, &state.message)
         .reply_markup(keyboard)
         .await;
 
     if let Err(err) = rez {
-        send_plain_string(bot, msg.chat.id, lang.details().error).await?;
-        send_plain_string(bot, msg.chat.id, &format!("{err:#?}")).await?;
-        send_plain_string(bot, msg.chat.id, &state.message).await?;
+        send_plain_string(bot, id, lang.details().error).await?;
+        send_plain_string(bot, id, &format!("{err:#?}")).await?;
+        send_plain_string(bot, id, &state.message).await?;
         bail!(err);
     }
     Ok(())
