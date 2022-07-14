@@ -1,6 +1,6 @@
 use super::prelude::*;
 use anyhow::bail;
-use redis::{aio::MultiplexedConnection, AsyncCommands};
+use redis::AsyncCommands;
 use std::time::{SystemTime, UNIX_EPOCH};
 use teloxide::types::{Message, ReplyMarkup};
 use teloxide::{prelude::*, types::ParseMode};
@@ -15,20 +15,8 @@ pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyho
     }
 }
 
-pub async fn log_to_redis(
-    // msg: &Message,
-    // redis_con: &mut MultiplexedConnection,
-    args: &FAMsgArgs<'_>,
-    lang: &Lang,
-    context: &[String],
-) {
-    let FAMsgArgs {
-        bot,
-        msg,
-        dialogue,
-        data,
-        redis_con,
-    } = args;
+pub async fn log_to_redis(args: &FAMsgArgs<'_>, lang: &Lang, context: &[String]) {
+    let FAMsgArgs { msg, redis_con, .. }: &FAMsgArgs = args;
     let mut redis_con = redis_con.clone();
     if let Some(user) = msg.from() {
         let user_id = user.id.0.to_string();

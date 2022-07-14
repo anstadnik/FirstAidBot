@@ -1,7 +1,6 @@
 use super::prelude::*;
 use crate::bot::{error_handler::send_err, keyboard::make_keyboard_from_state};
 use anyhow::{anyhow, bail};
-use async_recursion::async_recursion;
 use redis::aio::MultiplexedConnection;
 use teloxide::types::ParseMode;
 
@@ -48,46 +47,25 @@ pub async fn start_handler(
     Ok(())
 }
 
-#[async_recursion]
-pub async fn move_to_state(
-    args: &FAMsgArgs,
-    context: Vec<String>,
-    lang: Lang,
-) -> anyhow::Result<()> {
-    let FAMsgArgs {
-        bot,
-        msg,
-        dialogue,
-        data,
-        redis_con,
-    } = args;
-    let state = &data.get(lang, &context).await?;
-    log_to_redis(&args, &lang, &context).await;
-    let keyboard = make_keyboard_from_state(state, lang, &context);
-    send_state(bot, msg, state, lang, keyboard).await?;
-    if state.next_states.is_empty() {
-        return move_to_state(args, Vec::new(), lang).await;
-    }
-    let new_dialogue = State::Dialogue {
-        lang: lang.name(),
-        context,
-    };
-    dialogue.update(new_dialogue).await?;
-    Ok(())
-}
-
 pub async fn handle_dialogue(
     bot: FABot,
     msg: Message,
     dialogue: FADialogue,
     data: Arc<Data>,
-    mut redis_con: MultiplexedConnection,
-    (lang, mut context): (String, Vec<String>),
+    redis_con: MultiplexedConnection,
+    (lang, context): (String, Vec<String>),
 ) -> anyhow::Result<()> {
-    let lang = get_lang_or_warn(&bot, &msg, lang).await?;
+    let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
+    let lang = match get_lang_or_warn(&bot, &msg, lang).await {
+        Ok(lang) => lang,
+        Err(err) => {
+            send_err(&bot, msg.chat.id, &Lang::default(), err.to_string()).await;
+            move_to_state(&args, Vec::new(), Lang::default());
+            bail!(err)
+        }
+    };
     // TODO: Move to the initial state <12-07-22, astadnik> //
     // if let Err(err) = {
-    let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
     let state = &data.get(lang, &context).await?;
     if let Err(err) = {
         log_to_redis(&args, &lang, &context).await;
@@ -125,7 +103,6 @@ pub async fn handle_dialogue(
         anyhow::Ok(())
     } {
         send_err(&bot, msg.chat.id, &lang, err.to_string()).await;
-        // reset_dialogue(bot, msg, data, redis_con, dialogue, lang.name()).await?;
         move_to_state(&args, context, lang);
         bail!(err)
     }

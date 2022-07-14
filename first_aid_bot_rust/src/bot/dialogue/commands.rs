@@ -1,4 +1,3 @@
-use super::handlers::move_to_state;
 use super::prelude::*;
 use crate::bot::keyboard::make_keyboard_from_state;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
