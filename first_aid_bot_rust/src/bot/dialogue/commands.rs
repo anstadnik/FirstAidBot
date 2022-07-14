@@ -29,7 +29,7 @@ pub async fn commands_handler(
     bot: FABot,
     cmd: FACommands,
     data: Arc<Data>,
-    mut redis_con: MultiplexedConnection,
+    redis_con: MultiplexedConnection,
     dialogue: FADialogue,
 ) -> anyhow::Result<()> {
     match cmd {

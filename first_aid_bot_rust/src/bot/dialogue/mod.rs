@@ -6,7 +6,7 @@ mod state;
 
 mod prelude {
     pub use super::handlers::{start_handler, FAMsgArgs};
-    pub use super::logic::move_to_state;
+    pub use super::logic::{move_to_state, state_transition};
     pub use super::helpers::{get_lang_or_warn, log_to_redis, send_state};
     pub use super::state::State;
     pub use crate::bot::prelude::*;

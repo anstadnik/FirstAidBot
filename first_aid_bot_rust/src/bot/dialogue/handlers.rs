@@ -1,8 +1,7 @@
 use super::prelude::*;
-use crate::bot::{error_handler::send_err, keyboard::make_keyboard_from_state};
-use anyhow::{anyhow, bail};
+use crate::bot::error_handler::send_err;
+use anyhow::bail;
 use redis::aio::MultiplexedConnection;
-use teloxide::types::ParseMode;
 
 pub struct FAMsgArgs<'a> {
     pub bot: &'a FABot,
@@ -64,46 +63,9 @@ pub async fn handle_dialogue(
             bail!(err)
         }
     };
-    // TODO: Move to the initial state <12-07-22, astadnik> //
-    // if let Err(err) = {
-    let state = &data.get(lang, &context).await?;
-    if let Err(err) = {
-        log_to_redis(&args, &lang, &context).await;
-        let mut context = context.clone();
-        match msg.text() {
-            Some(text) if text == lang.details().button_home => {
-                move_to_state(&args, Vec::new(), lang).await?;
-            }
-            Some(text) if text == lang.details().button_back => {
-                context.pop();
-                move_to_state(&args, context, lang).await?;
-            }
-            Some(text)
-                if context.is_empty()
-                    && Lang::iter().any(|lang| lang.details().button_lang_name == text) =>
-            {
-                let lang = Lang::iter()
-                    .find(|lang| lang.details().button_lang_name == text)
-                    .ok_or_else(|| anyhow!("Wrong language WTF?"))?;
-                move_to_state(&args, Vec::new(), lang).await?;
-            }
-            Some(text) if state.next_states.contains_key(&text.to_string()) => {
-                context.push(text.to_string());
-                move_to_state(&args, context, lang).await?;
-            }
-            _ => {
-                let keyboard = make_keyboard_from_state(state, lang, &context);
-                #[allow(deprecated)]
-                bot.send_message(msg.chat.id, lang.details().use_buttons_text)
-                    .parse_mode(ParseMode::Markdown)
-                    .reply_markup(keyboard)
-                    .await?;
-            }
-        }
-        anyhow::Ok(())
-    } {
+    if let Err(err) = { state_transition(&args, context.clone(), lang).await } {
         send_err(&bot, msg.chat.id, &lang, err.to_string()).await;
-        move_to_state(&args, context, lang);
+        move_to_state(&args, Vec::new(), lang);
         bail!(err)
     }
     Ok(())
