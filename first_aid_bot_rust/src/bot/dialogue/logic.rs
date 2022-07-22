@@ -1,7 +1,7 @@
 use super::prelude::*;
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use async_recursion::async_recursion;
-use teloxide::types::ParseMode;
+use teloxide::utils::markdown::escape;
 
 #[async_recursion]
 pub async fn move_to_state(
@@ -32,12 +32,11 @@ pub async fn move_to_state(
 
 pub async fn state_transition(
     args: &FAMsgArgs<'_>,
-    context: Vec<String>,
+    mut context: Vec<String>,
     lang: Lang,
 ) -> anyhow::Result<()> {
     let state = &args.data.get(lang, &context).await?;
     log_to_redis(args, &lang, &context).await;
-    let mut context = context.clone();
     match args.msg.text() {
         Some(text) if text == lang.details().button_home => {
             move_to_state(args, Vec::new(), lang).await?;
@@ -57,16 +56,15 @@ pub async fn state_transition(
         }
         Some(text) if state.next_states.contains_key(&text.to_string()) => {
             context.push(text.to_string());
-            move_to_state(args, context, lang).await?;
+            move_to_state(args, context.clone(), lang)
+                .await
+                .with_context(|| format!("Error while moving into context {context:?}"))?;
         }
         _ => {
-            let keyboard = make_keyboard_from_state(state, lang, &context);
-            #[allow(deprecated)]
             args.bot
-                .send_message(args.msg.chat.id, lang.details().use_buttons_text)
-                .parse_mode(ParseMode::Markdown)
-                .reply_markup(keyboard)
+                .send_message(args.msg.chat.id, escape(lang.details().use_buttons_text))
                 .await?;
+            move_to_state(args, context, lang).await?;
         }
     }
     anyhow::Ok(())

@@ -1,6 +1,6 @@
 use super::prelude::*;
-use crate::bot::error_handler::send_err;
-use anyhow::bail;
+use crate::bot::error_handler::{report_if_error, send_err};
+use anyhow::{bail, Context};
 use redis::aio::MultiplexedConnection;
 
 pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
@@ -49,11 +49,10 @@ pub async fn start_handler(
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn(&bot, &msg, lang).await.unwrap_or_default();
     let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
-    if let Err(err) = { move_to_state(&args, Vec::new(), lang).await } {
-        send_err(&bot, msg.chat.id, &lang, err.to_string()).await;
-        bail!(err)
-    }
-    Ok(())
+    let rez = move_to_state(&args, Vec::new(), lang)
+        .await
+        .context("Error while moving into initial state");
+    report_if_error(&bot, msg.chat.id, &lang, rez).await
 }
 
 pub async fn handle_dialogue(
@@ -68,15 +67,17 @@ pub async fn handle_dialogue(
     let lang = match get_lang_or_warn(&bot, &msg, lang).await {
         Ok(lang) => lang,
         Err(err) => {
-            send_err(&bot, msg.chat.id, &Lang::default(), err.to_string()).await;
+            send_err(&bot, msg.chat.id, &Lang::default(), &format!("{err:?}")).await;
             move_to_state(&args, Vec::new(), Lang::default());
             bail!(err)
         }
     };
-    if let Err(err) = { state_transition(&args, context.clone(), lang).await } {
-        send_err(&bot, msg.chat.id, &lang, err.to_string()).await;
-        move_to_state(&args, Vec::new(), lang);
-        bail!(err)
+    match state_transition(&args, context.clone(), lang).await {
+        Err(err) => {
+            send_err(&bot, msg.chat.id, &lang, &format!("{err:?}")).await;
+            move_to_state(&args, Vec::new(), lang);
+            bail!(err)
+        }
+        ok => ok,
     }
-    Ok(())
 }

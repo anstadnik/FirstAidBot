@@ -1,5 +1,4 @@
 use super::prelude::*;
-use anyhow::bail;
 use redis::AsyncCommands;
 use std::time::{SystemTime, UNIX_EPOCH};
 use teloxide::{prelude::*, types::ParseMode};
@@ -51,16 +50,8 @@ pub async fn send_state(
     }
 
     let keyboard = make_keyboard_from_state(state, lang, context);
-    let rez = bot
-        .send_message(id, &state.message)
+    bot.send_message(id, &state.message)
         .reply_markup(keyboard)
-        .await;
-
-    if let Err(err) = rez {
-        send_plain_string(bot, id, lang.details().error).await?;
-        send_plain_string(bot, id, &format!("{err:#?}")).await?;
-        send_plain_string(bot, id, &state.message).await?;
-        bail!(err);
-    }
+        .await?;
     Ok(())
 }

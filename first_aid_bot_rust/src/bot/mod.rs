@@ -51,8 +51,8 @@ pub async fn run_bot(data: Data) {
     Dispatcher::builder(bot.clone(), handler)
         .dependencies(dptree::deps![Arc::new(data), redis_con, storage])
         .error_handler(FAErrorHandler::new(bot))
+        .enable_ctrlc_handler()
         .build()
-        .setup_ctrlc_handler()
         .dispatch()
         .await;
 }

@@ -1,6 +1,7 @@
 use super::prelude::*;
+use crate::bot::error_handler::report_if_error;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
-use anyhow::bail;
+use anyhow::{bail, Context};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
@@ -34,7 +35,11 @@ pub async fn commands_handler(
     match cmd {
         FACommands::Start => {
             let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
-            move_to_state(&args, Vec::new(), Lang::default()).await
+            let lang = Lang::default();
+            let rez = move_to_state(&args, Vec::new(), lang)
+                .await
+                .context("Error while moving to root state :(");
+            report_if_error(&bot, msg.chat.id, &lang, rez).await
         }
     }
 }
@@ -49,9 +54,7 @@ pub async fn maintainer_commands_handler(
     match cmd {
         MaintainerCommands::GetNumber => {
             match redis_con.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
-                Ok(n) => {
-                    bot.send_message(msg.chat.id, n.to_string()).await?;
-                }
+                Ok(n) => send_plain_string(&bot, msg.chat.id, &n.to_string()).await,
                 Err(err) => {
                     bot.send_message(msg.chat.id, "Error getting a number of users")
                         .await?;
@@ -59,15 +62,11 @@ pub async fn maintainer_commands_handler(
                 }
             }
         }
-        #[allow(deprecated)]
         MaintainerCommands::Test => {
-            if let Err(err) = test(data, &bot, &msg).await {
-                send_plain_string(&bot, msg.chat.id, &err.to_string()).await?;
-                bail!(err)
-            }
+            let rez = test(data, &bot, &msg).await;
+            report_if_error(&bot, msg.chat.id, &Lang::default(), rez).await
         }
-    };
-    Ok(())
+    }
 }
 
 async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
@@ -79,7 +78,9 @@ async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()>
         msg: &'a Message,
     ) -> BoxFuture<'a, anyhow::Result<()>> {
         async move {
-            send_state(bot, msg.chat.id, state, lang, &context).await?;
+            send_state(bot, msg.chat.id, state, lang, &context)
+                .await
+                .with_context(|| format!("Error while processing state {state:?}"))?;
             for (key, next_state) in state.next_states.iter() {
                 let mut context = context.clone();
                 context.push(key.to_string());

@@ -1,15 +1,21 @@
 use super::prelude::*;
 use crate::MAINTAINER_IDS;
+use anyhow::Result;
 use futures::future::BoxFuture;
-use std::fmt::Display;
 use std::sync::Arc;
 use teloxide::error_handlers::ErrorHandler;
 
-pub async fn send_err(bot: &FABot, id: ChatId, lang: &Lang, err: String) {
+pub async fn report_if_error<T>(bot: &FABot, id: ChatId, lang: &Lang, rez: Result<T>) -> Result<T> {
+    if let Err(err) = &rez {
+        send_err(bot, id, lang, &format!("{err:?}")).await;
+    }
+    rez
+}
+
+pub async fn send_err(bot: &FABot, id: ChatId, lang: &Lang, err: &str) {
     if let Err(err) = async move {
         send_plain_string(bot, id, lang.details().error).await?;
-        send_plain_string(bot, id, &err).await?;
-        anyhow::Ok(())
+        send_plain_string(bot, id, err).await
     }
     .await
     {
@@ -28,17 +34,15 @@ impl FAErrorHandler {
     }
 }
 
-impl<E> ErrorHandler<E> for FAErrorHandler
-where
-    E: Display + Sync + Send,
-{
-    fn handle_error(self: Arc<Self>, err: E) -> BoxFuture<'static, ()> {
-        log::error!("{}", err.to_string());
-        let err = err.to_string();
+impl ErrorHandler<anyhow::Error> for FAErrorHandler {
+    fn handle_error(self: Arc<Self>, err: anyhow::Error) -> BoxFuture<'static, ()> {
+        let err = format!("{err:?}");
+        log::error!("{err}");
         Box::pin(async move {
             if !cfg!(debug_assertions) {
                 for &id in &MAINTAINER_IDS {
-                    send_err(&self.bot, id.into(), &Default::default(), err.clone()).await;
+                    let _ = send_plain_string(&self.bot, id.into(), "У когось біда!").await;
+                    send_err(&self.bot, id.into(), &Default::default(), &err).await;
                 }
             }
         })

@@ -24,7 +24,9 @@ async fn get_rows(sheet_id: String, sheet_name: String) -> anyhow::Result<Vec<Ro
         "https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
     );
     let rdr = Reader::from_reader(reqwest::get(url).await?.bytes().await?.reader());
-    Ok(rdr.into_deserialize().collect::<Result<Vec<_>, _>>()?)
+    rdr.into_deserialize()
+        .collect::<Result<_, _>>()
+        .context("Cannot parse csv")
 }
 
 fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStates> {
@@ -32,16 +34,17 @@ fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStat
         .filter(|row| row.key.starts_with(key) && !row.key.replacen(key, "", 1).contains('.'))
         .map(|mut row| {
             if row.question.starts_with('#') {
-                row = data
+                row = dbg!(data
                     .iter()
                     .find(|row_| row_.key == row.question.strip_prefix('#').unwrap())
-                    .ok_or_else(|| anyhow!("Didn't find referenced row for {}", row.question))?;
+                    .ok_or_else(|| anyhow!("Didn't find {} in row {}", row.question, row.key))?);
             };
             let key = row.key.clone() + ".";
             let next_states = get_next_states_for_key(data, &key)?;
             Ok((
                 row.question.to_owned(),
-                FS::parse_row(row, next_states).context(format!("Error in {}", row.key))?,
+                FS::parse_row(row, next_states)
+                    .with_context(|| format!("Error in parsing row with key {}", row.key))?,
             ))
         })
         .collect::<anyhow::Result<IndexMap<String, FS>>>()
