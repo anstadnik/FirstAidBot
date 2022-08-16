@@ -73,7 +73,8 @@ impl FS {
             return Ok(self);
         }
         let next_state = self.next_states.get(&context[0]).context(format!(
-            "Cannot find next state: {self:?} being on {context:?}"
+            "Cannot find next state: {} being on {context:?}",
+            self.message
         ))?;
         next_state.get_state(&context[1..])
     }

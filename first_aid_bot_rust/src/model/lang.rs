@@ -71,6 +71,7 @@ pub struct LangDetails {
     pub button_back: &'static str,
     pub button_home: &'static str,
     pub error: &'static str,
+    pub error_due_to_update: &'static str,
     pub use_buttons_text: &'static str,
     pub greeting: &'static str,
 }
@@ -82,7 +83,11 @@ const UA_LD: LangDetails = LangDetails {
     button_back: "◀️ Повернутись",
     button_home: "◀️ На початок",
     error: concatcp!(
-        "Сталась помилка, будь ласка, повідомте про це у ",
+        "Сталась помилка :( Перезапустіть бота (/start), і якщо це не допоможе, будь ласка, повідомте про це у ",
+        HELP_CHAT_URL
+    ),
+    error_due_to_update: concatcp!(
+        "Схоже, що бота було оновлено. Повертаюсь на початок. Якщо бот далі не працює, будь ласка, повідомте про це у ",
         HELP_CHAT_URL
     ),
     use_buttons_text: "Використайте кнопки, або перезавантажте бота (/start)",

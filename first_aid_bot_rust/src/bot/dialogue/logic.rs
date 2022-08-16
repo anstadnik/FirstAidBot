@@ -35,7 +35,18 @@ pub async fn state_transition(
     mut context: Vec<String>,
     lang: Lang,
 ) -> anyhow::Result<()> {
-    let state = &args.data.get(lang, &context).await?;
+    let state = &match args.data.get(lang, &context).await {
+        Ok(it) => it,
+        Err(_) => {
+            send_plain_string(
+                args.bot,
+                args.msg.chat.id,
+                lang.details().error_due_to_update,
+            )
+            .await?;
+            return move_to_state(args, Vec::new(), lang).await;
+        }
+    };
     log_to_redis(args, &lang, &context).await;
     match args.msg.text() {
         Some(text) if text == lang.details().button_home => {
