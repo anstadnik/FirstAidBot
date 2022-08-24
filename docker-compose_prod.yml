@@ -3,25 +3,20 @@ version: "3"
 services:
   bot:
     build: 
-      context: first_aid_bot_rust/
-      dockerfile: Dockerfile.prod
+      context: .
+      args:
+        RELEASE: 42
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
-      # https://docs.google.com/spreadsheets/d/Миші з'їли/edit
       - SHEET_ID=Миші з'їли
       - RUST_LOG=info
-      - RUST_BACKTRACE=1
     restart: always
-    # ports:
-    #   - 8081:8081
     depends_on:
       - "redis"
 
   redis:
     image: redis
     restart: always
-    # ports:
-    #   - 6379:6379
     volumes: 
       - cache:/bitnami/redis/data
       - rdb:/data
