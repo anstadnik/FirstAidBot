@@ -2,9 +2,7 @@ name: build
 
 on:
   push:
-    branches: ["dev"]
-  pull_request:
-    branches: ["dev"]
+    branches: ["dev", "master"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -23,24 +21,26 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build
-        run: cargo build --verbose
+        run: cargo build
 
       - name: Build release
-        run: cargo build --release --verbose
+        run: cargo build --release
 
-      - name: Download the table
+      - name: Download the release table
+        if: github.ref == 'refs/heads/master'
         run: curl -L "docs.google.com/spreadsheets/d/Миші з'їли/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
-        # run: curl -L "docs.google.com/spreadsheets/d/Миші з'їли/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
+
+      - name: Download the test table
+        if: github.ref == 'refs/heads/dev'
+        run: curl -L "docs.google.com/spreadsheets/d/Миші з'їли/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
       - uses: actions/upload-artifact@v3
         with:
           path: |
             table.csv
             target/*/first_aid_bot
-
       # - name: Run tests
       #   run: cargo test --verbose
-
   # deploy:
   #   runs-on: self-hosted
   #   needs: build
