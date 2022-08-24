@@ -3,24 +3,18 @@ version: "3"
 services:
   bot:
     build: 
-      context: first_aid_bot_rust/
+      context: .
     environment:
       - TELOXIDE_TOKEN=Миші з'їли
-      # https://docs.google.com/spreadsheets/d/Миші з'їли/edit
       - SHEET_ID=Миші з'їли
-      # - RUST_LOG=debug
-      - RUST_BACKTRACE=0
+      - RUST_LOG=info
     restart: always
-    # ports:
-    #   - 8081:8081
     depends_on:
       - "redis"
 
   redis:
     image: redis
     restart: always
-    # ports:
-    #   - 6379:6379
     volumes: 
       - cache:/bitnami/redis/data
       - rdb:/data
