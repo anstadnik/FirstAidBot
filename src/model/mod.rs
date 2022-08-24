@@ -15,11 +15,12 @@ use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
 use indexmap::IndexMap;
 use prelude::*;
-use std::env;
+
+use crate::{SHEET_ID_PROD, SHEET_ID_TEST};
 
 use self::finite_state::Row;
 
-async fn get_rows(sheet_id: String, sheet_name: String) -> anyhow::Result<Vec<Row>> {
+async fn get_rows(sheet_id: &str, sheet_name: String) -> anyhow::Result<Vec<Row>> {
     let url = format!(
         "https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
     );
@@ -51,7 +52,11 @@ fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStat
 }
 
 async fn get_finite_state(lang: Lang) -> anyhow::Result<FS> {
-    let sheet_id = env::var("SHEET_ID").expect("Please define a SHEET_ID env variable");
+    let sheet_id = if cfg!(debug_assertions) {
+        SHEET_ID_TEST
+    } else {
+        SHEET_ID_PROD
+    };
     let mut rows = get_rows(sheet_id, lang.name()).await?;
     rows.retain(|record| !record.is_empty());
     for row in &mut rows {
