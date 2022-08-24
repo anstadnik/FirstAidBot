@@ -1,4 +1,4 @@
-od dialogue;
+mod dialogue;
 mod error_handler;
 mod helpers;
 
