@@ -39,8 +39,9 @@ jobs:
           message: |
             ${{ github.actor }} created commit:
             Commit message: ${{ github.event.commits[0].message }}
-            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+
+            See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+            See error: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
             The commit fails to build! 💣
 
   save_table:
@@ -74,15 +75,17 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     needs: [deploy, save_table]
 
     steps:
       - uses: actions/download-artifact@v3
+        if: github.ref == 'refs/heads/master'
         with:
           name: table
 
       - name: send telegram message on push
-        if: success()
+        if: success() && github.ref == 'refs/heads/master'
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
@@ -91,6 +94,19 @@ jobs:
           message: |
             ${{ github.actor }} created commit:
             Commit message: ${{ github.event.commits[0].message }}
-            
+
             See changes: https://github.com/${{ github.repository }}/actions/runs/${{github.sha}}
-            Successfully deployed! 🙆
+            Successfully deployed main bot! 🙆
+
+      - name: send telegram message on push
+        if: success() && github.ref == 'refs/heads/dev'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            See changes: https://github.com/${{ github.repository }}/actions/runs/${{github.sha}}
+            Successfully deployed test bot! 🙆
