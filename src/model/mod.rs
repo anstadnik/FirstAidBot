@@ -71,3 +71,6 @@ pub async fn get_data() -> anyhow::Result<MultilangStates> {
         .try_collect()
         .await
 }
+
+#[cfg(test)]
+mod test;
