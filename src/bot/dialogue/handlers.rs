@@ -22,7 +22,7 @@ pub struct FAMsgArgs<'a> {
 }
 
 impl<'a> FAMsgArgs<'a> {
-    pub fn new(
+    pub const fn new(
         bot: &'a FABot,
         msg: &'a Message,
         dialogue: &'a FADialogue,

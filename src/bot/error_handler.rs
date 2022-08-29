@@ -5,7 +5,10 @@ use futures::future::BoxFuture;
 use std::sync::Arc;
 use teloxide::error_handlers::ErrorHandler;
 
-pub async fn report_if_error<T>(bot: &FABot, id: ChatId, lang: &Lang, rez: Result<T>) -> Result<T> {
+pub async fn report_if_error<T>(bot: &FABot, id: ChatId, lang: &Lang, rez: Result<T>) -> Result<T>
+where
+    T: Send + Sync,
+{
     if let Err(err) = &rez {
         send_err(bot, id, lang, &format!("{err:?}")).await;
     }
