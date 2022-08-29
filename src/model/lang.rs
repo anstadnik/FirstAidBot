@@ -16,10 +16,10 @@ pub enum Lang {
 
 impl Lang {
     // https://github.com/rust-lang/rfcs/issues/284
-    pub fn iter() -> impl Iterator<Item = Lang> {
+    pub fn iter() -> impl Iterator<Item = Self> {
         [Ua /* En, Ru */].iter().copied()
     }
-    pub fn details(self) -> LangDetails {
+    pub const fn details(self) -> LangDetails {
         match self {
             Ua => UA_LD,
             /* En => EN_LD,
