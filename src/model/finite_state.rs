@@ -18,7 +18,7 @@ pub struct Row {
 }
 
 impl Row {
-    pub fn is_empty(self: &Row) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.key.is_empty()
             && self.question.is_empty()
             && self.answer.is_empty()
@@ -54,21 +54,21 @@ fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
 }
 
 impl FS {
-    pub fn entry(lang: &Lang, next_states: FSNextStates) -> FS {
-        FS {
+    pub fn entry(lang: &Lang, next_states: FSNextStates) -> Self {
+        Self {
             link: None,
             message: lang.details().greeting.to_string(),
             next_states,
         }
     }
-    pub fn parse_row(row: &Row, options: FSNextStates) -> anyhow::Result<FS> {
-        Ok(FS {
+    pub fn parse_row(row: &Row, options: FSNextStates) -> anyhow::Result<Self> {
+        Ok(Self {
             link: parse_link(&row.link)?,
             message: row.answer.to_owned(),
             next_states: options,
         })
     }
-    pub fn get_state<'a>(&'a self, context: &[String]) -> anyhow::Result<&'a FS> {
+    pub fn get_state<'a>(&'a self, context: &[String]) -> anyhow::Result<&'a Self> {
         if context.is_empty() {
             return Ok(self);
         }
