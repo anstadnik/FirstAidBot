@@ -72,7 +72,7 @@ jobs:
           name: table
           path: table.csv
 
-  deploy_to_prod:
+  deploy:
     runs-on: ubuntu-latest
     needs: build_and_test
     environment: ${{ inputs.environment }}
