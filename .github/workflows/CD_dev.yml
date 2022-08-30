@@ -1,12 +1,9 @@
-name: Build and deploy dev
+name: CI/CD dev
 
 on:
   push:
     branches:
       - "dev"
-
-env:
-  CARGO_TERM_COLOR: always
 
 jobs:
   build_and_deploy:
