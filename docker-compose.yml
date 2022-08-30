@@ -2,12 +2,7 @@ version: "3"
 
 services:
   bot:
-    build: 
-      context: .
-    environment:
-      - TELOXIDE_TOKEN=Миші з'їли
-      - SHEET_ID=Миші з'їли
-      - RUST_LOG=info
+    image: first_aid_bot:test
     restart: always
     depends_on:
       - "redis"
