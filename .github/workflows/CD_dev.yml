@@ -10,7 +10,7 @@ env:
 
 jobs:
   build_and_deploy:
-    uses: .github/workflows/byild.yml
+    uses: .github/workflows/build.yml
     with:
       release: false
       deploy: true
