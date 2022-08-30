@@ -73,7 +73,7 @@ jobs:
           path: table.csv
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted ]
     needs: build_and_test
     environment: ${{ inputs.environment }}
     if: ${{ inputs.deploy }}
@@ -84,10 +84,21 @@ jobs:
           name: executable
 
       - run: |
-          echo ${{ secrets.TELOXIDE_TOKEN }} > token.txt
-          echo ${{ secrets.SHEET_ID }} > sheet_id.txt
+          Fix me
+          docker build -t first_aid_bot:${{ inputs.environment }} .
+          docker compose -f docker-compose_${{ inputs.environment }}.yml up -d
 
-      - run: ls
+      # TODO: Check here: https://docs.docker.com/engine/reference/commandline/compose_exec/
+      # - run: |
+      #     docker cp
+      #
+      # TODO: would be cool to run convert_rdb.py which produces the csv instead of rdb, but it requries running redis
+
+      # docker inspect redis_container_name
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: RDB
+      #     path:
 
   notify:
     runs-on: ubuntu-latest
@@ -97,6 +108,8 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: table
+
+      # TODO: Send rdb also
 
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
