@@ -45,7 +45,7 @@ impl ErrorHandler<anyhow::Error> for FAErrorHandler {
             if !cfg!(debug_assertions) {
                 for &id in &MAINTAINER_IDS {
                     let _ = send_plain_string(&self.bot, id.into(), "У когось біда!").await;
-                    send_err(&self.bot, id.into(), &Default::default(), &err).await;
+                    send_err(&self.bot, id.into(), &Lang::default(), &err).await;
                 }
             }
         })

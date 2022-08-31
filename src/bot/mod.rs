@@ -24,6 +24,7 @@ use dialogue::{
 use error_handler::FAErrorHandler;
 use helpers::connect_to_redis;
 use prelude::*;
+use teloxide::adaptors::throttle::Limits;
 use teloxide::types::ParseMode;
 use teloxide::utils::command::BotCommands;
 
@@ -31,7 +32,7 @@ pub async fn run_bot(data: Data) {
     log::info!("Starting dialogue_bot...");
 
     let bot = Bot::from_env()
-        .throttle(Default::default())
+        .throttle(Limits::default())
         .parse_mode(ParseMode::MarkdownV2)
         .auto_send();
 

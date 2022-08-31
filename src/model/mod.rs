@@ -35,10 +35,10 @@ fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStat
         .filter(|row| row.key.starts_with(key) && !row.key.replacen(key, "", 1).contains('.'))
         .map(|mut row| {
             if row.question.starts_with('#') {
-                row = dbg!(data
+                row = data
                     .iter()
                     .find(|row_| row_.key == row.question.strip_prefix('#').unwrap())
-                    .ok_or_else(|| anyhow!("Didn't find {} in row {}", row.question, row.key))?);
+                    .ok_or_else(|| anyhow!("Didn't find {} in row {}", row.question, row.key))?;
             };
             let key = row.key.clone() + ".";
             let next_states = get_next_states_for_key(data, &key)?;
