@@ -76,7 +76,7 @@ jobs:
           path: table.csv
 
   deploy:
-    runs-on: [ self-hosted ]
+    runs-on: [self-hosted]
     needs: build_and_test
     environment: ${{ inputs.environment }}
     if: ${{ inputs.deploy }}
@@ -92,7 +92,10 @@ jobs:
         with:
           name: table
 
-      - run: |
+      - name: Restart bot
+        env:
+          TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
+        run: |
           docker build -t first_aid_bot:${{ inputs.environment }} .
           docker compose -f docker-compose_${{ inputs.environment }}.yml up -d
 
@@ -101,7 +104,6 @@ jobs:
       #     docker cp
       #
       # TODO: would be cool to run convert_rdb.py which produces the csv instead of rdb, but it requries running redis
-
       # docker inspect redis_container_name
       # - uses: actions/upload-artifact@v3
       #   with:
