@@ -1,0 +1,8 @@
+flask
+flask-caching
+redis
+pandas
+plotly
+dash
+dash_bootstrap_components
+dash_bootstrap_templates
