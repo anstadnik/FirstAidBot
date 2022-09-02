@@ -88,6 +88,10 @@ jobs:
         with:
           name: executable
 
+      - uses: actions/download-artifact@v3
+        with:
+          name: table
+
       - run: |
           docker build -t first_aid_bot:${{ inputs.environment }} .
           docker compose -f docker-compose_${{ inputs.environment }}.yml up -d
