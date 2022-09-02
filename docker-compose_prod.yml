@@ -2,7 +2,7 @@ version: "3"
 
 services:
   bot:
-    image: first_aid_bot:production
+    image: first_aid_bot:prod
     restart: always
     depends_on:
       - "redis"
