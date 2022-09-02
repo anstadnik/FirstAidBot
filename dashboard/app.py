@@ -5,7 +5,19 @@ import redis
 from dash import Dash, dcc, html
 from dash_bootstrap_templates import load_figure_template
 from plotly.graph_objs import Figure
+from flask_caching import Cache
 
+theme = dbc.themes.LUX
+load_figure_template("LUX")
+app = Dash(__name__, external_stylesheets=[theme])
+
+app.layout = get_layout()
+
+cache = Cache(app.server, config={
+    # try 'filesystem' if you don't want to setup redis
+    'CACHE_TYPE': 'redis',
+    'CACHE_REDIS_URL': os.environ.get('REDIS_URL', '')
+})
 
 def get_df():
     r = redis.Redis(host="localhost", port=6379, db=0)
@@ -74,15 +86,11 @@ def get_graphs(df: pd.DataFrame) -> list[Figure | int]:
     return [fig_frequencies, fig_n_users, fig_new_users, n_users]
 
 
-def main():
+def get_layout():
     df = get_df()
     fig_frequencies, fig_n_users, fig_new_users, n_users = get_graphs(df)
 
-    theme = dbc.themes.LUX
-    load_figure_template("LUX")
-    app = Dash(__name__, external_stylesheets=[theme])
-
-    app.layout = html.Div(
+    return html.Div(
         children=[
             dbc.Row(
                 dbc.Col(
@@ -134,6 +142,9 @@ def main():
     #     ]
     # )
 
+
+def main():
+    # TODO: Use it: https://dash.plotly.com/performance
     app.run_server(debug=True)
 
 
