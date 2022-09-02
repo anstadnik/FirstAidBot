@@ -39,12 +39,12 @@ jobs:
         run: cargo test --release
 
       - name: Move binary
-        run: mv target/*/first_aid_bot /first_aid_bot
+        run: mv target/*/first_aid_bot target
 
       - uses: actions/upload-artifact@v3
         with:
           name: executable
-          path: /first_aid_bot
+          path: target/first_aid_bot
 
       - name: send telegram message on error
         if: failure()
