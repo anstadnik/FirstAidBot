@@ -9,6 +9,8 @@ on:
       - "master"
   workflow_dispatch:
 
+concurrency: CD_master
+
 jobs:
   build_and_deploy:
     uses: ./.github/workflows/CI_CD.yml
