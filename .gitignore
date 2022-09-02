@@ -21,3 +21,5 @@ Cargo.lock
 
 dump.rdb
 .venv
+*.ipynb
+.ipynb_checkpoints
