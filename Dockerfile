@@ -1,6 +1,7 @@
 FROM debian:buster-slim AS runtime
 WORKDIR /app
 COPY first_aid_bot /usr/local/bin
+RUN chmod u+x first_aid_bot
 # RUN apt-get update \
 #   && apt-get install -y --no-install-recommends ca-certificates
 # RUN update-ca-certificates
