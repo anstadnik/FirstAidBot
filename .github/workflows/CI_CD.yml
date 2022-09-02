@@ -38,10 +38,13 @@ jobs:
         if: ${{ inputs.release }}
         run: cargo test --release
 
+      - name: Move binary
+        run: mv target/*/first_aid_bot /first_aid_bot
+
       - uses: actions/upload-artifact@v3
         with:
           name: executable
-          path: target/*/first_aid_bot
+          path: /first_aid_bot
 
       - name: send telegram message on error
         if: failure()
@@ -86,7 +89,6 @@ jobs:
           name: executable
 
       - run: |
-          # Fix me
           docker build -t first_aid_bot:${{ inputs.environment }} .
           docker compose -f docker-compose_${{ inputs.environment }}.yml up -d
 
