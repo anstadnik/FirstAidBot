@@ -95,6 +95,7 @@ jobs:
       - name: Restart bot
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
         run: |
           docker build -t first_aid_bot:${{ inputs.environment }} .
           docker compose -f docker-compose_${{ inputs.environment }}.yml up -d

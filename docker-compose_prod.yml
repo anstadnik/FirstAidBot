@@ -4,7 +4,6 @@ services:
   bot:
     image: first_aid_bot:prod
     environment:
-      - SHEET_ID
       - TELOXIDE_TOKEN
     restart: always
     depends_on:
