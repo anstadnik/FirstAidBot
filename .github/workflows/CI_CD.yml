@@ -43,7 +43,7 @@ jobs:
           name: executable
           path: target/*/first_aid_bot
 
-      - name: send telegram message on push
+      - name: send telegram message on error
         if: failure()
         uses: appleboy/telegram-action@master
         with:
