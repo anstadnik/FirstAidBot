@@ -16,6 +16,6 @@ jobs:
     uses: ./.github/workflows/CI_CD.yml
     with:
       release: true
-      deploy: ${{ github.event_name != 'pull_request' }}
-      environment: production
+      deploy: ${{ github.event_name == 'push' }}
+      environment: prod
     secrets: inherit
