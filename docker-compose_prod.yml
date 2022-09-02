@@ -3,6 +3,7 @@ version: "3"
 services:
   bot:
     image: first_aid_bot:prod
+    environment: SHEET_ID
     restart: always
     depends_on:
       - "redis"
