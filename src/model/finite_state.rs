@@ -1,5 +1,5 @@
-use crate::Lang;
-use anyhow::{anyhow, Context};
+use super::lang::Lang;
+use anyhow::anyhow;
 use indexmap::IndexMap;
 use regex::Regex;
 use serde::Deserialize;
@@ -69,13 +69,12 @@ impl FS {
         })
     }
     pub fn get_state<'a>(&'a self, context: &[String]) -> anyhow::Result<&'a Self> {
-        if context.is_empty() {
-            return Ok(self);
+        let mut ret = self;
+        for key in context {
+            ret = ret.next_states.get(key).ok_or_else(|| {
+                anyhow!("Cannot find next state: {key} being on {}", self.message)
+            })?;
         }
-        let next_state = self.next_states.get(&context[0]).context(format!(
-            "Cannot find next state: {} being on {context:?}",
-            self.message
-        ))?;
-        next_state.get_state(&context[1..])
+        Ok(ret)
     }
 }

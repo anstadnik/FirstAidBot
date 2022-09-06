@@ -1,7 +1,7 @@
 use super::prelude::*;
 use redis::AsyncCommands;
 use std::time::{SystemTime, UNIX_EPOCH};
-use teloxide::{prelude::*, types::ParseMode};
+use teloxide::types::ParseMode;
 
 pub async fn log_to_redis(args: &FAMsgArgs<'_>, lang: &Lang, context: &[String]) {
     let FAMsgArgs { msg, redis_con, .. }: &FAMsgArgs = args;
