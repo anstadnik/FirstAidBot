@@ -2,7 +2,7 @@ mod bot;
 mod model;
 
 use bot::run_bot;
-use model::prelude::*;
+use model::prelude::Data;
 use teloxide::types::UserId;
 
 const MAINTAINER_IDS: [teloxide::types::UserId; 1] = [UserId(131596643)];
