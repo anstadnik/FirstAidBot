@@ -91,7 +91,7 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [deploy, save_table]
+    needs: [deploy]
 
     steps:
       - uses: actions/download-artifact@v3
