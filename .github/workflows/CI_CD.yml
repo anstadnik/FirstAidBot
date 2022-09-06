@@ -31,8 +31,22 @@ jobs:
         run: cargo build --release
 
       - name: Build debug
-        if: ${{ ! inputs.release }}
+        if: ${{ !inputs.release }}
         run: cargo build
+
+      - name: Download the table
+        if: ${{ inputs.release }}
+        run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.PRODUCTION_SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
+
+      - name: Test
+        if: ${{ inputs.release }}
+        run: RUST_BACKTRACE=1 cargo test --release
+
+      - uses: actions/upload-artifact@v3
+        if: ${{ inputs.release }}
+        with:
+          name: table
+          path: table.csv
 
       - name: Move binary
         run: mv target/*/first_aid_bot target
@@ -41,20 +55,6 @@ jobs:
         with:
           name: executable
           path: target/first_aid_bot
-
-      - name: Download the table
-        if: ${{ inputs.release }}
-        run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
-
-      - name: Test
-        if: ${{ inputs.release }}
-        run: cargo test --release
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ inputs.release }}
-        with:
-          name: table
-          path: table.csv
 
       - name: send telegram message on error
         if: failure()
@@ -88,6 +88,10 @@ jobs:
         with:
           name: table
 
+      - name: Hack for bad dockerfile design
+        if: ${{ ~inputs.release }}
+        run: touch table.csv
+
       - name: Restart bot
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
@@ -99,10 +103,10 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: deploy
+    if: ${{ inputs.release }}
 
     steps:
       - uses: actions/download-artifact@v3
-        if: ${{ inputs.release }}
         with:
           name: table
 
