@@ -10,14 +10,14 @@ edition = "2021"
 # Load the data
 csv = "1.1.6"
 bytes = "1.2.1"
-serde = { version = "1.0.143", features = ["derive"] }
+serde = { version = "1.0.144", features = ["derive"] }
 reqwest = { version = "0.11.11"}
 regex = "1.6.0"
 indexmap = "1.9.1"
 
 # Counting users
-redis = { version = "0.21.5", features = ["tokio-comp"] }
-futures = "0.3.21"
+redis = { version = "0.21.6", features = ["tokio-comp"] }
+futures = "0.3.24"
 
 # Telegram api
 teloxide = { version = "0.10.1", features = ["macros", "auto-send", "redis-storage",
@@ -25,8 +25,8 @@ teloxide = { version = "0.10.1", features = ["macros", "auto-send", "redis-stora
 log = "0.4.17"
 pretty_env_logger = "0.4.0"
 # anyhow = { version = "1.0.58", features = ["backtrace"] }
-anyhow = { version = "1.0.59" }
-tokio = { version =  "1.20.1", features = ["rt-multi-thread", "macros"] }
+anyhow = { version = "1.0.64" }
+tokio = { version =  "1.21.0", features = ["rt-multi-thread", "macros"] }
 const_format = "0.2.26"
 itertools = "0.10.3"
 async-recursion = "1.0.0"
