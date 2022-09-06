@@ -10,8 +10,6 @@ const MAINTAINER_USERNAMES: [&str; 2] = ["astadnik", "AL_Lev"];
 const HELP_CHAT_URL: &str = "https://t.me/+VOd-pnzhWvU2Yjg6";
 const REDIS_URLS: [&str; 2] = ["redis://redis:6379", "redis://127.0.0.1:6379"];
 const REDIS_USERS_SET_KEY: &str = "all_users";
-// const SHEET_ID_PROD: &str = "Миші з'їли";
-// const SHEET_ID_TEST: &str = "Миші з'їли";
 
 #[tokio::main]
 async fn main() {
