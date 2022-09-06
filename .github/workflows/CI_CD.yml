@@ -57,7 +57,7 @@ jobs:
           path: target/first_aid_bot
 
       - name: send telegram message on error
-        if: failure()
+        if: failure() && ${{ inputs.release }}
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
