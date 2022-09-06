@@ -15,7 +15,6 @@ use anyhow::{anyhow, Context};
 use bytes::Buf;
 use csv::Reader;
 use futures::{stream, StreamExt, TryStreamExt};
-use indexmap::IndexMap;
 use prelude::*;
 
 use self::finite_state::Row;
@@ -41,10 +40,10 @@ fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStat
     data.iter()
         .filter(|row| row.key.starts_with(key) && !row.key.replacen(key, "", 1).contains('.'))
         .map(|mut row| {
-            if row.question.starts_with('#') {
+            if let Some(key) = row.question.strip_prefix('#') {
                 row = data
                     .iter()
-                    .find(|row_| row_.key == row.question.strip_prefix('#').unwrap())
+                    .find(|row_| row_.key == key)
                     .ok_or_else(|| anyhow!("Didn't find {} in row {}", row.question, row.key))?;
             };
             let key = row.key.clone() + ".";
@@ -55,7 +54,7 @@ fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStat
                     .with_context(|| format!("Error in parsing row with key {}", row.key))?,
             ))
         })
-        .collect::<anyhow::Result<IndexMap<String, FS>>>()
+        .collect()
 }
 
 async fn get_finite_state(lang: Lang, filename: Option<&str>) -> anyhow::Result<FS> {
