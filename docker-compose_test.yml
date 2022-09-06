@@ -6,13 +6,13 @@ services:
     environment:
       - SHEET_ID
       - TELOXIDE_TOKEN
-    restart: always
+    restart: unless-stopped
     depends_on:
       - "redis"
 
   redis:
     image: redis
-    restart: always
+    restart: unless-stopped
     volumes: 
       - cache:/bitnami/redis/data
       - rdb:/data
