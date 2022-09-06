@@ -89,7 +89,7 @@ jobs:
           name: table
 
       - name: Hack for bad dockerfile design
-        if: ${{ ~inputs.release }}
+        if: ${{ !inputs.release }}
         run: touch table.csv
 
       - name: Restart bot
