@@ -2,7 +2,7 @@ use crate::bot::dialogue::helpers::send_state;
 use crate::bot::error_handler::report_if_error;
 use crate::bot::prelude::*;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
-use anyhow::{bail, Context};
+use anyhow::{bail, Context, Error};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
@@ -58,7 +58,11 @@ pub async fn maintainer_commands_handler(
     match cmd {
         MaintainerCommands::GetNumber => {
             match redis_con.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
-                Ok(n) => send_plain_string(&bot, msg.chat.id, &n.to_string()).await,
+                Ok(n) => bot
+                    .send_message(msg.chat.id, n.to_string())
+                    .await
+                    .map(|_| ())
+                    .map_err(Error::msg),
                 Err(err) => {
                     bot.send_message(msg.chat.id, "Error getting a number of users")
                         .await?;
@@ -98,13 +102,21 @@ async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()>
         if let Ok(state) = data.get(lang, &[]).await {
             recursive_test(&state, lang, Vec::new(), bot, msg).await?;
         }
+        for text in [
+            lang.details().error,
+            lang.details().greeting,
+            lang.details().use_buttons_text,
+            lang.details().error_due_to_update,
+        ] {
+            bot.send_message(msg.chat.id, text).await?;
+        }
     }
 
     Ok(())
 }
 
 pub fn get_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
+) -> Handler<'static, DependencyMap, Result<(), Error>, DpHandlerDescription> {
     dptree::entry()
         .filter_command::<FACommands>()
         .enter_dialogue::<Message, FirstAidStorage, State>()
@@ -112,7 +124,7 @@ pub fn get_commands_branch(
 }
 
 pub fn get_maintainer_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), anyhow::Error>, DpHandlerDescription> {
+) -> Handler<'static, DependencyMap, Result<(), Error>, DpHandlerDescription> {
     dptree::filter(
         |msg: Message, _bot: FABot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
             msg.from()
