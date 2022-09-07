@@ -1,13 +1,13 @@
-use super::dialogue::prelude::*;
-use super::prelude::*;
-use crate::bot::error_handler::FAErrorHandler;
-use crate::REDIS_URLS;
+use super::{dialogue::prelude::*, prelude::*};
+use crate::{bot::error_handler::FAErrorHandler, REDIS_URLS};
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
-use teloxide::adaptors::throttle::Limits;
-use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
-use teloxide::types::ParseMode;
-use teloxide::utils::command::BotCommands;
+use teloxide::{
+    adaptors::throttle::Limits,
+    dispatching::dialogue::{serializer::Bincode, RedisStorage},
+    types::ParseMode,
+    utils::command::BotCommands,
+};
 
 pub async fn connect_to_redis() -> (MultiplexedConnection, Arc<FirstAidStorage>) {
     let results = join_all(REDIS_URLS.into_iter().map(|url| async move {
