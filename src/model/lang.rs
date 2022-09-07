@@ -42,7 +42,7 @@ impl TryFrom<&str> for Lang {
             unknown_lang => {
                 log::error!("Cannot create a language from {unknown_lang}");
                 Err(format!(
-                    "Error, please choose a language again. Ask for help in {HELP_CHAT_URL}"
+                    "Error, unknown language. If issue persists, ask for help in {HELP_CHAT_URL}"
                 ))
             }
         }
