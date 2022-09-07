@@ -7,7 +7,6 @@ mod prelude {
     use teloxide::adaptors::{DefaultParseMode, Throttle};
     use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 
-    pub use crate::bot::error_handler::send_plain_string;
     pub use crate::model::prelude::*;
     pub use std::sync::Arc;
     pub use teloxide::prelude::*;

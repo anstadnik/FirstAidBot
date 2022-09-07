@@ -1,9 +1,12 @@
 use crate::bot::prelude::*;
 use anyhow::{anyhow, Context};
 use async_recursion::async_recursion;
-use teloxide::utils::markdown::escape;
+use teloxide::utils::markdown::{escape, escape_code};
 
-use super::{handlers::FAMsgArgs, helpers::{log_to_redis, send_state}};
+use super::{
+    handlers::FAMsgArgs,
+    helpers::{log_to_redis, send_state},
+};
 
 #[async_recursion]
 pub async fn move_to_state(
@@ -40,12 +43,12 @@ pub async fn state_transition(
     let state = &match args.data.get(lang, &context).await {
         Ok(it) => it,
         Err(_) => {
-            send_plain_string(
-                args.bot,
-                args.msg.chat.id,
-                lang.details().error_due_to_update,
-            )
-            .await?;
+            args.bot
+                .send_message(
+                    args.msg.chat.id,
+                    escape_code(lang.details().error_due_to_update),
+                )
+                .await?;
             return move_to_state(args, Vec::new(), lang).await;
         }
     };
