@@ -1,14 +1,15 @@
 use super::logic::{move_to_state, state_transition};
-use crate::bot::prelude::*;
 use crate::bot::error_handler::{report_if_error, send_err};
+use crate::bot::prelude::*;
 use anyhow::{bail, Context};
 use redis::aio::MultiplexedConnection;
+use teloxide::utils::markdown::code_block;
 
 pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
     match lang.as_str().try_into() {
         Ok(lang) => Ok(lang),
         Err(err) => {
-            send_plain_string(bot, msg.chat.id, &err).await?;
+            bot.send_message(msg.chat.id, code_block(&err)).await?;
             bail!(err)
         }
     }

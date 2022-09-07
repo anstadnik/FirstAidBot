@@ -2,11 +2,12 @@ use super::prelude::*;
 use crate::MAINTAINER_IDS;
 use anyhow::Result;
 use futures::future::BoxFuture;
+use itertools::Itertools;
 use std::sync::Arc;
 use teloxide::error_handlers::ErrorHandler;
-use itertools::Itertools;
-use teloxide::utils::markdown::escape;
+use teloxide::utils::markdown::code_block;
 
+// Waiting for https://github.com/teloxide/teloxide/issues/482
 fn split_msg(msg: &str) -> impl Iterator<Item = String> {
     let mut ret: Vec<String> = Vec::new();
     for msg in msg.split_inclusive('\n') {
@@ -27,8 +28,7 @@ fn split_msg(msg: &str) -> impl Iterator<Item = String> {
 
 pub async fn send_plain_string(bot: &FABot, id: ChatId, msg: &str) -> anyhow::Result<()> {
     for msg in split_msg(msg) {
-        let msg = "```".to_string() + &escape(&msg) + "```";
-        bot.send_message(id, msg).await?;
+        bot.send_message(id, code_block(&msg)).await?;
     }
     Ok(())
 }
