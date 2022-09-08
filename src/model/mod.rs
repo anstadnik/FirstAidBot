@@ -19,6 +19,8 @@ use prelude::*;
 
 use self::finite_state::Row;
 
+// TODO: Add loading of special messages for Lang
+
 async fn get_rows(filename: Option<&str>, sheet_name: String) -> anyhow::Result<Vec<Row>> {
     let rdr: Box<dyn io::Read> = match filename {
         Some(filename) => Box::new(io::BufReader::new(File::open(filename)?)),
