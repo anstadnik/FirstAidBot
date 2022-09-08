@@ -18,7 +18,7 @@ pub async fn process_broadcast(
         .ok_or_else(|| anyhow!("No text unfortunately, WTF"))?;
     match message {
         None if text == lang.details().broadcast => {
-            let keyboard = make_keyboard(&Vec::new(), lang, 0, true);
+            let keyboard = make_keyboard(&Vec::new(), lang, 42, true);
             bot.send_message(msg.chat.id, "Send your message")
                 .reply_markup(keyboard)
                 .await?;
@@ -32,7 +32,7 @@ pub async fn process_broadcast(
                 .await?;
             bot.send_message(msg.chat.id, "Your message is:").await?;
             let vec = vec![lang.details().confirm.to_string()];
-            let keyboard = make_keyboard(&vec, lang, 0, true);
+            let keyboard = make_keyboard(&vec, lang, 42, true);
             bot.send_message(msg.chat.id, text)
                 .reply_markup(keyboard)
                 .await?;
@@ -63,7 +63,7 @@ pub async fn process_broadcast(
                 let lang = lang.to_string();
                 dialogue.update(State::Start { lang }).await?;
             }
-            let keyboard = make_keyboard(&Vec::new(), lang, 0, true);
+            let keyboard = make_keyboard(&Vec::new(), lang, 42, true);
             bot.send_message(msg.chat.id, "Send your message")
                 .reply_markup(keyboard)
                 .await?;
