@@ -1,4 +1,3 @@
-#![feature(is_some_with)]
 mod bot;
 mod model;
 
