@@ -1,5 +1,4 @@
 use crate::bot::dialogue::helpers::send_state;
-use crate::bot::error_handler::report_if_error;
 use crate::bot::prelude::*;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
 use anyhow::{bail, Context, Error};
@@ -40,10 +39,11 @@ pub async fn commands_handler(
         FACommands::Start => {
             let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
             let lang = Lang::default();
-            let rez = move_to_state(&args, Vec::new(), lang)
+            move_to_state(&args, Vec::new(), lang)
                 .await
-                .context("Error while moving to root state :(");
-            report_if_error(&bot, msg.chat.id, &lang, rez).await
+                .context("Error while moving to root state :(")
+                .report_if_err(&bot, msg.chat.id, &lang)
+                .await
         }
     }
 }
@@ -71,8 +71,10 @@ pub async fn maintainer_commands_handler(
             }
         }
         MaintainerCommands::Test => {
-            let rez = test(data, &bot, &msg).await;
-            report_if_error(&bot, msg.chat.id, &Lang::default(), rez).await
+            test(data, &bot, &msg)
+                .await
+                .report_if_err(&bot, msg.chat.id, &Lang::default())
+                .await
         }
     }
 }
