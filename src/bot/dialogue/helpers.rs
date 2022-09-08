@@ -1,11 +1,16 @@
-use super::{handlers::FAMsgArgs, keyboard::make_keyboard_from_state};
+use super::{fa_args::FAArgs, keyboard::make_keyboard_from_state};
 use crate::bot::prelude::*;
-use redis::AsyncCommands;
+use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::time::{SystemTime, UNIX_EPOCH};
 use teloxide::types::ParseMode;
 
-pub async fn log_to_redis(args: &FAMsgArgs<'_>, lang: &Lang, context: &[String]) {
-    let FAMsgArgs { msg, redis_con, .. }: &FAMsgArgs = args;
+pub async fn log_to_redis(
+    args: &FAArgs<'_>,
+    lang: &Lang,
+    context: &[String],
+    redis_con: MultiplexedConnection,
+) {
+    let FAArgs { msg, .. } = args;
     let mut redis_con = redis_con.clone();
     if let Some(user) = msg.from() {
         let user_id = user.id.0.to_string();
