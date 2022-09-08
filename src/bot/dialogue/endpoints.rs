@@ -23,11 +23,11 @@ pub async fn start_handler(
     lang: String,
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn(&bot, &msg, lang).await.unwrap_or_default();
-    FALogic::new(&bot, &msg, &dialogue, &data)
-        .move_to_state(Vec::new(), lang, redis_con)
+    let args = FALogic::new(bot, msg, dialogue, data);
+    args.move_to_state(Vec::new(), lang, redis_con)
         .await
         .context("Error while moving into initial state")
-        .report_if_err(&bot, msg.chat.id, &lang)
+        .report_if_err(&args.bot, args.msg.chat.id, &lang)
         .await
 }
 
@@ -47,22 +47,21 @@ pub async fn handle_dialogue(
     {
         Ok(lang) => lang,
         Err(err) => {
-            FALogic::new(&bot, &msg, &dialogue, &data)
+            FALogic::new(bot, msg, dialogue, data)
                 .move_to_state(Vec::new(), Lang::default(), redis_con)
                 .await?;
             bail!(err)
         }
     };
-    if let Err(err) = FALogic::new(&bot, &msg, &dialogue, &data)
+    let logic = FALogic::new(bot, msg, dialogue, data);
+    if let Err(err) = logic
         .state_transition(context.clone(), lang, redis_con.clone())
         .await
         .context("The state transition broke")
-        .report_if_err(&bot, msg.chat.id, &Lang::default())
+        .report_if_err(&logic.bot, logic.msg.chat.id, &lang)
         .await
     {
-        FALogic::new(&bot, &msg, &dialogue, &data)
-            .move_to_state(Vec::new(), lang, redis_con)
-            .await?;
+        logic.move_to_state(Vec::new(), lang, redis_con).await?;
         bail!(err)
     }
     Ok(())
