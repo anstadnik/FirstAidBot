@@ -1,7 +1,6 @@
 mod commands;
 mod endpoints;
 mod logic;
-mod keyboard;
 
 pub mod prelude {
     pub use super::commands::{get_commands_branch, get_maintainer_commands_branch, FACommands};

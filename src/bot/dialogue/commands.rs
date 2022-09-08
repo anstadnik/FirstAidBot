@@ -25,42 +25,40 @@ pub enum MaintainerCommands {
 }
 
 pub async fn commands_handler(
-    msg: Message,
     bot: FABot,
+    msg: Message,
     cmd: FACommands,
     data: Arc<Data>,
-    redis_con: MultiplexedConnection,
+    conn: MultiplexedConnection,
     dialogue: FADialogue,
 ) -> anyhow::Result<()> {
     match cmd {
         FACommands::Start => {
-            start_handler(bot, msg, data, redis_con, dialogue, Lang::default().name()).await
+            start_handler(bot, msg, data, dialogue, Lang::default().name(), conn).await
         }
     }
 }
 
 pub async fn maintainer_commands_handler(
-    msg: Message,
     bot: FABot,
+    msg: Message,
     cmd: MaintainerCommands,
     data: Arc<Data>,
-    mut redis_con: MultiplexedConnection,
+    mut conn: MultiplexedConnection,
 ) -> anyhow::Result<()> {
     match cmd {
-        MaintainerCommands::GetNumber => {
-            match redis_con.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
-                Ok(n) => bot
-                    .send_message(msg.chat.id, n.to_string())
-                    .await
-                    .map(|_| ())
-                    .map_err(Error::msg),
-                Err(err) => {
-                    let err = anyhow!(err);
-                    report_error(&bot, msg.chat.id, &Lang::default(), &err).await;
-                    bail!(err)
-                }
+        MaintainerCommands::GetNumber => match conn.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
+            Ok(n) => bot
+                .send_message(msg.chat.id, n.to_string())
+                .await
+                .map(|_| ())
+                .map_err(Error::msg),
+            Err(err) => {
+                let err = anyhow!(err);
+                report_error(&bot, msg.chat.id, &Lang::default(), &err).await;
+                bail!(err)
             }
-        }
+        },
         MaintainerCommands::Test => {
             test(data, &bot, &msg)
                 .await
@@ -119,7 +117,7 @@ pub fn get_commands_branch() -> FAHandler {
 
 pub fn get_maintainer_commands_branch() -> FAHandler {
     dptree::filter(
-        |msg: Message, _bot: FABot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
+        |msg: Message, _bot: FABot, _data: Arc<Data>, _conn: MultiplexedConnection| {
             cfg!(debug_assertions)
                 || msg.from().is_some_and(|user| {
                     user.username

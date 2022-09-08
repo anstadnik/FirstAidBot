@@ -2,12 +2,9 @@ use super::{dialogue::prelude::*, prelude::*};
 use crate::{bot::error_handler::FAErrorHandler, REDIS_URLS};
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
-use teloxide::{
-    adaptors::throttle::Limits,
-    dispatching::dialogue::{serializer::Bincode, RedisStorage},
-    types::ParseMode,
-    utils::command::BotCommands,
-};
+use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
+use teloxide::dptree::case;
+use teloxide::{adaptors::throttle::Limits, types::ParseMode, utils::command::BotCommands};
 
 pub async fn connect_to_redis() -> (MultiplexedConnection, Arc<FirstAidStorage>) {
     let results = join_all(REDIS_URLS.into_iter().map(|url| async move {
@@ -31,17 +28,17 @@ pub async fn run_bot(data: Data) {
         .await
         .unwrap();
 
-    let (redis_con, storage) = connect_to_redis().await;
+    let (conn, storage) = connect_to_redis().await;
 
     let handler = Update::filter_message()
         .branch(get_commands_branch())
         .branch(get_maintainer_commands_branch())
         .enter_dialogue::<Message, FirstAidStorage, State>()
-        .branch(dptree::case![State::Start { lang }].endpoint(start_handler))
-        .branch(dptree::case![State::Dialogue { lang, context }].endpoint(handle_dialogue));
+        .branch(case![State::Start { lang }].endpoint(start_handler))
+        .branch(case![State::Dialogue { lang, context }].endpoint(handle_dialogue));
 
     Dispatcher::builder(bot.clone(), handler)
-        .dependencies(dptree::deps![Arc::new(data), redis_con, storage])
+        .dependencies(dptree::deps![Arc::new(data), conn, storage])
         .error_handler(FAErrorHandler::new(bot))
         .enable_ctrlc_handler()
         .build()
