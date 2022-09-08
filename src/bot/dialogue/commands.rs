@@ -1,13 +1,13 @@
-use super::fa_args::FAArgs;
 use crate::bot::dialogue::helpers::send_state;
 use crate::bot::prelude::*;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
 use anyhow::{anyhow, bail, Context, Error};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
-use std::sync::Arc;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::utils::command::BotCommands;
+
+use super::fa_logic::FALogic;
 
 #[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
@@ -35,7 +35,7 @@ pub async fn commands_handler(
 ) -> anyhow::Result<()> {
     match cmd {
         FACommands::Start => {
-            FAArgs::new(&bot, &msg, &dialogue, &data)
+            FALogic::new(&bot, &msg, &dialogue, &data)
                 .move_to_state(Vec::new(), Lang::default(), redis_con)
                 .await
                 .context("Error while moving to root state :(")

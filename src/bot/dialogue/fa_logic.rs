@@ -5,14 +5,14 @@ use async_recursion::async_recursion;
 use redis::aio::MultiplexedConnection;
 use teloxide::utils::markdown::{escape, escape_code};
 
-pub struct FAArgs<'a> {
+pub struct FALogic<'a> {
     pub bot: &'a FABot,
     pub msg: &'a Message,
     pub dialogue: &'a FADialogue,
     pub data: &'a Arc<Data>,
 }
 
-impl<'a> FAArgs<'a> {
+impl<'a> FALogic<'a> {
     pub const fn new(
         bot: &'a FABot,
         msg: &'a Message,
@@ -28,7 +28,7 @@ impl<'a> FAArgs<'a> {
     }
 }
 
-impl FAArgs<'_> {
+impl FALogic<'_> {
     #[async_recursion]
     pub async fn move_to_state(
         &self,
@@ -36,7 +36,7 @@ impl FAArgs<'_> {
         lang: Lang,
         redis_con: MultiplexedConnection,
     ) -> anyhow::Result<()> {
-        let FAArgs {
+        let FALogic {
             bot,
             msg,
             dialogue,
@@ -44,7 +44,7 @@ impl FAArgs<'_> {
             ..
         } = self;
         let state = &data.get(lang, &context).await?;
-        log_to_redis(self, &lang, &context, redis_con.clone()).await;
+        log_to_redis(self.msg, &lang, &context, redis_con.clone()).await;
         send_state(bot, msg.chat.id, state, lang, &context).await?;
         if state.next_states.is_empty() {
             return self.move_to_state(Vec::new(), lang, redis_con).await;
@@ -72,7 +72,7 @@ impl FAArgs<'_> {
                 return self.move_to_state(Vec::new(), lang, redis_con).await;
             }
         };
-        log_to_redis(self, &lang, &context, redis_con.clone()).await;
+        log_to_redis(self.msg, &lang, &context, redis_con.clone()).await;
         match self.msg.text() {
             Some(text) if text == lang.details().button_home => {
                 self.move_to_state(Vec::new(), lang, redis_con).await?;
