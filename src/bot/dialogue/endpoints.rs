@@ -1,5 +1,5 @@
-use super::logic::{move_to_state, state_transition};
-use crate::bot::prelude::*;
+use super::logic::{move_to_state, process_broadcast, state_transition};
+use crate::{bot::prelude::*, MAINTAINER_USERNAMES};
 use anyhow::{bail, Context, Error};
 use redis::aio::MultiplexedConnection;
 use std::convert::TryInto;
@@ -12,7 +12,7 @@ pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyho
         .await
 }
 
-pub async fn start_handler(
+pub async fn start_endpoint(
     bot: FABot,
     msg: Message,
     data: Arc<Data>,
@@ -28,7 +28,7 @@ pub async fn start_handler(
         .await
 }
 
-pub async fn handle_dialogue(
+pub async fn handle_endpoint(
     bot: FABot,
     msg: Message,
     dialogue: FADialogue,
@@ -59,5 +59,47 @@ pub async fn handle_dialogue(
         move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn).await?;
         bail!(err)
     }
+    Ok(())
+}
+
+pub async fn broadcast_endpoint(
+    bot: FABot,
+    msg: Message,
+    dialogue: FADialogue,
+    data: Arc<Data>,
+    mut conn: MultiplexedConnection,
+    (lang, message): (String, Option<String>),
+) -> anyhow::Result<()> {
+    let is_admin = msg.from().is_some_and(|user| {
+        user.username
+            .is_some_and(|username| MAINTAINER_USERNAMES.contains(&username.as_str()))
+    });
+    if !is_admin {
+        let _ = bot
+            .send_message(msg.chat.id, "WTF you are not an admin bye")
+            .await;
+        dialogue
+            .update(State::Start {
+                lang: Lang::default().to_string(),
+            })
+            .await?;
+        return Ok(());
+    }
+    let lang = match get_lang_or_warn(&bot, &msg, lang)
+        .await
+        .context("Unknown language {lang}")
+        .report_if_err(&bot, msg.chat.id, &Lang::default(), None)
+        .await
+    {
+        Ok(lang) => lang,
+        Err(err) => {
+            let lang = Lang::default();
+            let context = Vec::new();
+            move_to_state(&bot, &msg, &dialogue, &data, context, lang, &mut conn).await?;
+            bail!(err)
+        }
+    };
+    process_broadcast(&bot, &msg, &dialogue,  message, lang, &mut conn).await?;
+    // process_broadcast();
     Ok(())
 }
