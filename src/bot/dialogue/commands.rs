@@ -1,15 +1,13 @@
+use super::fa_args::FAArgs;
 use crate::bot::dialogue::helpers::send_state;
 use crate::bot::prelude::*;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
-use anyhow::{bail, Context, Error};
+use anyhow::{anyhow, bail, Context, Error};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::sync::Arc;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::utils::command::BotCommands;
-
-use super::handlers::FAMsgArgs;
-use super::logic::move_to_state;
 
 #[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
@@ -37,12 +35,11 @@ pub async fn commands_handler(
 ) -> anyhow::Result<()> {
     match cmd {
         FACommands::Start => {
-            let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
-            let lang = Lang::default();
-            move_to_state(&args, Vec::new(), lang)
+            FAArgs::new(&bot, &msg, &dialogue, &data)
+                .move_to_state(Vec::new(), Lang::default(), redis_con)
                 .await
                 .context("Error while moving to root state :(")
-                .report_if_err(&bot, msg.chat.id, &lang)
+                .report_if_err(&bot, msg.chat.id, &Lang::default())
                 .await
         }
     }
@@ -64,8 +61,8 @@ pub async fn maintainer_commands_handler(
                     .map(|_| ())
                     .map_err(Error::msg),
                 Err(err) => {
-                    bot.send_message(msg.chat.id, "Error getting a number of users")
-                        .await?;
+                    let err = anyhow!(err);
+                    report_error(&bot, msg.chat.id, &Lang::default(), &err).await;
                     bail!(err)
                 }
             }
@@ -117,16 +114,16 @@ async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()>
     Ok(())
 }
 
-pub fn get_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), Error>, DpHandlerDescription> {
+type FAHandler = Handler<'static, DependencyMap, Result<(), Error>, DpHandlerDescription>;
+
+pub fn get_commands_branch() -> FAHandler {
     dptree::entry()
         .filter_command::<FACommands>()
         .enter_dialogue::<Message, FirstAidStorage, State>()
         .endpoint(commands_handler)
 }
 
-pub fn get_maintainer_commands_branch(
-) -> Handler<'static, DependencyMap, Result<(), Error>, DpHandlerDescription> {
+pub fn get_maintainer_commands_branch() -> FAHandler {
     dptree::filter(
         |msg: Message, _bot: FABot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
             msg.from()
