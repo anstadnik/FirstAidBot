@@ -1,4 +1,5 @@
-use crate::bot::dialogue::helpers::send_state;
+use super::prelude::start_handler;
+use crate::bot::dialogue::logic::send_state;
 use crate::bot::prelude::*;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
 use anyhow::{anyhow, bail, Context, Error};
@@ -6,9 +7,6 @@ use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::utils::command::BotCommands;
-
-// use super::fa_logic::FALogic;
-use super::prelude::start_handler;
 
 #[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
