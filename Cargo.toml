@@ -29,4 +29,3 @@ anyhow = { version = "1.0.64" }
 tokio = { version =  "1.21.0", features = ["rt-multi-thread", "macros"] }
 const_format = "0.2.26"
 itertools = "0.10.3"
-async-recursion = "1.0.0"
