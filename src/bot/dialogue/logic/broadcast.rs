@@ -43,8 +43,16 @@ pub async fn process_broadcast(
                     .await?;
 
                 async fn send_to_user(bot: &FABot, user_id: &str, message: &str) -> Result<()> {
-                    bot.send_message(UserId(user_id.parse::<u64>()?), message)
-                        .await?;
+                    bot.send_message(
+                        UserId(
+                            user_id
+                                .strip_prefix("user_")
+                                .ok_or_else(|| anyhow!("Cannot parse user_id"))?
+                                .parse::<u64>()?,
+                        ),
+                        message,
+                    )
+                    .await?;
                     Ok(())
                 }
 
