@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - "dev"
+  pull_request:
+    branches:
+      - "dev"
 
 concurrency: CD_dev
 
@@ -12,6 +15,6 @@ jobs:
     uses: ./.github/workflows/CI_CD.yml
     with:
       release: false
-      deploy: true
+      deploy: ${{ github.event_name == 'push' }}
       environment: test
     secrets: inherit
