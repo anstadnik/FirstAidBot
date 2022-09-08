@@ -17,8 +17,8 @@ mod prelude {
     pub type FABot = AutoSend<DefaultParseMode<Throttle<Bot>>>;
     pub type FirstAidStorage = RedisStorage<Bincode>;
 
-    pub use super::report_error::ReportError;
     pub use super::report_error::report_error;
+    pub use super::report_error::ReportError;
 }
 
 pub use run::run_bot;
