@@ -27,11 +27,8 @@ pub async fn move_to_state(
     if state.next_states.is_empty() {
         return move_to_state(args, Vec::new(), lang).await;
     }
-    let new_dialogue = State::Dialogue {
-        lang: lang.name(),
-        context,
-    };
-    dialogue.update(new_dialogue).await?;
+    let lang = lang.name();
+    dialogue.update(State::Dialogue { lang, context }).await?;
     Ok(())
 }
 
