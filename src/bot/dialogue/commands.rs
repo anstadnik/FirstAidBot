@@ -7,7 +7,8 @@ use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::utils::command::BotCommands;
 
-use super::fa_logic::FALogic;
+// use super::fa_logic::FALogic;
+use super::prelude::start_handler;
 
 #[derive(BotCommands, Clone)]
 #[command(rename = "lowercase", description = "FirstAidBot")]
@@ -35,12 +36,7 @@ pub async fn commands_handler(
 ) -> anyhow::Result<()> {
     match cmd {
         FACommands::Start => {
-            FALogic::new(&bot, &msg, &dialogue, &data)
-                .move_to_state(Vec::new(), Lang::default(), redis_con)
-                .await
-                .context("Error while moving to root state :(")
-                .report_if_err(&bot, msg.chat.id, &Lang::default())
-                .await
+            start_handler(bot, msg, data, redis_con, dialogue, Lang::default().name()).await
         }
     }
 }
