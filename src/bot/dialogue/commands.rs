@@ -126,14 +126,11 @@ pub fn get_commands_branch() -> FAHandler {
 pub fn get_maintainer_commands_branch() -> FAHandler {
     dptree::filter(
         |msg: Message, _bot: FABot, _data: Arc<Data>, _redis_con: MultiplexedConnection| {
-            msg.from()
-                .map(|user| {
-                    cfg!(debug_assertions)
-                        || (user.username.is_some()
-                            && MAINTAINER_USERNAMES
-                                .contains(&user.username.as_ref().unwrap().as_str()))
+            cfg!(debug_assertions)
+                || msg.from().is_some_and(|user| {
+                    user.username
+                        .is_some_and(|username| MAINTAINER_USERNAMES.contains(&username.as_str()))
                 })
-                .unwrap_or_default()
         },
     )
     .filter_command::<MaintainerCommands>()
