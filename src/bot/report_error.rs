@@ -1,23 +1,24 @@
 use crate::bot::prelude::*;
-use async_trait::async_trait;
+use futures::{future::BoxFuture, FutureExt};
 use itertools::Itertools;
 use teloxide::utils::markdown::code_block;
 
-#[async_trait]
 pub trait ReportError {
-    async fn report_if_err(self, bot: &FABot, id: ChatId, lang: &Lang) -> Self;
+    fn report_if_err<'a>(self, bot: &'a FABot, id: ChatId, lang: &'a Lang) -> BoxFuture<'a, Self>;
 }
 
-#[async_trait]
 impl<T> ReportError for anyhow::Result<T>
 where
-    T: std::marker::Send + std::marker::Sync,
+    for<'a> T: std::marker::Send + std::marker::Sync + 'a,
 {
-    async fn report_if_err(self, bot: &FABot, id: ChatId, lang: &Lang) -> Self {
-        if let Err(err) = &self {
-            report_error(bot, id, lang, err).await
+    fn report_if_err<'a>(self, bot: &'a FABot, id: ChatId, lang: &'a Lang) -> BoxFuture<'a, Self> {
+        async move {
+            if let Err(err) = &self {
+                report_error(bot, id, lang, err).await
+            }
+            self
         }
-        self
+        .boxed()
     }
 }
 
