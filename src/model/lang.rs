@@ -100,7 +100,7 @@ const UA_LD: LangDetails = LangDetails {
     broadcast: "Транслювати",
     send_msg: "Надішли мені повідомлення",
     confirm: "Підтвердити",
-    broadcasting: "Надсилаю\! З Богом"
+    broadcasting: "Надсилаю\\! З Богом"
 };
 
 // const EN_STR: &str = "Ukrainian";

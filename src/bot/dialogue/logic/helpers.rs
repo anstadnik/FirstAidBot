@@ -15,7 +15,7 @@ pub async fn send_state(
             .await?;
     }
 
-    let keyboard = make_keyboard_from_state(state, lang, context, is_admin(msg));
+    let keyboard = make_keyboard_from_state(state, lang, context.len(), is_admin(msg));
     bot.send_message(msg.chat.id, &state.message)
         .reply_markup(keyboard)
         .await?;
