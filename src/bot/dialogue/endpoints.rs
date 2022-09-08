@@ -1,4 +1,4 @@
-use super::fa_args::FAArgs;
+use super::fa_logic::FALogic;
 use crate::bot::prelude::*;
 use anyhow::{bail, Context};
 use redis::aio::MultiplexedConnection;
@@ -23,7 +23,7 @@ pub async fn start_handler(
     lang: String,
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn(&bot, &msg, lang).await.unwrap_or_default();
-    FAArgs::new(&bot, &msg, &dialogue, &data)
+    FALogic::new(&bot, &msg, &dialogue, &data)
         .move_to_state(Vec::new(), lang, redis_con)
         .await
         .context("Error while moving into initial state")
@@ -47,20 +47,20 @@ pub async fn handle_dialogue(
     {
         Ok(lang) => lang,
         Err(err) => {
-            FAArgs::new(&bot, &msg, &dialogue, &data)
+            FALogic::new(&bot, &msg, &dialogue, &data)
                 .move_to_state(Vec::new(), Lang::default(), redis_con)
                 .await?;
             bail!(err)
         }
     };
-    if let Err(err) = FAArgs::new(&bot, &msg, &dialogue, &data)
+    if let Err(err) = FALogic::new(&bot, &msg, &dialogue, &data)
         .state_transition(context.clone(), lang, redis_con.clone())
         .await
         .context("The state transition broke")
         .report_if_err(&bot, msg.chat.id, &Lang::default())
         .await
     {
-        FAArgs::new(&bot, &msg, &dialogue, &data)
+        FALogic::new(&bot, &msg, &dialogue, &data)
             .move_to_state(Vec::new(), lang, redis_con)
             .await?;
         bail!(err)
