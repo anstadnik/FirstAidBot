@@ -1,4 +1,4 @@
-use super::prelude::start_handler;
+use super::prelude::start_endpoint;
 use crate::bot::dialogue::logic::send_state;
 use crate::bot::prelude::*;
 use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
@@ -34,7 +34,7 @@ pub async fn commands_handler(
 ) -> anyhow::Result<()> {
     match cmd {
         FACommands::Start => {
-            start_handler(bot, msg, data, dialogue, Lang::default().name(), conn).await
+            start_endpoint(bot, msg, data, dialogue, Lang::default().name(), conn).await
         }
     }
 }
@@ -77,7 +77,7 @@ async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()>
         msg: &'a Message,
     ) -> BoxFuture<'a, anyhow::Result<()>> {
         async move {
-            send_state(bot, msg.chat.id, state, lang, &context)
+            send_state(bot, msg, state, lang, &context)
                 .await
                 .with_context(|| format!("Error while processing state {state:?}"))?;
             for (key, next_state) in state.next_states.iter() {

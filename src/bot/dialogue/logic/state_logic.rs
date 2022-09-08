@@ -1,6 +1,7 @@
 use super::helpers::send_state;
 use super::log_to_redis::log_to_redis;
-use crate::bot::prelude::*;
+use super::process_broadcast;
+use crate::{bot::prelude::*, MAINTAINER_USERNAMES};
 use anyhow::{anyhow, Context};
 use redis::aio::MultiplexedConnection;
 use teloxide::utils::markdown::{escape, escape_code};
@@ -16,13 +17,13 @@ pub async fn move_to_state(
 ) -> anyhow::Result<()> {
     let state = &data.get(lang, &context).await?;
     log_to_redis(msg, &lang, &context, conn).await;
-    send_state(bot, msg.chat.id, state, lang, &context).await?;
+    send_state(bot, msg, state, lang, &context).await?;
     if state.next_states.is_empty() {
         let context = Vec::new();
 
         let state = &data.get(lang, &context).await?;
         log_to_redis(msg, &lang, &context, conn).await;
-        send_state(bot, msg.chat.id, state, lang, &context).await?;
+        send_state(bot, msg, state, lang, &context).await?;
         let lang = lang.name();
         dialogue.update(State::Dialogue { lang, context }).await?;
         return Ok(());
@@ -50,6 +51,10 @@ pub async fn state_transition(
         }
     };
     log_to_redis(msg, &lang, &context, conn).await;
+    let is_admin = msg.from().is_some_and(|user| {
+        user.username
+            .is_some_and(|username| MAINTAINER_USERNAMES.contains(&username.as_str()))
+    });
     match msg.text() {
         Some(text) if text == lang.details().button_home => {
             move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await?;
@@ -72,6 +77,15 @@ pub async fn state_transition(
             move_to_state(bot, msg, dialogue, data, context.clone(), lang, conn)
                 .await
                 .with_context(|| format!("Error while moving into context {context:?}"))?;
+        }
+        Some(text) if text == lang.details().broadcast && is_admin => {
+            dialogue
+                .update(State::Broadcast {
+                    lang: lang.to_string(),
+                    message: None,
+                })
+                .await?;
+            process_broadcast(bot, msg, dialogue, None, lang, conn).await?;
         }
         _ => {
             bot.send_message(msg.chat.id, escape(lang.details().use_buttons_text))

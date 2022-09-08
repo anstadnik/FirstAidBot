@@ -74,6 +74,10 @@ pub struct LangDetails {
     pub error_due_to_update: &'static str,
     pub use_buttons_text: &'static str,
     pub greeting: &'static str,
+    pub broadcast: &'static str,
+    pub send_msg: &'static str,
+    pub confirm: &'static str,
+    pub broadcasting: &'static str,
 }
 
 const UA_STR: &str = "Ukrainian";
@@ -93,6 +97,10 @@ const UA_LD: LangDetails = LangDetails {
     use_buttons_text: "Використайте кнопки, або перезавантажте бота (/start)",
     // TODO: Change it <26-06-22, astadnik> //
     greeting: "Що трапилось?",
+    broadcast: "Транслювати",
+    send_msg: "Надішли мені повідомлення",
+    confirm: "Підтвердити",
+    broadcasting: "Надсилаю! З Богом"
 };
 
 // const EN_STR: &str = "Ukrainian";
