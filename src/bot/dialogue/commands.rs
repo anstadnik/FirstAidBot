@@ -1,7 +1,8 @@
+use super::logic::is_admin;
 use super::prelude::start_endpoint;
 use crate::bot::dialogue::logic::send_state;
 use crate::bot::prelude::*;
-use crate::{MAINTAINER_USERNAMES, REDIS_USERS_SET_KEY};
+use crate::REDIS_USERS_SET_KEY;
 use anyhow::{anyhow, bail, Context, Error};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
@@ -118,11 +119,7 @@ pub fn get_commands_branch() -> FAHandler {
 pub fn get_maintainer_commands_branch() -> FAHandler {
     dptree::filter(
         |msg: Message, _bot: FABot, _data: Arc<Data>, _conn: MultiplexedConnection| {
-            cfg!(debug_assertions)
-                || msg.from().is_some_and(|user| {
-                    user.username
-                        .is_some_and(|username| MAINTAINER_USERNAMES.contains(&username.as_str()))
-                })
+            cfg!(debug_assertions) || is_admin(&msg)
         },
     )
     .filter_command::<MaintainerCommands>()

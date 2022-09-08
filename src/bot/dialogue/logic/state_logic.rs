@@ -1,7 +1,7 @@
-use super::helpers::send_state;
 use super::log_to_redis::log_to_redis;
 use super::process_broadcast;
-use crate::{bot::prelude::*, MAINTAINER_USERNAMES};
+use super::{helpers::send_state, is_admin};
+use crate::bot::prelude::*;
 use anyhow::{anyhow, Context};
 use redis::aio::MultiplexedConnection;
 use teloxide::utils::markdown::{escape, escape_code};
@@ -51,10 +51,7 @@ pub async fn state_transition(
         }
     };
     log_to_redis(msg, &lang, &context, conn).await;
-    let is_admin = msg.from().is_some_and(|user| {
-        user.username
-            .is_some_and(|username| MAINTAINER_USERNAMES.contains(&username.as_str()))
-    });
+
     match msg.text() {
         Some(text) if text == lang.details().button_home => {
             move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await?;
@@ -78,7 +75,7 @@ pub async fn state_transition(
                 .await
                 .with_context(|| format!("Error while moving into context {context:?}"))?;
         }
-        Some(text) if text == lang.details().broadcast && is_admin => {
+        Some(text) if text == lang.details().broadcast && is_admin(msg) => {
             dialogue
                 .update(State::Broadcast {
                     lang: lang.to_string(),

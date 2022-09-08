@@ -15,14 +15,18 @@ pub async fn send_state(
             .await?;
     }
 
-    let is_admin = msg.from().is_some_and(|user| {
-        user.username
-            .is_some_and(|username| MAINTAINER_USERNAMES.contains(&username.as_str()))
-    });
-
-    let keyboard = make_keyboard_from_state(state, lang, context, is_admin);
+    let keyboard = make_keyboard_from_state(state, lang, context, is_admin(msg));
     bot.send_message(msg.chat.id, &state.message)
         .reply_markup(keyboard)
         .await?;
     Ok(())
+}
+
+pub fn is_admin(msg: &Message) -> bool {
+    if let Some(user) = msg.from() {
+        if let Some(username) = &user.username {
+            return MAINTAINER_USERNAMES.contains(&username.as_str());
+        }
+    }
+    false
 }
