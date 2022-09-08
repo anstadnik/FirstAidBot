@@ -1,5 +1,4 @@
 use super::logic::{move_to_state, state_transition};
-use crate::bot::error_handler::{report_if_error, send_err};
 use crate::bot::prelude::*;
 use anyhow::{bail, Context};
 use redis::aio::MultiplexedConnection;
@@ -51,10 +50,11 @@ pub async fn start_handler(
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn(&bot, &msg, lang).await.unwrap_or_default();
     let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
-    let rez = move_to_state(&args, Vec::new(), lang)
+    move_to_state(&args, Vec::new(), lang)
         .await
-        .context("Error while moving into initial state");
-    report_if_error(&bot, msg.chat.id, &lang, rez).await
+        .context("Error while moving into initial state")
+        .report_if_err(&bot, msg.chat.id, &lang)
+        .await
 }
 
 pub async fn handle_dialogue(
@@ -66,20 +66,26 @@ pub async fn handle_dialogue(
     (lang, context): (String, Vec<String>),
 ) -> anyhow::Result<()> {
     let args = FAMsgArgs::new(&bot, &msg, &dialogue, &data, redis_con);
-    let lang = match get_lang_or_warn(&bot, &msg, lang).await {
+    let lang = match get_lang_or_warn(&bot, &msg, lang)
+        .await
+        .context("Unknown language {lang}")
+        .report_if_err(&bot, msg.chat.id, &Lang::default())
+        .await
+    {
         Ok(lang) => lang,
         Err(err) => {
-            send_err(&bot, msg.chat.id, &Lang::default(), &format!("{err:?}")).await;
-            move_to_state(&args, Vec::new(), Lang::default());
+            move_to_state(&args, Vec::new(), Lang::default()).await?;
             bail!(err)
         }
     };
-    match state_transition(&args, context.clone(), lang).await {
-        Err(err) => {
-            send_err(&bot, msg.chat.id, &lang, &format!("{err:?}")).await;
-            move_to_state(&args, Vec::new(), lang);
-            bail!(err)
-        }
-        ok => ok,
+    if let Err(err) = state_transition(&args, context.clone(), lang)
+        .await
+        .context("The state transition broke")
+        .report_if_err(&bot, msg.chat.id, &Lang::default())
+        .await
+    {
+        move_to_state(&args, Vec::new(), lang).await?;
+        bail!(err)
     }
+    Ok(())
 }
