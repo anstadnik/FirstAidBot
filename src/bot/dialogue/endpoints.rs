@@ -1,18 +1,15 @@
-use crate::bot::prelude::*;
-use anyhow::{bail, Context};
-use redis::aio::MultiplexedConnection;
-use teloxide::utils::markdown::code_block;
-
 use super::logic::{move_to_state, state_transition};
+use crate::bot::prelude::*;
+use anyhow::{bail, Context, Error};
+use redis::aio::MultiplexedConnection;
+use std::convert::TryInto;
 
 pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
-    match lang.as_str().try_into() {
-        Ok(lang) => Ok(lang),
-        Err(err) => {
-            bot.send_message(msg.chat.id, code_block(&err)).await?;
-            bail!(err)
-        }
-    }
+    lang.as_str()
+        .try_into()
+        .map_err(Error::msg)
+        .report_if_err(bot, msg.chat.id, &Lang::default(), None)
+        .await
 }
 
 pub async fn start_handler(
@@ -27,7 +24,7 @@ pub async fn start_handler(
     move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn)
         .await
         .context("Error while moving into initial state")
-        .report_if_err(&bot, msg.chat.id, &lang)
+        .report_if_err(&bot, msg.chat.id, &lang, None)
         .await
 }
 
@@ -42,7 +39,7 @@ pub async fn handle_dialogue(
     let lang = match get_lang_or_warn(&bot, &msg, lang)
         .await
         .context("Unknown language {lang}")
-        .report_if_err(&bot, msg.chat.id, &Lang::default())
+        .report_if_err(&bot, msg.chat.id, &Lang::default(), None)
         .await
     {
         Ok(lang) => lang,
@@ -56,7 +53,7 @@ pub async fn handle_dialogue(
     if let Err(err) = state_transition(&bot, &msg, &dialogue, &data, context, lang, &mut conn)
         .await
         .context("The state transition broke")
-        .report_if_err(&bot, msg.chat.id, &lang)
+        .report_if_err(&bot, msg.chat.id, &lang, None)
         .await
     {
         move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn).await?;
