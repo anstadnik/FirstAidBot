@@ -19,12 +19,12 @@ pub async fn start_handler(
     bot: FABot,
     msg: Message,
     data: Arc<Data>,
-    redis_con: MultiplexedConnection,
     dialogue: FADialogue,
     lang: String,
+    mut conn: MultiplexedConnection,
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn(&bot, &msg, lang).await.unwrap_or_default();
-    move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, redis_con)
+    move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn)
         .await
         .context("Error while moving into initial state")
         .report_if_err(&bot, msg.chat.id, &lang)
@@ -36,7 +36,7 @@ pub async fn handle_dialogue(
     msg: Message,
     dialogue: FADialogue,
     data: Arc<Data>,
-    redis_con: MultiplexedConnection,
+    mut conn: MultiplexedConnection,
     (lang, context): (String, Vec<String>),
 ) -> anyhow::Result<()> {
     let lang = match get_lang_or_warn(&bot, &msg, lang)
@@ -47,34 +47,19 @@ pub async fn handle_dialogue(
     {
         Ok(lang) => lang,
         Err(err) => {
-            move_to_state(
-                &bot,
-                &msg,
-                &dialogue,
-                &data,
-                Vec::new(),
-                Lang::default(),
-                redis_con,
-            )
-            .await?;
+            let lang = Lang::default();
+            let context = Vec::new();
+            move_to_state(&bot, &msg, &dialogue, &data, context, lang, &mut conn).await?;
             bail!(err)
         }
     };
-    if let Err(err) = state_transition(
-        &bot,
-        &msg,
-        &dialogue,
-        &data,
-        context.clone(),
-        lang,
-        redis_con.clone(),
-    )
-    .await
-    .context("The state transition broke")
-    .report_if_err(&bot, msg.chat.id, &lang)
-    .await
+    if let Err(err) = state_transition(&bot, &msg, &dialogue, &data, context, lang, &mut conn)
+        .await
+        .context("The state transition broke")
+        .report_if_err(&bot, msg.chat.id, &lang)
+        .await
     {
-        move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, redis_con).await?;
+        move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn).await?;
         bail!(err)
     }
     Ok(())
