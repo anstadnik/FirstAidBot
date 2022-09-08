@@ -1,5 +1,5 @@
-use super::logic::{move_to_state, process_broadcast, state_transition};
-use crate::{bot::prelude::*, MAINTAINER_USERNAMES};
+use super::logic::{is_admin, move_to_state, process_broadcast, state_transition};
+use crate::bot::prelude::*;
 use anyhow::{bail, Context, Error};
 use redis::aio::MultiplexedConnection;
 use std::convert::TryInto;
@@ -70,11 +70,7 @@ pub async fn broadcast_endpoint(
     mut conn: MultiplexedConnection,
     (lang, message): (String, Option<String>),
 ) -> anyhow::Result<()> {
-    let is_admin = msg.from().is_some_and(|user| {
-        user.username
-            .is_some_and(|username| MAINTAINER_USERNAMES.contains(&username.as_str()))
-    });
-    if !is_admin {
+    if !is_admin(&msg) {
         let _ = bot
             .send_message(msg.chat.id, "WTF you are not an admin bye")
             .await;
@@ -99,7 +95,7 @@ pub async fn broadcast_endpoint(
             bail!(err)
         }
     };
-    process_broadcast(&bot, &msg, &dialogue,  message, lang, &mut conn).await?;
+    process_broadcast(&bot, &msg, &dialogue, message, lang, &mut conn).await?;
     // process_broadcast();
     Ok(())
 }
