@@ -1,7 +1,6 @@
 mod commands;
-mod fa_logic;
 mod endpoints;
-mod helpers;
+mod logic;
 mod keyboard;
 
 pub mod prelude {

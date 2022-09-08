@@ -1,8 +1,9 @@
-use super::fa_logic::FALogic;
 use crate::bot::prelude::*;
 use anyhow::{bail, Context};
 use redis::aio::MultiplexedConnection;
 use teloxide::utils::markdown::code_block;
+
+use super::logic::{move_to_state, state_transition};
 
 pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
     match lang.as_str().try_into() {
@@ -23,11 +24,10 @@ pub async fn start_handler(
     lang: String,
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn(&bot, &msg, lang).await.unwrap_or_default();
-    let args = FALogic::new(bot, msg, dialogue, data);
-    args.move_to_state(Vec::new(), lang, redis_con)
+    move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, redis_con)
         .await
         .context("Error while moving into initial state")
-        .report_if_err(&args.bot, args.msg.chat.id, &lang)
+        .report_if_err(&bot, msg.chat.id, &lang)
         .await
 }
 
@@ -47,21 +47,34 @@ pub async fn handle_dialogue(
     {
         Ok(lang) => lang,
         Err(err) => {
-            FALogic::new(bot, msg, dialogue, data)
-                .move_to_state(Vec::new(), Lang::default(), redis_con)
-                .await?;
+            move_to_state(
+                &bot,
+                &msg,
+                &dialogue,
+                &data,
+                Vec::new(),
+                Lang::default(),
+                redis_con,
+            )
+            .await?;
             bail!(err)
         }
     };
-    let logic = FALogic::new(bot, msg, dialogue, data);
-    if let Err(err) = logic
-        .state_transition(context.clone(), lang, redis_con.clone())
-        .await
-        .context("The state transition broke")
-        .report_if_err(&logic.bot, logic.msg.chat.id, &lang)
-        .await
+    if let Err(err) = state_transition(
+        &bot,
+        &msg,
+        &dialogue,
+        &data,
+        context.clone(),
+        lang,
+        redis_con.clone(),
+    )
+    .await
+    .context("The state transition broke")
+    .report_if_err(&bot, msg.chat.id, &lang)
+    .await
     {
-        logic.move_to_state(Vec::new(), lang, redis_con).await?;
+        move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, redis_con).await?;
         bail!(err)
     }
     Ok(())
