@@ -1,6 +1,5 @@
-use std::{error::Error, ops::Deref};
-
 use crate::bot::prelude::*;
+use anyhow::{Error, Result};
 use futures::{future::BoxFuture, FutureExt};
 use itertools::Itertools;
 use teloxide::utils::markdown::code_block;
@@ -41,10 +40,9 @@ pub trait ReportError {
     ) -> BoxFuture<'a, Self>;
 }
 
-impl<T, E> ReportError for Result<T, E>
+impl<T> ReportError for Result<T>
 where
     for<'a> T: Send + Sync + 'a,
-    for<'a> E: Deref<Target = dyn Error + Send + Sync + 'static> + Send + Sync + 'a,
 {
     fn report_if_err<'a>(
         self,
@@ -55,7 +53,7 @@ where
     ) -> BoxFuture<'a, Self> {
         async move {
             if let Err(err) = &self {
-                report_error(bot, id, lang, msg, &**err).await
+                report_error(bot, id, lang, msg, err).await
             }
             self
         }
@@ -63,13 +61,7 @@ where
     }
 }
 
-pub async fn report_error(
-    bot: &FABot,
-    id: ChatId,
-    lang: &Lang,
-    msg: Option<&str>,
-    err: &(dyn Error + Send + Sync + 'static),
-) {
+pub async fn report_error(bot: &FABot, id: ChatId, lang: &Lang, msg: Option<&str>, err: &Error) {
     if let Err(err) = async {
         send_escaped(bot, id, msg.unwrap_or(lang.details().error)).await?;
         send_escaped(bot, id, &err.to_string()).await
