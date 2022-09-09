@@ -1,5 +1,6 @@
 use self::Lang::*;
 use crate::HELP_CHAT_URL;
+use anyhow::bail;
 use const_format::concatcp;
 use std::fmt::Display;
 
@@ -32,7 +33,7 @@ impl Lang {
 }
 
 impl TryFrom<&str> for Lang {
-    type Error = String;
+    type Error = anyhow::Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
@@ -41,9 +42,7 @@ impl TryFrom<&str> for Lang {
             RU_STR => Ok(Ru), */
             unknown_lang => {
                 log::error!("Cannot create a language from {unknown_lang}");
-                Err(format!(
-                    "Error, unknown language. If issue persists, ask for help in {HELP_CHAT_URL}"
-                ))
+                bail!("Error, unknown language. If issue persists, ask for help in {HELP_CHAT_URL}")
             }
         }
     }
