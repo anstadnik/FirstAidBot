@@ -1,13 +1,12 @@
 use super::logic::{is_admin, move_to_state, process_broadcast, state_transition};
 use crate::bot::prelude::*;
-use anyhow::{bail, Context, Error};
+use anyhow::{bail, Context};
 use redis::aio::MultiplexedConnection;
 use std::convert::TryInto;
 
 pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
     lang.as_str()
         .try_into()
-        .map_err(Error::msg)
         .report_if_err(bot, msg.chat.id, &Lang::default(), None)
         .await
 }
