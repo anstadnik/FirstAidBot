@@ -19,7 +19,7 @@ impl ErrorHandler<anyhow::Error> for FAErrorHandler {
         Box::pin(async move {
             if !cfg!(debug_assertions) {
                 for &id in &MAINTAINER_IDS {
-                    report_error(&self.bot, id.into(), &Lang::default(), None, &*err).await;
+                    report_error(&self.bot, id.into(), &Lang::default(), None, &err).await;
                 }
             }
         })
