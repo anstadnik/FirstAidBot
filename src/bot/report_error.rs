@@ -66,7 +66,7 @@ where
 pub async fn report_error(bot: &FABot, id: ChatId, lang: &Lang, msg: Option<&str>, err: &Error) {
     if let Err(err) = async {
         send_escaped(bot, id, msg.unwrap_or(lang.details().error)).await?;
-        send_escaped(bot, id, &err.to_string()).await
+        send_escaped(bot, id, &format!("{err:?}")).await
     }
     .await
     {
