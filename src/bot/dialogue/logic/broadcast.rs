@@ -4,6 +4,14 @@ use anyhow::{anyhow, Result};
 use futures::{stream, StreamExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 
+async fn send_to_user(bot: &FABot, user_id: &str, message: &str) -> Result<()> {
+    let err = "Cannot parse user_id";
+    let user_id = user_id.strip_prefix("user_").ok_or_else(|| anyhow!(err));
+    let chat_id = UserId(user_id?.parse::<u64>()?);
+    bot.send_message(chat_id, message).await?;
+    Ok(())
+}
+
 // TODO: Think what to do about multilang when we'll have it
 pub async fn process_broadcast(
     bot: &FABot,
@@ -24,37 +32,21 @@ pub async fn process_broadcast(
                 .await?;
         }
         None => {
-            dialogue
-                .update(State::Broadcast {
-                    lang: lang.to_string(),
-                    message: Some(text.to_string()),
-                })
-                .await?;
             bot.send_message(msg.chat.id, "Your message is:").await?;
             let vec = vec![lang.details().confirm.to_string()];
             let keyboard = make_keyboard(&vec, lang, 42, true);
             bot.send_message(msg.chat.id, text)
                 .reply_markup(keyboard)
                 .await?;
+
+            let lang = lang.to_string();
+            let message = Some(text.to_string());
+            dialogue.update(State::Broadcast { lang, message }).await?;
         }
         Some(message) => {
             if text == lang.details().confirm {
                 bot.send_message(msg.chat.id, lang.details().broadcasting)
                     .await?;
-
-                async fn send_to_user(bot: &FABot, user_id: &str, message: &str) -> Result<()> {
-                    bot.send_message(
-                        UserId(
-                            user_id
-                                .strip_prefix("user_")
-                                .ok_or_else(|| anyhow!("Cannot parse user_id"))?
-                                .parse::<u64>()?,
-                        ),
-                        message,
-                    )
-                    .await?;
-                    Ok(())
-                }
 
                 let message = &message;
                 stream::iter(conn.keys::<_, Vec<String>>("user_*").await?)
