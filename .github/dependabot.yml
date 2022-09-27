@@ -4,7 +4,8 @@ updates:
     directory: "/" # Location of package manifests
     target-branch: "dev"
     allow:
-      # Allow both direct and indirect updates for all packages
       - dependency-type: "all"
     schedule:
       interval: "daily"
+    commit-message:
+      include: "scope"
