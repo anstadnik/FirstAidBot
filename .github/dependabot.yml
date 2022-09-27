@@ -7,5 +7,3 @@ updates:
       - dependency-type: "all"
     schedule:
       interval: "daily"
-    commit-message:
-      include: "scope"
