@@ -68,14 +68,16 @@ pub async fn maintainer_commands_handler(
                 .report_if_err(&bot, msg.chat.id, &Lang::default(), None)
                 .await
         }
-        MaintainerCommands::GifTest => {
-            for _ in 0..10 {
-                let url = "https://media.tenor.com/O09x7_40xeIAAAAj/dance.gif";
-                bot.send_message(msg.chat.id, url).await?;
-            }
-            Ok(())
-        }
+        MaintainerCommands::GifTest => easter_egg(&bot, &msg).await,
     }
+}
+
+pub async fn easter_egg(bot: &FABot, msg: &Message) -> Result<(), Error> {
+    for _ in 0..10 {
+        let url = "https://media.tenor.com/O09x7_40xeIAAAAj/dance.gif";
+        bot.send_message(msg.chat.id, url).await?;
+    }
+    Ok(())
 }
 
 async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()> {

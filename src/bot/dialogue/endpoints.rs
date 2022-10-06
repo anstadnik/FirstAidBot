@@ -1,6 +1,8 @@
+use super::commands::easter_egg;
 use super::logic::{is_admin, move_to_state, process_broadcast, state_transition};
 use crate::{bot::prelude::*, BROADCAST_ENABLED};
 use anyhow::{bail, Context};
+use rand::random;
 use redis::aio::MultiplexedConnection;
 use std::convert::TryInto;
 
@@ -20,6 +22,9 @@ pub async fn start_endpoint(
     mut conn: MultiplexedConnection,
 ) -> anyhow::Result<()> {
     let lang = get_lang_or_warn(&bot, &msg, lang).await.unwrap_or_default();
+    if is_admin(&msg) && random::<u8>() % 50 == 0 {
+        easter_egg(&bot, &msg).await?;
+    }
     move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn)
         .await
         .context("Error while moving into initial state")
