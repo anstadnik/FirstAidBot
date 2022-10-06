@@ -1,6 +1,6 @@
 use super::commands::easter_egg;
 use super::logic::{is_admin, move_to_state, process_broadcast, state_transition};
-use crate::{bot::prelude::*, BROADCAST_ENABLED};
+use crate::bot::prelude::*;
 use anyhow::{bail, Context};
 use rand::random;
 use redis::aio::MultiplexedConnection;
@@ -74,17 +74,6 @@ pub async fn broadcast_endpoint(
     mut conn: MultiplexedConnection,
     (lang, message): (String, Option<String>),
 ) -> anyhow::Result<()> {
-    if !BROADCAST_ENABLED {
-        let _ = bot
-            .send_message(msg.chat.id, "Alya don't play with it")
-            .await;
-        dialogue
-            .update(State::Start {
-                lang: Lang::default().to_string(),
-            })
-            .await?;
-        return Ok(());
-    }
     if !is_admin(&msg) {
         let _ = bot
             .send_message(msg.chat.id, "WTF you are not an admin bye")

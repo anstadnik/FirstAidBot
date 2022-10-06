@@ -1,7 +1,6 @@
 use super::lang::Lang;
 use anyhow::anyhow;
 use indexmap::IndexMap;
-use regex::Regex;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -44,9 +43,11 @@ pub struct FS {
 fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
     match link.as_ref() {
         None => Ok(None),
-        Some(link) if link.contains("file/d") => {
-            let link = Regex::new(r".*file/d/").unwrap().replace(link, "");
-            let link = Regex::new(r"/.*").unwrap().replace(&link, "").to_string();
+        Some(link) if link.starts_with("https://drive.google.com/file/d/") => {
+            let link = link
+                .strip_prefix("https://drive.google.com/file/d/")
+                .ok_or_else(|| anyhow!("Omg cannot strip prefix which is there WTF"))?;
+            let link = link.split_once('/').map(|p| p.0).unwrap_or(link);
             Ok(Some(format!("https://drive.google.com/uc?id={link}")))
         }
         Some(link) => Err(anyhow!("{link} is not a google drive link",)),

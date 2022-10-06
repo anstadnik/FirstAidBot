@@ -322,7 +322,6 @@ dependencies = [
  "pretty_env_logger",
  "rand",
  "redis",
- "regex",
  "reqwest",
  "serde",
  "teloxide",

@@ -1,5 +1,5 @@
 use super::keyboard::make_keyboard;
-use crate::bot::prelude::*;
+use crate::{bot::prelude::*, BROADCAST_ENABLED};
 use anyhow::{anyhow, Result};
 use futures::{stream, StreamExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
@@ -21,6 +21,17 @@ pub async fn process_broadcast(
     lang: Lang,
     conn: &mut MultiplexedConnection,
 ) -> Result<()> {
+    if !BROADCAST_ENABLED {
+        let _ = bot
+            .send_message(msg.chat.id, "Alya don't play with it")
+            .await;
+        dialogue
+            .update(State::Start {
+                lang: Lang::default().to_string(),
+            })
+            .await?;
+        return Ok(());
+    }
     let text = msg
         .text()
         .ok_or_else(|| anyhow!("No text unfortunately, WTF"))?;

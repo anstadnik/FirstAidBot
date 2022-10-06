@@ -37,10 +37,13 @@ async fn get_rows(filename: Option<&str>, sheet_name: String) -> anyhow::Result<
         .collect::<Result<_, _>>()
         .context("Cannot parse csv")
 }
-
 fn get_next_states_for_key(data: &[Row], key: &str) -> anyhow::Result<FSNextStates> {
     data.iter()
-        .filter(|row| row.key.starts_with(key) && !row.key.replacen(key, "", 1).contains('.'))
+        .filter(|row| {
+            row.key
+                .strip_prefix(key)
+                .map_or(false, |s| !s.contains('.'))
+        })
         .map(|mut row| {
             if let Some(key) = row.question.strip_prefix('#') {
                 row = data
