@@ -23,6 +23,8 @@ pub enum MaintainerCommands {
     GetNumber,
     #[command(description = "Test all messages")]
     Test,
+    #[command(description = "Hmm")]
+    GifTest,
 }
 
 pub async fn commands_handler(
@@ -65,6 +67,13 @@ pub async fn maintainer_commands_handler(
                 .await
                 .report_if_err(&bot, msg.chat.id, &Lang::default(), None)
                 .await
+        }
+        MaintainerCommands::GifTest => {
+            for _ in 0..10 {
+                let url = "https://media.tenor.com/O09x7_40xeIAAAAj/dance.gif";
+                bot.send_message(msg.chat.id, url).await?;
+            }
+            Ok(())
         }
     }
 }
