@@ -7,6 +7,7 @@ use anyhow::{anyhow, bail, Context, Error};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::dispatching::DpHandlerDescription;
+use teloxide::types::ParseMode;
 use teloxide::utils::command::BotCommands;
 
 #[derive(BotCommands, Clone)]
@@ -74,8 +75,10 @@ pub async fn maintainer_commands_handler(
 
 pub async fn easter_egg(bot: &FABot, msg: &Message) -> Result<(), Error> {
     for _ in 0..10 {
-        let url = "https://media.tenor.com/O09x7_40xeIAAAAj/dance.gif";
-        bot.send_message(msg.chat.id, url).await?;
+        let link = "https://media.tenor.com/O09x7_40xeIAAAAj/dance.gif";
+        bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
+            .parse_mode(ParseMode::Html)
+            .await?;
     }
     Ok(())
 }
