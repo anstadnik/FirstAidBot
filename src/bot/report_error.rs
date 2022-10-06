@@ -31,29 +31,16 @@ async fn send_escaped(bot: &FABot, id: ChatId, msg: &str) -> anyhow::Result<()> 
 }
 
 pub trait ReportError {
-    fn report_if_err<'a>(
-        self,
-        bot: &'a FABot,
-        id: ChatId,
-        lang: &'a Lang,
-        msg: Option<&'a str>,
-    ) -> BoxFuture<'a, Self>;
+    fn report_if_err<'a>(self, bot: &'a FABot, id: ChatId, msg: &'a str) -> BoxFuture<'a, Self>;
 }
-
 impl<T> ReportError for Result<T>
 where
     for<'a> T: Send + Sync + 'a,
 {
-    fn report_if_err<'a>(
-        self,
-        bot: &'a FABot,
-        id: ChatId,
-        lang: &'a Lang,
-        msg: Option<&'a str>,
-    ) -> BoxFuture<'a, Self> {
+    fn report_if_err<'a>(self, bot: &'a FABot, id: ChatId, msg: &'a str) -> BoxFuture<'a, Self> {
         async move {
             if let Err(err) = &self {
-                report_error(bot, id, lang, msg, err).await
+                report_error(bot, id, msg, err).await
             }
             self
         }
@@ -61,9 +48,9 @@ where
     }
 }
 
-pub async fn report_error(bot: &FABot, id: ChatId, lang: &Lang, msg: Option<&str>, err: &Error) {
+pub async fn report_error(bot: &FABot, id: ChatId, msg: &str, err: &Error) {
     if let Err(err) = async {
-        send_escaped(bot, id, msg.unwrap_or(lang.details().error)).await?;
+        send_escaped(bot, id, msg).await?;
         send_escaped(bot, id, &format!("{err:?}")).await
     }
     .await

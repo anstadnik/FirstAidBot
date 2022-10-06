@@ -9,7 +9,7 @@ use std::convert::TryInto;
 pub async fn get_lang_or_warn(bot: &FABot, msg: &Message, lang: String) -> anyhow::Result<Lang> {
     lang.as_str()
         .try_into()
-        .report_if_err(bot, msg.chat.id, &Lang::default(), None)
+        .report_if_err(bot, msg.chat.id, Lang::default().details().error)
         .await
 }
 
@@ -28,7 +28,7 @@ pub async fn start_endpoint(
     move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn)
         .await
         .context("Error while moving into initial state")
-        .report_if_err(&bot, msg.chat.id, &lang, None)
+        .report_if_err(&bot, msg.chat.id, lang.details().error)
         .await
 }
 
@@ -43,7 +43,7 @@ pub async fn handle_endpoint(
     let lang = match get_lang_or_warn(&bot, &msg, lang)
         .await
         .context("Unknown language {lang}")
-        .report_if_err(&bot, msg.chat.id, &Lang::default(), None)
+        .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
         .await
     {
         Ok(lang) => lang,
@@ -57,7 +57,7 @@ pub async fn handle_endpoint(
     if let Err(err) = state_transition(&bot, &msg, &dialogue, &data, context, lang, &mut conn)
         .await
         .context("The state transition broke")
-        .report_if_err(&bot, msg.chat.id, &lang, None)
+        .report_if_err(&bot, msg.chat.id, lang.details().error)
         .await
     {
         move_to_state(&bot, &msg, &dialogue, &data, Vec::new(), lang, &mut conn).await?;
@@ -78,17 +78,14 @@ pub async fn broadcast_endpoint(
         let _ = bot
             .send_message(msg.chat.id, "WTF you are not an admin bye")
             .await;
-        dialogue
-            .update(State::Start {
-                lang: Lang::default().to_string(),
-            })
-            .await?;
+        let lang = Lang::default().to_string();
+        dialogue.update(State::Start { lang }).await?;
         return Ok(());
     }
     let lang = match get_lang_or_warn(&bot, &msg, lang)
         .await
         .context("Unknown language {lang}")
-        .report_if_err(&bot, msg.chat.id, &Lang::default(), None)
+        .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
         .await
     {
         Ok(lang) => lang,

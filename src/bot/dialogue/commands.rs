@@ -59,14 +59,14 @@ pub async fn maintainer_commands_handler(
                 .map_err(Error::msg),
             Err(err) => {
                 let err = anyhow!(err);
-                report_error(&bot, msg.chat.id, &Lang::default(), None, &err).await;
+                report_error(&bot, msg.chat.id, Lang::default().details().error, &err).await;
                 bail!(err)
             }
         },
         MaintainerCommands::Test => {
             test(data, &bot, &msg)
                 .await
-                .report_if_err(&bot, msg.chat.id, &Lang::default(), None)
+                .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
                 .await
         }
         MaintainerCommands::GifTest => easter_egg(&bot, &msg).await,
