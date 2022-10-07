@@ -4,6 +4,11 @@ use anyhow::{anyhow, Result};
 use futures::{stream, StreamExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 
+const MSG_DISABLED: &str = "Аля, ні";
+const MSG_CONFIRM: &str = "Підтвердити";
+const MSG_BROADCASTING: &str = "Надсилаю\\! З Богом";
+const MSG_REQUEST: &str = "Надішли мені повідомлення";
+
 async fn send_to_user(bot: &FABot, user_id: &str, message: &str) -> Result<()> {
     let err = "Cannot parse user_id";
     let user_id = user_id.strip_prefix("user_").ok_or_else(|| anyhow!(err));
@@ -18,39 +23,36 @@ pub async fn process_broadcast(
     msg: &Message,
     dialogue: &FADialogue,
     message: Option<String>,
-    lang: Lang,
     conn: &mut MultiplexedConnection,
 ) -> Result<()> {
     let text = msg.text().ok_or_else(|| anyhow!("No text unfortunately"))?;
     let id = msg.chat.id;
 
     if !BROADCAST_ENABLED {
-        let _ = bot.send_message(id, "Alya don't play with it").await;
-        let lang = Lang::default().to_string();
+        let _ = bot.send_message(id, MSG_DISABLED).await;
+        let lang = Lang::Ua.to_string();
         dialogue.update(State::Start { lang }).await?;
         return Ok(());
     }
 
     match message {
-        None if text == lang.details().broadcast => wait_for_message(lang, bot, id).await,
-        None => ask_to_confirm(bot, id, lang, text, dialogue).await,
-        Some(msg) => broadcast_if_confirmed(text, lang, bot, id, msg, conn, dialogue).await,
+        None if text == MSG_BROADCASTING => wait_for_message(bot, id).await,
+        None => ask_to_confirm(bot, id, text, dialogue).await,
+        Some(msg) => broadcast_if_confirmed(text, bot, id, &msg, conn, dialogue).await,
     }
 }
 
 async fn broadcast_if_confirmed(
     text: &str,
-    lang: Lang,
     bot: &FABot,
     id: ChatId,
-    message: String,
+    message: &str,
     conn: &mut MultiplexedConnection,
     dialogue: &FADialogue,
 ) -> Result<()> {
-    if text == lang.details().confirm {
-        bot.send_message(id, lang.details().broadcasting).await?;
+    if text == MSG_CONFIRM {
+        bot.send_message(id, MSG_BROADCASTING).await?;
 
-        let message = &message;
         stream::iter(conn.keys::<_, Vec<String>>("user_*").await?)
             .for_each(|user_id| async move {
                 if let Err(err) = send_to_user(bot, &user_id, message).await {
@@ -61,36 +63,24 @@ async fn broadcast_if_confirmed(
             .await;
     } else {
         bot.send_message(id, "You didn't confirm, bye").await?;
-        let lang = lang.to_string();
+        let lang = Lang::Ua.to_string();
         dialogue.update(State::Start { lang }).await?;
     }
-    let keyboard = make_keyboard(&Vec::new(), lang, 42, true);
-    bot.send_message(id, "Send your message")
-        .reply_markup(keyboard)
-        .await?;
     Ok(())
 }
 
-async fn ask_to_confirm(
-    bot: &FABot,
-    id: ChatId,
-    lang: Lang,
-    text: &str,
-    dialogue: &FADialogue,
-) -> Result<()> {
+async fn ask_to_confirm(bot: &FABot, id: ChatId, text: &str, dialogue: &FADialogue) -> Result<()> {
     bot.send_message(id, "Your message is:").await?;
-    let vec = vec![lang.details().confirm.to_string()];
-    let keyboard = make_keyboard(&vec, lang, 42, true);
+    let vec = vec![MSG_CONFIRM.to_string()];
+    let keyboard = make_keyboard(&vec, Lang::Ua, 42, true);
     bot.send_message(id, text).reply_markup(keyboard).await?;
-    let lang = lang.to_string();
     let message = Some(text.to_string());
-    dialogue.update(State::Broadcast { lang, message }).await?;
+    dialogue.update(State::Broadcast { message }).await?;
     Ok(())
 }
 
-async fn wait_for_message(lang: Lang, bot: &FABot, id: ChatId) -> Result<()> {
-    let keyboard = make_keyboard(&Vec::new(), lang, 42, true);
-    let text = "Send your message";
-    bot.send_message(id, text).reply_markup(keyboard).await?;
+async fn wait_for_message(bot: &FABot, id: ChatId) -> Result<()> {
+    let kbd = make_keyboard(&Vec::new(), Lang::Ua, 42, true);
+    bot.send_message(id, MSG_REQUEST).reply_markup(kbd).await?;
     Ok(())
 }

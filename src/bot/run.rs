@@ -36,7 +36,7 @@ pub async fn run_bot(data: Data) {
         .enter_dialogue::<Message, FirstAidStorage, State>()
         .branch(case![State::Start { lang }].endpoint(start_endpoint))
         .branch(case![State::Dialogue { lang, context }].endpoint(handle_endpoint))
-        .branch(case![State::Broadcast { lang, message }].endpoint(broadcast_endpoint));
+        .branch(case![State::Broadcast { message }].endpoint(broadcast_endpoint));
 
     Dispatcher::builder(bot.clone(), handler)
         .dependencies(dptree::deps![Arc::new(data), conn, storage])

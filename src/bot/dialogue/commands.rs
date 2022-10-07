@@ -69,6 +69,7 @@ pub async fn maintainer_commands_handler(
                 .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
                 .await
         }
+
         MaintainerCommands::GifTest => easter_egg(&bot, &msg).await,
     }
 }

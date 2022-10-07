@@ -23,10 +23,8 @@ pub async fn send_state(
 }
 
 pub fn is_admin(msg: &Message) -> bool {
-    if let Some(user) = msg.from() {
-        if let Some(username) = &user.username {
-            return MAINTAINER_USERNAMES.contains(&username.as_str());
-        }
+    if let Some(username) = msg.from().and_then(|user| user.username.as_ref()) {
+        return MAINTAINER_USERNAMES.contains(&username.as_str());
     }
     false
 }

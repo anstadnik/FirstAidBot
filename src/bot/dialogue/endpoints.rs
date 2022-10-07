@@ -70,9 +70,9 @@ pub async fn broadcast_endpoint(
     bot: FABot,
     msg: Message,
     dialogue: FADialogue,
-    data: Arc<Data>,
+    _: Arc<Data>,
     mut conn: MultiplexedConnection,
-    (lang, message): (String, Option<String>),
+    message: Option<String>,
 ) -> anyhow::Result<()> {
     if !is_admin(&msg) {
         let _ = bot
@@ -82,20 +82,6 @@ pub async fn broadcast_endpoint(
         dialogue.update(State::Start { lang }).await?;
         return Ok(());
     }
-    let lang = match get_lang_or_warn(&bot, &msg, lang)
-        .await
-        .context("Unknown language {lang}")
-        .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
-        .await
-    {
-        Ok(lang) => lang,
-        Err(err) => {
-            let lang = Lang::default();
-            let context = Vec::new();
-            move_to_state(&bot, &msg, &dialogue, &data, context, lang, &mut conn).await?;
-            bail!(err)
-        }
-    };
-    process_broadcast(&bot, &msg, &dialogue, message, lang, &mut conn).await?;
+    process_broadcast(&bot, &msg, &dialogue, message, &mut conn).await?;
     Ok(())
 }

@@ -11,22 +11,23 @@ pub async fn move_to_state(
     msg: &Message,
     dialogue: &FADialogue,
     data: &Arc<Data>,
-    context: Vec<String>,
+    mut context: Vec<String>,
     lang: Lang,
     conn: &mut MultiplexedConnection,
 ) -> anyhow::Result<()> {
     let state = &data.get(lang, &context).await?;
-    log_to_redis(msg, &lang, &context, conn).await;
+    if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
+        log::error!("Cannot log to redis: {err:?}")
+    };
     send_state(bot, msg, state, lang, &context).await?;
     if state.next_states.is_empty() {
-        let context = Vec::new();
+        context = Vec::new();
 
         let state = &data.get(lang, &context).await?;
-        log_to_redis(msg, &lang, &context, conn).await;
+        if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
+            log::error!("Cannot log to redis: {err:?}")
+        };
         send_state(bot, msg, state, lang, &context).await?;
-        let lang = lang.name();
-        dialogue.update(State::Dialogue { lang, context }).await?;
-        return Ok(());
     }
     let lang = lang.name();
     dialogue.update(State::Dialogue { lang, context }).await?;
@@ -50,7 +51,9 @@ pub async fn state_transition(
             return move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await;
         }
     };
-    log_to_redis(msg, &lang, &context, conn).await;
+    if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
+        log::error!("Cannot log to redis: {err:?}")
+    };
 
     match msg.text() {
         Some(text) if text == lang.details().button_home => {
@@ -76,13 +79,8 @@ pub async fn state_transition(
                 .with_context(|| format!("Error while moving into context {context:?}"))?;
         }
         Some(text) if text == lang.details().broadcast && is_admin(msg) => {
-            dialogue
-                .update(State::Broadcast {
-                    lang: lang.to_string(),
-                    message: None,
-                })
-                .await?;
-            process_broadcast(bot, msg, dialogue, None, lang, conn).await?;
+            dialogue.update(State::Broadcast { message: None }).await?;
+            process_broadcast(bot, msg, dialogue, None, conn).await?;
         }
         _ => {
             bot.send_message(msg.chat.id, escape(lang.details().use_buttons_text))
