@@ -87,7 +87,7 @@ const UA_LD: LangDetails = LangDetails {
         HELP_CHAT_URL
     ),
     error_due_to_update: concatcp!(
-        "Схоже, що бота було оновлено. Повертаюсь на початок. Якщо бот далі не працює, будь ласка, повідомте про це у ",
+        "Схоже, що бота було оновлено\\. Повертаюсь на початок\\. Якщо бот далі не працює, будь ласка, повідомте про це у ",
         HELP_CHAT_URL
     ),
     use_buttons_text: "Використайте кнопки, або перезавантажте бота \\(/start\\)",
@@ -101,7 +101,7 @@ const UA_LD: LangDetails = LangDetails {
 //     name: EN_STR,
 //     button_lang_name: "English",
 //     error: "An error occured, please tell us about it at " + HELP_CHAT_URL,
-//     use_buttons_text: "Use buttons, or restart bot if something is wrong (/start)",
+//     use_buttons_text: "Use buttons, or restart bot i\f something is wrong (/start)",
 //     greeting: "What happened?",
 // };
 //
