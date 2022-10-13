@@ -21,8 +21,7 @@ pub async fn run_bot(data: Data) {
 
     let bot = Bot::from_env()
         .throttle(Limits::default())
-        .parse_mode(ParseMode::MarkdownV2)
-        .auto_send();
+        .parse_mode(ParseMode::MarkdownV2);
 
     bot.set_my_commands(FACommands::bot_commands())
         .await

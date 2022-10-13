@@ -14,7 +14,7 @@ mod prelude {
     pub use teloxide::prelude::*;
 
     pub type FADialogue = Dialogue<State, RedisStorage<Bincode>>;
-    pub type FABot = AutoSend<DefaultParseMode<Throttle<Bot>>>;
+    pub type FABot = DefaultParseMode<Throttle<Bot>>;
     pub type FirstAidStorage = RedisStorage<Bincode>;
 
     pub use super::report_error::report_error;
