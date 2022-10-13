@@ -2,6 +2,7 @@
 
 [![Build and deploy main bot (master)](https://github.com/anstadnik/FirstAidBot/actions/workflows/CD_master.yml/badge.svg)](https://github.com/anstadnik/FirstAidBot/actions/workflows/CD_master.yml)
 [![Build and deploy test bot (dev)](https://github.com/anstadnik/FirstAidBot/actions/workflows/CD_dev.yml/badge.svg)](https://github.com/anstadnik/FirstAidBot/actions/workflows/CD_dev.yml)
+[![dependency status](https://deps.rs/repo/github/anstadnik/FirstAidBot/status.svg)](https://deps.rs/repo/github/anstadnik/FirstAidBot)
 
 🔺БОТ-ПОМІЧНИК ДЛЯ НАДАННЯ ПЕРШОЇ ДОМЕДИЧНОЇ ДОПОМОГИ🔻
 
