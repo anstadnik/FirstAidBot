@@ -78,7 +78,7 @@ jobs:
   auto-merge:
     runs-on: ubuntu-latest
     needs: build_and_test
-    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'push' }}
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
     steps:
       - name: Dependabot metadata
         id: metadata
@@ -121,7 +121,7 @@ jobs:
           SHEET_ID: ${{ secrets.SHEET_ID }}
         run: |
           docker build -t first_aid_bot:${{ inputs.environment }} .
-          docker compose -f docker-compose_${{ inputs.environment }}.yml up -d
+          docker compose -f docker-compose_${{ inputs.environment }}.yml up -d -p ${{ inputs.environment }}_bot
 
   release:
     runs-on: ubuntu-latest
