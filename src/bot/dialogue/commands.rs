@@ -131,7 +131,9 @@ async fn test_lang_msg(bot: &FABot, msg: &Message) -> Result<(), Error> {
             lang.details().use_buttons_text,
             lang.details().error_due_to_update,
         ] {
-            bot.send_message(msg.chat.id, text).await?;
+            bot.send_message(msg.chat.id, text)
+                .await
+                .with_context(|| format!("Error in lang message {text}"))?;
         }
     }
     Ok(())
