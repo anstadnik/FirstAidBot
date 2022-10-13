@@ -1,0 +1,21 @@
+name: CI/CD master
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+  workflow_dispatch:
+
+concurrency: CD_master
+
+jobs:
+  build_and_deploy:
+    uses: ./.github/workflows/CI_CD.yml
+    with:
+      release: true
+      deploy: ${{ github.event_name == 'push' }}
+      environment: prod
+    secrets: inherit
