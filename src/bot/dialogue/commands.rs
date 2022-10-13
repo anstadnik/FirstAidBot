@@ -11,14 +11,14 @@ use teloxide::types::ParseMode;
 use teloxide::utils::command::BotCommands;
 
 #[derive(BotCommands, Clone)]
-#[command(rename = "lowercase", description = "FirstAidBot")]
+#[command(rename_rule = "lowercase", description = "FirstAidBot")]
 pub enum FACommands {
     #[command(description = "Reboot")]
     Start,
 }
 
 #[derive(BotCommands, Clone)]
-#[command(rename = "lowercase", description = "Maintainer commands")]
+#[command(rename_rule = "lowercase", description = "Maintainer commands")]
 pub enum MaintainerCommands {
     #[command(description = "Get a number of unique users")]
     GetNumber,
