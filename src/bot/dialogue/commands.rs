@@ -24,8 +24,6 @@ pub enum MaintainerCommands {
     GetNumber,
     #[command(description = "Test all messages")]
     Test,
-    #[command(description = "Test Lang messages")]
-    TestLangMsg,
     #[command(description = "Hmm")]
     GifTest,
 }
@@ -71,13 +69,6 @@ pub async fn maintainer_commands_handler(
                 .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
                 .await
         }
-        MaintainerCommands::TestLangMsg => {
-            test_lang_msg(&bot, &msg)
-                .await
-                .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
-                .await
-        }
-
         MaintainerCommands::GifTest => easter_egg(&bot, &msg).await,
     }
 }
@@ -118,24 +109,7 @@ async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()>
             recursive_test(&state, lang, Vec::new(), bot, msg).await?;
         }
     }
-    test_lang_msg(bot, msg).await?;
 
-    Ok(())
-}
-
-async fn test_lang_msg(bot: &FABot, msg: &Message) -> Result<(), Error> {
-    for lang in Lang::iter() {
-        for text in [
-            lang.details().error,
-            lang.details().greeting,
-            lang.details().use_buttons_text,
-            lang.details().error_due_to_update,
-        ] {
-            bot.send_message(msg.chat.id, text)
-                .await
-                .with_context(|| format!("Error in lang message {text}"))?;
-        }
-    }
     Ok(())
 }
 
