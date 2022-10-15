@@ -4,7 +4,7 @@ use super::{helpers::send_state, is_admin};
 use crate::bot::prelude::*;
 use anyhow::{anyhow, Context};
 use redis::aio::MultiplexedConnection;
-use teloxide::utils::markdown::{escape, escape_code};
+use teloxide::utils::markdown::escape;
 
 pub async fn move_to_state(
     bot: &FABot,
@@ -46,7 +46,7 @@ pub async fn state_transition(
     let state = &match data.get(lang, &context).await {
         Ok(it) => it,
         Err(_) => {
-            bot.send_message(msg.chat.id, escape_code(lang.details().error_due_to_update))
+            bot.send_message(msg.chat.id, escape(lang.details().error_due_to_update))
                 .await?;
             return move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await;
         }
@@ -83,7 +83,7 @@ pub async fn state_transition(
             process_broadcast(bot, msg, dialogue, None, conn).await?;
         }
         _ => {
-            bot.send_message(msg.chat.id, escape(lang.details().use_buttons_text))
+            bot.send_message(msg.chat.id, lang.details().use_buttons_text)
                 .await?;
             move_to_state(bot, msg, dialogue, data, context, lang, conn).await?;
         }
