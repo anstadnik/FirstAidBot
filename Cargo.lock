@@ -321,7 +321,7 @@ dependencies = [
  "log",
  "pretty_env_logger",
  "rand",
- "redis",
+ "redis 0.22.0",
  "reqwest",
  "serde",
  "teloxide",
@@ -985,6 +985,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "redis"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e5450e9add55de0ea728a964191669d3707fa20666c5f16753f3a6a51e96231"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "combine",
+ "futures-util",
+ "itoa 1.0.3",
+ "percent-encoding",
+ "pin-project-lite",
+ "ryu",
+ "sha1_smol",
+ "tokio",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1266,7 +1286,7 @@ dependencies = [
  "log",
  "mime",
  "pin-project",
- "redis",
+ "redis 0.21.6",
  "serde",
  "serde_json",
  "serde_with_macros",
