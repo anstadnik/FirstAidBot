@@ -18,7 +18,7 @@ pub enum Lang {
 impl Lang {
     // https://github.com/rust-lang/rfcs/issues/284
     pub fn iter() -> impl Iterator<Item = Self> {
-        [Ua /* En, Ru */].iter().copied()
+        [Ua /* En, Ru */].into_iter()
     }
     pub const fn details(self) -> LangDetails {
         match self {
@@ -66,7 +66,7 @@ impl Display for Lang {
 
 pub struct LangDetails {
     pub name: &'static str,
-    pub button_lang_name: &'static str,
+    pub button_lang: &'static str,
     pub button_back: &'static str,
     pub button_home: &'static str,
     pub error: &'static str,
@@ -79,7 +79,7 @@ pub struct LangDetails {
 const UA_STR: &str = "Ukrainian";
 const UA_LD: LangDetails = LangDetails {
     name: UA_STR,
-    button_lang_name: "Українська",
+    button_lang: "Українська",
     button_back: "◀️ Повернутись",
     button_home: "◀️ На початок",
     error: concatcp!(

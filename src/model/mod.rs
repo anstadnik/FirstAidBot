@@ -50,8 +50,8 @@ fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<FSNextStates
             };
             let key = row.key.clone() + ".";
             let next_states = get_next_states_for_key(data, &key)?;
-            let fs = FS::parse_row(row, next_states)
-                .with_context(|| format!("Error in parsing row with key {}", row.key))?;
+            let map_err = || format!("Error in parsing row with key {}", row.key);
+            let fs = FS::parse_row(row, next_states).with_context(map_err)?;
             Ok((row.question.to_owned(), fs))
         })
         .collect()
