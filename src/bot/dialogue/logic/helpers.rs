@@ -1,6 +1,6 @@
 use super::keyboard::make_keyboard_from_state;
 use crate::{bot::prelude::*, MAINTAINER_USERNAMES};
-use teloxide::types::ParseMode;
+use teloxide::types::ParseMode::Html;
 
 pub async fn send_state(
     bot: &FABot,
@@ -9,14 +9,14 @@ pub async fn send_state(
     lang: Lang,
     context: &[String],
 ) -> anyhow::Result<()> {
+    let id = msg.chat.id;
     if let Some(link) = &state.link {
-        bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
-            .parse_mode(ParseMode::Html)
-            .await?;
+        let link = format!("<a href='{link}'>&#8288;</a>");
+        bot.send_message(id, link).parse_mode(Html).await?;
     }
 
     let keyboard = make_keyboard_from_state(state, lang, context.len(), is_admin(msg));
-    bot.send_message(msg.chat.id, &state.message)
+    bot.send_message(id, &state.message)
         .reply_markup(keyboard)
         .await?;
     Ok(())

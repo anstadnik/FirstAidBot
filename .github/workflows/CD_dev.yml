@@ -8,7 +8,8 @@ on:
     branches:
       - "dev"
 
-concurrency: CD_dev
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
 
 jobs:
   build_and_deploy:

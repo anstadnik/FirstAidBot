@@ -9,8 +9,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        Self::Start {
-            lang: Lang::default().name(),
-        }
+        let lang = Lang::default().name();
+        Self::Start { lang }
     }
 }

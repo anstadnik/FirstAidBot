@@ -40,7 +40,7 @@ where
     fn report_if_err<'a>(self, bot: &'a FABot, id: ChatId, msg: &'a str) -> BoxFuture<'a, Self> {
         async move {
             if let Err(err) = &self {
-                report_error(bot, id, msg, err).await
+                report_error(bot, id, msg, err).await;
             }
             self
         }

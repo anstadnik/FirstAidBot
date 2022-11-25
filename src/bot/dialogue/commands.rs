@@ -7,7 +7,7 @@ use anyhow::{anyhow, bail, Context, Error};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::dispatching::DpHandlerDescription;
-use teloxide::types::ParseMode;
+use teloxide::types::ParseMode::Html;
 use teloxide::utils::command::BotCommands;
 
 #[derive(BotCommands, Clone)]
@@ -36,10 +36,9 @@ pub async fn commands_handler(
     conn: MultiplexedConnection,
     dialogue: FADialogue,
 ) -> anyhow::Result<()> {
+    let lang = Lang::default().name();
     match cmd {
-        FACommands::Start => {
-            start_endpoint(bot, msg, data, dialogue, Lang::default().name(), conn).await
-        }
+        FACommands::Start => start_endpoint(bot, msg, data, dialogue, lang, conn).await,
     }
 }
 
@@ -50,23 +49,25 @@ pub async fn maintainer_commands_handler(
     data: Arc<Data>,
     mut conn: MultiplexedConnection,
 ) -> anyhow::Result<()> {
+    let id = msg.chat.id;
     match cmd {
         MaintainerCommands::GetNumber => match conn.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
             Ok(n) => bot
-                .send_message(msg.chat.id, n.to_string())
+                .send_message(id, n.to_string())
                 .await
                 .map(|_| ())
                 .map_err(Error::msg),
             Err(err) => {
                 let err = anyhow!(err);
-                report_error(&bot, msg.chat.id, Lang::default().details().error, &err).await;
+                report_error(&bot, id, Lang::default().details().error, &err).await;
                 bail!(err)
             }
         },
         MaintainerCommands::Test => {
+            let text = Lang::default().details().error;
             test(data, &bot, &msg)
                 .await
-                .report_if_err(&bot, msg.chat.id, Lang::default().details().error)
+                .report_if_err(&bot, id, text)
                 .await
         }
         MaintainerCommands::GifTest => easter_egg(&bot, &msg).await,
@@ -76,38 +77,36 @@ pub async fn maintainer_commands_handler(
 pub async fn easter_egg(bot: &FABot, msg: &Message) -> Result<(), Error> {
     for _ in 0..10 {
         let link = "https://media.tenor.com/O09x7_40xeIAAAAj/dance.gif";
-        bot.send_message(msg.chat.id, format!("<a href='{link}'>&#8288;</a>"))
-            .parse_mode(ParseMode::Html)
-            .await?;
+        let text = format!("<a href='{link}'>&#8288;</a>");
+        bot.send_message(msg.chat.id, text).parse_mode(Html).await?;
     }
     Ok(())
 }
 
-async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
-    fn recursive_test<'a>(
-        state: &'a FS,
-        lang: Lang,
-        context: Vec<String>,
-        bot: &'a FABot,
-        msg: &'a Message,
-    ) -> BoxFuture<'a, anyhow::Result<()>> {
-        async move {
-            send_state(bot, msg, state, lang, &context)
-                .await
-                .with_context(|| format!("Error while processing state {state:?}"))?;
-            for (key, next_state) in state.next_states.iter() {
-                let mut context = context.clone();
-                context.push(key.to_string());
-                recursive_test(next_state, lang, context, bot, msg).await?;
-            }
-            anyhow::Ok(())
+fn recursive_test<'a>(
+    state: &'a FS,
+    lang: Lang,
+    context: Vec<String>,
+    bot: &'a FABot,
+    msg: &'a Message,
+) -> BoxFuture<'a, anyhow::Result<()>> {
+    async move {
+        send_state(bot, msg, state, lang, &context)
+            .await
+            .with_context(|| format!("Error while processing state {state:?}"))?;
+        for (key, next_state) in state.next_states.iter() {
+            let mut context = context.clone();
+            context.push(key.to_string());
+            recursive_test(next_state, lang, context, bot, msg).await?;
         }
-        .boxed()
+        anyhow::Ok(())
     }
+    .boxed()
+}
+
+async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
     for lang in Lang::iter() {
-        if let Ok(state) = data.get(lang, &[]).await {
-            recursive_test(&state, lang, Vec::new(), bot, msg).await?;
-        }
+        recursive_test(&*data.get(lang, &[]).await?, lang, Vec::new(), bot, msg).await?;
     }
 
     Ok(())

@@ -15,9 +15,10 @@ pub async fn move_to_state(
     lang: Lang,
     conn: &mut MultiplexedConnection,
 ) -> anyhow::Result<()> {
-    let state = &data.get(lang, &context).await?;
+    let map_err = || format!("Error while moving into context {context:?}");
+    let state = &data.get(lang, &context).await.with_context(map_err)?;
     if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
-        log::error!("Cannot log to redis: {err:?}")
+        log::error!("Cannot log to redis: {err:?}");
     };
     send_state(bot, msg, state, lang, &context).await?;
     if state.next_states.is_empty() {
@@ -25,7 +26,7 @@ pub async fn move_to_state(
 
         let state = &data.get(lang, &context).await?;
         if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
-            log::error!("Cannot log to redis: {err:?}")
+            log::error!("Cannot log to redis: {err:?}");
         };
         send_state(bot, msg, state, lang, &context).await?;
     }
@@ -39,54 +40,39 @@ pub async fn state_transition(
     msg: &Message,
     dialogue: &FADialogue,
     data: &Arc<Data>,
-    mut context: Vec<String>,
-    lang: Lang,
+    mut ctx: Vec<String>,
+    mut lang: Lang,
     conn: &mut MultiplexedConnection,
 ) -> anyhow::Result<()> {
-    let state = &match data.get(lang, &context).await {
-        Ok(it) => it,
-        Err(_) => {
-            bot.send_message(msg.chat.id, escape(lang.details().error_due_to_update))
-                .await?;
-            return move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await;
-        }
+    let state = &if let Ok(it) = data.get(lang, &ctx).await {
+        it
+    } else {
+        bot.send_message(msg.chat.id, escape(lang.details().error_due_to_update))
+            .await?;
+        return move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await;
     };
-    if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
-        log::error!("Cannot log to redis: {err:?}")
+    if let Err(err) = log_to_redis(msg, &lang, &ctx, conn).await {
+        log::error!("Cannot log to redis: {err:?}");
     };
 
     match msg.text() {
-        Some(text) if text == lang.details().button_home => {
-            move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await?;
-        }
-        Some(text) if text == lang.details().button_back => {
-            context.pop();
-            move_to_state(bot, msg, dialogue, data, context, lang, conn).await?;
-        }
-        Some(text)
-            if context.is_empty()
-                && Lang::iter().any(|lang| lang.details().button_lang_name == text) =>
-        {
-            let lang = Lang::iter()
-                .find(|lang| lang.details().button_lang_name == text)
+        Some(text) if text == lang.details().button_home => ctx = Vec::new(),
+        Some(text) if text == lang.details().button_back => drop(ctx.pop()),
+        Some(text) if state.next_states.contains_key(text) => ctx.push(text.to_string()),
+        Some(text) if ctx.is_empty() && Lang::iter().any(|l| l.details().button_lang == text) => {
+            lang = Lang::iter()
+                .find(|lang| lang.details().button_lang == text)
                 .ok_or_else(|| anyhow!("Wrong language WTF?"))?;
-            move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await?;
-        }
-        Some(text) if state.next_states.contains_key(&text.to_string()) => {
-            context.push(text.to_string());
-            move_to_state(bot, msg, dialogue, data, context.clone(), lang, conn)
-                .await
-                .with_context(|| format!("Error while moving into context {context:?}"))?;
         }
         Some(text) if text == lang.details().broadcast && is_admin(msg) => {
             dialogue.update(State::Broadcast { message: None }).await?;
-            process_broadcast(bot, msg, dialogue, None, conn).await?;
+            return process_broadcast(bot, msg, dialogue, None, conn).await;
         }
         _ => {
             bot.send_message(msg.chat.id, lang.details().use_buttons_text)
                 .await?;
-            move_to_state(bot, msg, dialogue, data, context, lang, conn).await?;
+            return Ok(());
         }
     }
-    Ok(())
+    move_to_state(bot, msg, dialogue, data, ctx, lang, conn).await
 }
