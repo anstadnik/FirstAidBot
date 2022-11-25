@@ -17,7 +17,7 @@ pub async fn log_to_redis(
             conn.sadd::<_, _, ()>("all_users", &id).await.context(ERR)?;
         }
 
-        let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as u64;
+        let ts: i64 = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis().try_into()?;
         let key = "user_".to_string() + &id;
         let context = context.join("->");
         let val = format!("{context}; {lang}");

@@ -24,7 +24,7 @@ impl Data {
             Cow::Borrowed(data.get(&lang).ok_or_else(map_err)?.get_state(ctx)?)
         } else {
             let data = get_data(None).await?;
-            Cow::Owned(data.get(&lang).ok_or_else(map_err)?.get_state(ctx)?.to_owned())
+            Cow::Owned(data.get(&lang).ok_or_else(map_err)?.get_state(ctx)?.clone())
         };
         Ok(state)
     }
