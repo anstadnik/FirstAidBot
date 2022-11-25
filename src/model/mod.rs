@@ -52,7 +52,7 @@ fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<FSNextStates
             let next_states = get_next_states_for_key(data, &key)?;
             let fs = FS::parse_row(row, next_states)
                 .with_context(|| format!("Error in parsing row with key {}", row.key))?;
-            Ok((row.question.to_owned(), fs))
+            Ok((row.question.clone(), fs))
         })
         .collect()
 }
@@ -62,7 +62,7 @@ async fn get_finite_state(lang: Lang, filename: Option<&str>) -> anyhow::Result<
     rows.retain(|record| !record.is_empty());
     rows.iter_mut()
         .for_each(|r| r.key = r.key.trim().to_string());
-    Ok(FS::entry(&lang, get_next_states_for_key(&rows, "")?))
+    Ok(FS::entry(lang, get_next_states_for_key(&rows, "")?))
 }
 
 pub async fn get_data(filename: Option<&str>) -> anyhow::Result<MultilangStates> {

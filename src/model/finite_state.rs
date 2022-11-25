@@ -47,7 +47,7 @@ fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
             let link = link
                 .strip_prefix("https://drive.google.com/file/d/")
                 .ok_or_else(|| anyhow!("Omg cannot strip prefix which is there WTF"))?;
-            let link = link.split_once('/').map(|p| p.0).unwrap_or(link);
+            let link = link.split_once('/').map_or(link, |p| p.0);
             Ok(Some(format!("https://drive.google.com/uc?id={link}")))
         }
         Some(link) => Err(anyhow!("{link} is not a google drive link",)),
@@ -55,7 +55,7 @@ fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
 }
 
 impl FS {
-    pub fn entry(lang: &Lang, next_states: FSNextStates) -> Self {
+    pub fn entry(lang: Lang, next_states: FSNextStates) -> Self {
         Self {
             link: None,
             message: lang.details().greeting.to_string(),
@@ -65,7 +65,7 @@ impl FS {
     pub fn parse_row(row: &Row, options: FSNextStates) -> anyhow::Result<Self> {
         Ok(Self {
             link: parse_link(&row.link)?,
-            message: row.answer.to_owned(),
+            message: row.answer.clone(),
             next_states: options,
         })
     }

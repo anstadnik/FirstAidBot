@@ -1,4 +1,4 @@
-use self::Lang::*;
+use self::Lang::Ua;
 use crate::HELP_CHAT_URL;
 use anyhow::bail;
 use const_format::concatcp;

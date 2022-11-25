@@ -28,7 +28,7 @@ impl Data {
                     .get(&lang)
                     .ok_or_else(map_err)?
                     .get_state(ctx)?
-                    .to_owned(),
+                    .clone(),
             ),
         };
         Ok(state)

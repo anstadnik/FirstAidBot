@@ -17,7 +17,7 @@ pub async fn move_to_state(
 ) -> anyhow::Result<()> {
     let state = &data.get(lang, &context).await?;
     if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
-        log::error!("Cannot log to redis: {err:?}")
+        log::error!("Cannot log to redis: {err:?}");
     };
     send_state(bot, msg, state, lang, &context).await?;
     if state.next_states.is_empty() {
@@ -25,7 +25,7 @@ pub async fn move_to_state(
 
         let state = &data.get(lang, &context).await?;
         if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
-            log::error!("Cannot log to redis: {err:?}")
+            log::error!("Cannot log to redis: {err:?}");
         };
         send_state(bot, msg, state, lang, &context).await?;
     }
@@ -43,16 +43,15 @@ pub async fn state_transition(
     lang: Lang,
     conn: &mut MultiplexedConnection,
 ) -> anyhow::Result<()> {
-    let state = &match data.get(lang, &context).await {
-        Ok(it) => it,
-        Err(_) => {
-            bot.send_message(msg.chat.id, escape(lang.details().error_due_to_update))
-                .await?;
-            return move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await;
-        }
+    let state = &if let Ok(it) = data.get(lang, &context).await {
+        it
+    } else {
+        bot.send_message(msg.chat.id, escape(lang.details().error_due_to_update))
+            .await?;
+        return move_to_state(bot, msg, dialogue, data, Vec::new(), lang, conn).await;
     };
     if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
-        log::error!("Cannot log to redis: {err:?}")
+        log::error!("Cannot log to redis: {err:?}");
     };
 
     match msg.text() {

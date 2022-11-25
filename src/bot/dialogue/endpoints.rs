@@ -75,9 +75,10 @@ pub async fn broadcast_endpoint(
     message: Option<String>,
 ) -> anyhow::Result<()> {
     if !is_admin(&msg) {
-        let _ = bot
-            .send_message(msg.chat.id, "WTF you are not an admin bye")
-            .await;
+        std::mem::drop(
+            bot.send_message(msg.chat.id, "WTF you are not an admin bye")
+                .await,
+        );
         let lang = Lang::default().to_string();
         dialogue.update(State::Start { lang }).await?;
         return Ok(());
