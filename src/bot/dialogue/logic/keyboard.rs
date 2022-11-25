@@ -17,17 +17,17 @@ pub fn make_keyboard(keys: &Vec<String>, lang: Lang, depth: usize, is_admin: boo
         keyboard.push(vec![KeyboardButton::new(lang.details().broadcast)]);
     }
 
-    if depth == 0 {
-        let special_keys = Lang::iter()
-            .filter(|&l| l != lang)
-            .map(|lang| KeyboardButton::new(lang.details().button_lang_name))
-            .collect();
-        keyboard.push(special_keys);
-    } else {
+    if depth != 0 {
         let mut special_keys = vec![KeyboardButton::new(lang.details().button_back)];
         if depth > 1 {
             special_keys.push(KeyboardButton::new(lang.details().button_home));
         };
+        keyboard.push(special_keys);
+    } else {
+        let special_keys = Lang::iter()
+            .filter(|&l| l != lang)
+            .map(|lang| KeyboardButton::new(lang.details().button_lang_name))
+            .collect();
         keyboard.push(special_keys);
     }
 

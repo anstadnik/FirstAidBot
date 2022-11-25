@@ -29,7 +29,7 @@ pub async fn process_broadcast(
     let id = msg.chat.id;
 
     if !BROADCAST_ENABLED {
-        std::mem::drop(bot.send_message(id, MSG_DISABLED).await);
+        let _ = bot.send_message(id, MSG_DISABLED).await;
         let lang = Lang::Ua.to_string();
         dialogue.update(State::Start { lang }).await?;
         return Ok(());

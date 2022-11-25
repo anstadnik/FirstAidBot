@@ -7,5 +7,5 @@ async fn test_data_loading() {
     assert!(
         get_data(filename).await.is_ok(),
         "Cannot load data with filename = {filename:?}"
-    );
+    )
 }
