@@ -24,7 +24,7 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     container:
-      image: rust:latest
+      image: rust:bullseye
 
     steps:
       - uses: actions/checkout@v3
