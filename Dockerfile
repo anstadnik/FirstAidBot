@@ -1,4 +1,4 @@
-FROM debian:buster-slim AS runtime
+FROM debian:bullseye-slim AS runtime
 WORKDIR /app
 COPY first_aid_bot /usr/local/bin
 COPY table.csv .
