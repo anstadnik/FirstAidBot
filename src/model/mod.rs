@@ -43,10 +43,9 @@ fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<FSNextStates
         .filter(|r| r.key.strip_prefix(k).map_or(false, |s| !s.contains('.')))
         .map(|mut row| {
             if let Some(key) = row.question.strip_prefix('#') {
-                row = data
-                    .iter()
-                    .find(|row_| row_.key == key)
-                    .ok_or_else(|| anyhow!("Didn't find {} in row {}", row.question, row.key))?;
+                let pred = |row_: &&Row| row_.key == key;
+                let map_err = || anyhow!("Didn't find {} in row {}", row.question, row.key);
+                row = data.iter().find(pred).ok_or_else(map_err)?;
             };
             let key = row.key.clone() + ".";
             let next_states = get_next_states_for_key(data, &key)?;
