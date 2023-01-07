@@ -1,8 +1,10 @@
-use crate::bot::prelude::*;
 use anyhow::{Error, Result};
+use teloxide::prelude::*;
 use futures::{future::BoxFuture, FutureExt};
 use itertools::Itertools;
 use teloxide::utils::markdown::code_block;
+
+use super::FABot;
 
 // Waiting for https://github.com/teloxide/teloxide/issues/482
 fn split_msg(msg: &str) -> impl Iterator<Item = String> {

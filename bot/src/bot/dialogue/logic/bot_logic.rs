@@ -1,3 +1,4 @@
+use first_aid_bot_core::prelude::*;
 use std::sync::Arc;
 
 use super::log_to_redis::log_to_redis;
@@ -5,8 +6,6 @@ use super::process_broadcast;
 use super::{helpers::send_state, is_admin};
 use crate::bot::FABot;
 use crate::bot::FADialogue;
-use crate::prelude::State;
-use crate::prelude::{Data, Lang};
 use anyhow::{anyhow, Context as AnyhowContext};
 use redis::aio::MultiplexedConnection;
 use teloxide::prelude::*;

@@ -1,12 +1,18 @@
+use first_aid_bot_core::prelude::*;
+use crate::bot::FirstAidStorage;
+use std::sync::Arc;
+
 use super::logic::is_admin;
 use super::prelude::start_endpoint;
 use crate::bot::dialogue::logic::send_state;
-use crate::bot::prelude::*;
+use crate::bot::report_error::{report_error, ReportError};
+use crate::bot::{FABot, FADialogue};
 use crate::REDIS_USERS_SET_KEY;
 use anyhow::{anyhow, bail, Context, Error};
 use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::dispatching::DpHandlerDescription;
+use teloxide::prelude::*;
 use teloxide::types::ParseMode::Html;
 use teloxide::utils::command::BotCommands;
 
@@ -84,29 +90,29 @@ pub async fn easter_egg(bot: &FABot, msg: &Message) -> Result<(), Error> {
 }
 
 fn recursive_test<'a>(
-    state: &'a FS,
-    lang: Lang,
-    context: Vec<String>,
+    state: &'a mut State,
+    data: &'a Data,
     bot: &'a FABot,
     msg: &'a Message,
 ) -> BoxFuture<'a, anyhow::Result<()>> {
     async move {
-        send_state(bot, msg, state, lang, &context)
+        send_state(bot, msg, state)
             .await
-            .with_context(|| format!("Error while processing state {state:?}"))?;
-        for (key, next_state) in state.next_states.iter() {
-            let mut context = context.clone();
-            context.push(key.to_string());
-            recursive_test(next_state, lang, context, bot, msg).await?;
+            .with_context(|| format!("Error while processing state {state}"))?;
+        for next_state in state.button_texts.clone() {
+            state.move_to_state(&next_state, data).await?;
+            recursive_test(state, data, bot, msg).await?;
+            state.back();
         }
-        anyhow::Ok(())
+        Ok(())
     }
     .boxed()
 }
 
 async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
     for lang in Lang::iter() {
-        recursive_test(&*data.get(lang, &[]).await?, lang, Vec::new(), bot, msg).await?;
+        let mut state = data.get(&[], lang).await?;
+        recursive_test(&mut state, &data, bot, msg).await?;
     }
 
     Ok(())
@@ -117,7 +123,7 @@ type FAHandler = Handler<'static, DependencyMap, Result<(), Error>, DpHandlerDes
 pub fn get_commands_branch() -> FAHandler {
     dptree::entry()
         .filter_command::<FACommands>()
-        .enter_dialogue::<Message, FirstAidStorage, State>()
+        .enter_dialogue::<Message, FirstAidStorage, crate::bot::state::State>()
         .endpoint(commands_handler)
 }
 

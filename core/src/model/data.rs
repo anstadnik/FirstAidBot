@@ -3,12 +3,11 @@
 
 // use super::prelude::*;
 use crate::model::MultilangStates;
-use crate::prelude::{get_data, State, Lang};
+use crate::prelude::{get_data, Lang, State};
 // use crate::prelude::Context;
 // use crate::prelude::State;
 use anyhow::anyhow;
 use log::info;
-
 
 #[derive(Debug)]
 pub struct Data {
@@ -45,12 +44,6 @@ impl Data {
             )
         };
 
-        Ok(State::new (
-            lang,
-             ctx.to_vec(),
-            link,
-            message,
-            button_texts,
-        ))
+        Ok(State::new(lang, ctx.to_vec(), link, message, button_texts))
     }
 }

@@ -1,4 +1,4 @@
-use super::prelude::*;
+use first_aid_bot_core::prelude::Lang;
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub enum State {

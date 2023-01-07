@@ -53,7 +53,7 @@ fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
 }
 
 impl FS {
-    pub fn entry(lang: Lang, next_states: IndexMap<String, FS>,) -> Self {
+    pub fn entry(lang: Lang, next_states: IndexMap<String, FS>) -> Self {
         Self {
             link: None,
             message: lang.details().greeting.to_string(),

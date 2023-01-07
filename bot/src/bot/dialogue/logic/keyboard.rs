@@ -1,4 +1,4 @@
-use crate::bot::prelude::*;
+use first_aid_bot_core::prelude::Lang;
 use teloxide::types::{KeyboardButton, KeyboardMarkup, ReplyMarkup};
 
 pub fn make_keyboard(keys: &Vec<String>, lang: Lang, depth: usize, is_admin: bool) -> ReplyMarkup {
@@ -30,13 +30,3 @@ pub fn make_keyboard(keys: &Vec<String>, lang: Lang, depth: usize, is_admin: boo
 
     ReplyMarkup::Keyboard(KeyboardMarkup::new(keyboard).resize_keyboard(true))
 }
-
-// pub fn make_keyboard_from_state(
-//     state: &FS,
-//     lang: Lang,
-//     depth: usize,
-//     is_admin: bool,
-// ) -> ReplyMarkup {
-//     let keys = state.next_states.keys().cloned().collect();
-//     make_keyboard(&keys, lang, depth, is_admin)
-// }
