@@ -1,9 +1,17 @@
 mod bot;
 mod model;
+mod logic;
 
 pub use bot::run_bot;
 pub use model::prelude::Data;
 pub use teloxide::types::UserId;
+pub use logic::State;
+
+pub mod prelude {
+    pub use super::run_bot;
+    pub use super::Data;
+    pub use super::State;
+}
 
 const MAINTAINER_IDS: [teloxide::types::UserId; 1] = [UserId(131_596_643)];
 const MAINTAINER_USERNAMES: [&str; 2] = ["astadnik", "Oleksa_Lev"];

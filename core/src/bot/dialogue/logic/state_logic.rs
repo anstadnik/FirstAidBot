@@ -1,6 +1,7 @@
 use super::log_to_redis::log_to_redis;
 use super::process_broadcast;
 use super::{helpers::send_state, is_admin};
+use crate::State;
 use crate::bot::prelude::*;
 use anyhow::{anyhow, Context};
 use redis::aio::MultiplexedConnection;
@@ -11,16 +12,17 @@ pub async fn move_to_state(
     msg: &Message,
     dialogue: &FADialogue,
     data: &Arc<Data>,
-    mut context: Vec<String>,
-    lang: Lang,
+    // mut context: Vec<String>,
+    // lang: Lang,
+    state: State,
     conn: &mut MultiplexedConnection,
 ) -> anyhow::Result<()> {
-    let map_err = || format!("Error while moving into context {context:?}");
-    let state = &data.get(lang, &context).await.with_context(map_err)?;
-    if let Err(err) = log_to_redis(msg, &lang, &context, conn).await {
+    // let map_err = || format!("Error while moving into context {context:?}");
+    // let state = &data.get(lang, &context).await.with_context(map_err)?;
+    if let Err(err) = log_to_redis(msg, &state.lang, &state.context, conn).await {
         log::error!("Cannot log to redis: {err:?}");
     };
-    send_state(bot, msg, state, lang, &context).await?;
+    send_state(bot, msg, state, data).await?;
     if state.next_states.is_empty() {
         context = Vec::new();
 

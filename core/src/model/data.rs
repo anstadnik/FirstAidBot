@@ -1,3 +1,6 @@
+use crate::model::{MultilangStates, FS};
+use crate::State;
+
 use super::prelude::*;
 use anyhow::anyhow;
 use log::info;
@@ -18,7 +21,8 @@ impl Data {
         let data = Some(get_data(Some("table.csv")).await.unwrap());
         Self { data }
     }
-    pub async fn get<'a>(&'a self, lang: Lang, ctx: &[String]) -> anyhow::Result<Cow<'a, FS>> {
+    pub async fn get<'a>(&'a self, state: &State) -> anyhow::Result<Cow<'a, FS>> {
+        let State { lang, context: ctx } = state;
         let map_err = || anyhow!("No such lang {lang}");
         let state = if let Some(data) = &self.data {
             Cow::Borrowed(data.get(&lang).ok_or_else(map_err)?.get_state(ctx)?)

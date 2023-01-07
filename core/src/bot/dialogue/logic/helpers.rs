@@ -1,22 +1,23 @@
-use super::keyboard::make_keyboard_from_state;
-use crate::{bot::prelude::*, MAINTAINER_USERNAMES};
+use super::keyboard::make_keyboard;
+use crate::{bot::prelude::*, logic::Msg, State, MAINTAINER_USERNAMES};
 use teloxide::types::ParseMode::Html;
 
 pub async fn send_state(
     bot: &FABot,
     msg: &Message,
-    state: &FS,
-    lang: Lang,
-    context: &[String],
+    state: &State,
+    data: &Arc<Data>,
 ) -> anyhow::Result<()> {
     let id = msg.chat.id;
-    if let Some(link) = &state.link {
+    let Msg { link, message } = state.get_msg(data).await?;
+    if let Some(link) = link {
         let link = format!("<a href='{link}'>&#8288;</a>");
         bot.send_message(id, link).parse_mode(Html).await?;
     }
 
-    let keyboard = make_keyboard_from_state(state, lang, context.len(), is_admin(msg));
-    bot.send_message(id, &state.message)
+    let button_texts = state.get_button_texts(data).await;
+    let keyboard = make_keyboard(&button_texts?, state.lang, state.depth(), is_admin(msg));
+    bot.send_message(id, &message)
         .reply_markup(keyboard)
         .await?;
     Ok(())

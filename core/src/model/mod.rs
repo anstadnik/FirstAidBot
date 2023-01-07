@@ -4,18 +4,18 @@ mod lang;
 
 pub mod prelude {
     pub use super::data::Data;
-    pub use super::finite_state::{FSNextStates, MultilangStates, FS};
     pub use super::get_data;
     pub use super::lang::Lang;
 }
 
-use std::{env, fs::File, io};
-
 use anyhow::{anyhow, Context};
 use bytes::Buf;
 use csv::Reader;
+use finite_state::{FSNextStates, MultilangStates};
+pub use finite_state::FS;
 use futures::{stream, StreamExt, TryStreamExt};
 use prelude::*;
+use std::{env, fs::File, io};
 
 use self::finite_state::Row;
 
