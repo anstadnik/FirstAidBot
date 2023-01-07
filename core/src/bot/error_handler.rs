@@ -1,7 +1,10 @@
-use super::prelude::*;
-use crate::MAINTAINER_IDS;
+use std::sync::Arc;
+
+use crate::{bot::report_error::report_error, prelude::Lang, MAINTAINER_IDS};
 use futures::future::BoxFuture;
 use teloxide::error_handlers::ErrorHandler;
+
+use super::FABot;
 
 pub struct FAErrorHandler {
     bot: FABot,

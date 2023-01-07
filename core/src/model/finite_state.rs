@@ -31,13 +31,11 @@ impl Row {
 
 pub type MultilangStates = HashMap<Lang, FS>;
 
-pub type FSNextStates = IndexMap<String, FS>;
-
 #[derive(Debug, Clone)]
 pub struct FS {
     pub link: Option<String>,
     pub message: String,
-    pub next_states: FSNextStates,
+    pub next_states: IndexMap<String, FS>,
 }
 
 fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
@@ -55,14 +53,14 @@ fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
 }
 
 impl FS {
-    pub fn entry(lang: Lang, next_states: FSNextStates) -> Self {
+    pub fn entry(lang: Lang, next_states: IndexMap<String, FS>,) -> Self {
         Self {
             link: None,
             message: lang.details().greeting.to_string(),
             next_states,
         }
     }
-    pub fn parse_row(row: &Row, options: FSNextStates) -> anyhow::Result<Self> {
+    pub fn parse_row(row: &Row, options: IndexMap<String, FS>) -> anyhow::Result<Self> {
         Ok(Self {
             link: parse_link(&row.link)?,
             message: row.answer.clone(),

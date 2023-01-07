@@ -1,8 +1,13 @@
 use super::keyboard::make_keyboard;
-use crate::{bot::prelude::*, BROADCAST_ENABLED};
+use crate::bot::state::State;
+use crate::bot::FABot;
+use crate::bot::FADialogue;
+use crate::prelude::Lang;
+use crate::BROADCAST_ENABLED;
 use anyhow::{anyhow, Result};
 use futures::{stream, StreamExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
+use teloxide::prelude::*;
 
 const MSG_DISABLED: &str = "Аля, ні";
 const MSG_CONFIRM: &str = "Підтвердити";

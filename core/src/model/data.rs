@@ -1,10 +1,14 @@
-use crate::model::{MultilangStates, FS};
-use crate::State;
+// use crate::model::{MultilangStates, State};
+// use crate::Context;
 
-use super::prelude::*;
+// use super::prelude::*;
+use crate::model::MultilangStates;
+use crate::prelude::{get_data, State, Lang};
+// use crate::prelude::Context;
+// use crate::prelude::State;
 use anyhow::anyhow;
 use log::info;
-use std::borrow::Cow;
+
 
 #[derive(Debug)]
 pub struct Data {
@@ -21,15 +25,32 @@ impl Data {
         let data = Some(get_data(Some("table.csv")).await.unwrap());
         Self { data }
     }
-    pub async fn get<'a>(&'a self, state: &State) -> anyhow::Result<Cow<'a, FS>> {
-        let State { lang, context: ctx } = state;
+    pub async fn get<'a>(&'a self, ctx: &[String], lang: Lang) -> anyhow::Result<State> {
+        // let Context { lang, context: ctx } = state;
         let map_err = || anyhow!("No such lang {lang}");
-        let state = if let Some(data) = &self.data {
-            Cow::Borrowed(data.get(&lang).ok_or_else(map_err)?.get_state(ctx)?)
+        let (link, message, button_texts) = if let Some(ref data) = self.data {
+            let fs = data.get(&lang).ok_or_else(map_err)?.get_state(ctx)?;
+            (
+                fs.link.clone(),
+                fs.message.clone(),
+                fs.next_states.keys().cloned().collect(),
+            )
         } else {
-            let data = get_data(None).await?;
-            Cow::Owned(data.get(&lang).ok_or_else(map_err)?.get_state(ctx)?.clone())
+            let tmp = get_data(None).await?.remove(&lang).ok_or_else(map_err)?;
+            let fs = tmp.get_state(ctx)?;
+            (
+                fs.link.clone(),
+                fs.message.clone(),
+                fs.next_states.keys().cloned().collect(),
+            )
         };
-        Ok(state)
+
+        Ok(State::new (
+            lang,
+             ctx.to_vec(),
+            link,
+            message,
+            button_texts,
+        ))
     }
 }

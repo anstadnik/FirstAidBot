@@ -1,4 +1,4 @@
-use super::prelude::*;
+use crate::prelude::Lang;
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub enum State {

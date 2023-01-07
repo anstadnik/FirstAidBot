@@ -1,4 +1,4 @@
-use crate::bot::prelude::*;
+use crate::prelude::Lang;
 use teloxide::types::{KeyboardButton, KeyboardMarkup, ReplyMarkup};
 
 pub fn make_keyboard(keys: &Vec<String>, lang: Lang, depth: usize, is_admin: bool) -> ReplyMarkup {

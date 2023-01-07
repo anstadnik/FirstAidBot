@@ -8,19 +8,20 @@ pub mod prelude {
     pub use super::lang::Lang;
 }
 
+// use crate::logic::State;
+// use crate::prelude::State;
 use anyhow::{anyhow, Context};
 use bytes::Buf;
 use csv::Reader;
-use finite_state::{FSNextStates, MultilangStates};
-pub use finite_state::FS;
+use finite_state::MultilangStates;
 use futures::{stream, StreamExt, TryStreamExt};
+use indexmap::IndexMap;
 use prelude::*;
 use std::{env, fs::File, io};
 
-use self::finite_state::Row;
+use self::finite_state::{Row, FS};
 
 // TODO: Add loading of special messages for Lang
-
 async fn get_rows(filename: Option<&str>, sheet_name: String) -> anyhow::Result<Vec<Row>> {
     let rdr: Box<dyn io::Read> = if let Some(filename) = filename {
         Box::new(io::BufReader::new(File::open(filename)?))
@@ -38,7 +39,7 @@ async fn get_rows(filename: Option<&str>, sheet_name: String) -> anyhow::Result<
         .context("Cannot parse csv")
 }
 
-fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<FSNextStates> {
+fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<IndexMap<String, FS>> {
     data.iter()
         .filter(|r| r.key.strip_prefix(k).map_or(false, |s| !s.contains('.')))
         .map(|mut row| {

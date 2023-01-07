@@ -1,10 +1,17 @@
-use super::{dialogue::prelude::*, prelude::*};
+use std::sync::Arc;
+
+use crate::bot::dialogue::prelude::*;
+use crate::bot::state::State;
+use crate::prelude::Data;
 use crate::{bot::error_handler::FAErrorHandler, REDIS_URLS};
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
 use teloxide::dispatching::dialogue::{serializer::Bincode, RedisStorage};
 use teloxide::dptree::case;
+use teloxide::prelude::*;
 use teloxide::{adaptors::throttle::Limits, types::ParseMode, utils::command::BotCommands};
+
+use super::FirstAidStorage;
 
 pub async fn connect_to_redis() -> (MultiplexedConnection, Arc<FirstAidStorage>) {
     let results = join_all(REDIS_URLS.into_iter().map(|url| async move {
