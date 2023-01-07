@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'ffi.dart' if (dart.library.html) 'ffi_web.dart';
 
 void main() {
   runApp(const MyApp());
@@ -58,10 +59,17 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            FutureBuilder<String>(
+                future: api.helloWorld(),
+                builder: (context, snap) {
+                if (snap.error != null) return const CircularProgressIndicator();
+                  final data = snap.data;
+                  if (data == null) return const CircularProgressIndicator();
+                  return Text(
+                    data,
+                    style: Theme.of(context).textTheme.headline4,
+                  );
+                }),
           ],
         ),
       ),
