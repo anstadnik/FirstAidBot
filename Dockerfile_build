@@ -1,4 +1,4 @@
 FROM rust:latest
 
 COPY . /app
-RUN cd /app && cargo build
+RUN cd /app/bot && cargo build
