@@ -1,5 +1,5 @@
-use first_aid_bot::run_bot;
-use first_aid_bot::Data;
+use first_aid_bot_core::run_bot;
+use first_aid_bot_core::Data;
 
 #[tokio::main]
 async fn main() {

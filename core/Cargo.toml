@@ -4,7 +4,7 @@ version = "0.3.0"
 edition = "2021"
 
 [lib]
-crate-type = ["staticlib", "cdylib"]
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -24,17 +24,17 @@ futures = "0.3"
 # Telegram api
 teloxide = { version = "0.11", features = ["macros", "redis-storage",
   "bincode-serializer", "throttle"] }
-log = "0.4"
-pretty_env_logger = "0.4"
+  log = "0.4"
+# pretty_env_logger = "0.4"
 # anyhow = { version = "1.0", features = ["backtrace"] }
-anyhow = "1.0" 
-tokio = { version =  "1.23", features = ["rt-multi-thread", "macros"] }
-const_format = "0.2" 
-itertools = "0.10"
+  anyhow = "1.0" 
+  tokio = { version =  "1.23" }
+  const_format = "0.2" 
+  itertools = "0.10"
 
-rand = "0.8"
+  rand = "0.8"
 
-flutter_rust_bridge = "1.59"
+  flutter_rust_bridge = "1.59"
 
 # https://docs.rs/openssl/0.10.34/openssl/#vendored
-openssl = { version = "0.10", features = ["vendored"] }
+  openssl = { version = "0.10", features = ["vendored"] }
