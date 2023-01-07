@@ -17,22 +17,16 @@ serde = { version = "1.0", features = ["derive"] }
 reqwest = { version = "0.11"}
 indexmap = "1.9"
 
-# # Counting users
-# redis = { version = "0.22", features = ["tokio-comp"] }
 futures = "0.3"
-#
-# # Telegram api
 log = "0.4"
-# # pretty_env_logger = "0.4"
-# # anyhow = { version = "1.0", features = ["backtrace"] }
 anyhow = "1.0" 
 tokio = { version =  "1.24" , features = ["macros"]}
 const_format = "0.2" 
-# itertools = "0.10"
-#
-# rand = "0.8"
-#
 flutter_rust_bridge = "1.59"
 
 # https://docs.rs/openssl/0.10.34/openssl/#vendored
 openssl = { version = "0.10", features = ["vendored"] }
+
+[package.metadata.cargo-udeps.ignore]
+normal = ["flutter_rust_bridge", "openssl"]
+#development = []
