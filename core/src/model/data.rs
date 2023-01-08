@@ -24,7 +24,7 @@ impl Data {
         let data = Some(get_data(Some("table.csv")).await.unwrap());
         Self { data }
     }
-    pub async fn get<'a>(&'a self, ctx: &[String], lang: Lang) -> anyhow::Result<State> {
+    pub async fn get(&self, ctx: &[String], lang: Lang) -> anyhow::Result<State> {
         // let Context { lang, context: ctx } = state;
         let map_err = || anyhow!("No such lang {lang}");
         let (link, message, button_texts) = if let Some(ref data) = self.data {

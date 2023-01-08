@@ -51,7 +51,7 @@ impl State {
     pub fn is_empty(&self) -> bool {
         self.context.is_empty()
     }
-    pub fn context(&self) -> &Vec<String> {
+    pub fn context(&self) -> &[String] {
         &self.context
     }
 }
