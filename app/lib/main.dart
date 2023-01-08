@@ -55,8 +55,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    data = api.dynamic();
-    data.then((data) => state = api.getState(data: data, ctx: [], lang: 'en'));
+    data = api.getDynamic();
+    // data.then((data) => state = api.getState(data: data, ctx: [], lang: 'en'));
+    state = data.then((data) => api.getState(data: data, ctx: [], lang: 'en'));
+    // Future.delayed(Duration.zero, () async {
+    //   state = api.getState(data: await data, ctx: [], lang: 'en');
+    // });
   }
 
   // void _incrementCounter() {
@@ -83,13 +87,13 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            FutureBuilder<List<dynamic>>(
-                future: Future.wait([data, state]),
+            FutureBuilder<RwLockState>(
+                future: state,
                 builder: (context, snap) {
-                  final data = snap.data;
-                  if (data == null) return const CircularProgressIndicator();
+                  final state = snap.data;
+                  if (state == null) return const CircularProgressIndicator();
                   // length of button texts
-                  final len = data[1].buttonTexts.length;
+                  final len = api.getButtonTexts(state: state).length;
                   return Text(
                     '$len',
                     style: Theme.of(context).textTheme.headline4,

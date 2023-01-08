@@ -63,9 +63,9 @@ external FaApiWasmModule get wasmModule;
 class FaApiWasmModule implements WasmModule {
   external Object /* Promise */ call([String? moduleName]);
   external FaApiWasmModule bind(dynamic thisArg, String moduleName);
-  external dynamic /* void */ wire_dynamic(NativePortType port_);
+  external dynamic /* void */ wire_get_dynamic(NativePortType port_);
 
-  external dynamic /* void */ wire_cached(NativePortType port_);
+  external dynamic /* void */ wire_get_cached(NativePortType port_);
 
   external dynamic /* void */ wire_get_state(
       NativePortType port_, Object data, List<String> ctx, String lang);
@@ -77,19 +77,17 @@ class FaApiWasmModule implements WasmModule {
 
   external dynamic /* void */ wire_home(NativePortType port_, Object state);
 
-  external dynamic /* void */ wire_depth(NativePortType port_, Object state);
+  external dynamic /* int */ wire_depth(Object state);
 
-  external dynamic /* void */ wire_is_empty(NativePortType port_, Object state);
+  external dynamic /* bool */ wire_is_empty(Object state);
 
-  external dynamic /* void */ wire_context(NativePortType port_, Object state);
+  external dynamic /* List<String> */ wire_context(Object state);
 
-  external dynamic /* void */ wire_get_link(NativePortType port_, Object state);
+  external dynamic /* String? */ wire_get_link(Object state);
 
-  external dynamic /* void */ wire_get_message(
-      NativePortType port_, Object state);
+  external dynamic /* String */ wire_get_message(Object state);
 
-  external dynamic /* void */ wire_get_button_texts(
-      NativePortType port_, Object state);
+  external dynamic /* List<String> */ wire_get_button_texts(Object state);
 
   external dynamic /*  */ drop_opaque_RwLockData(ptr);
 
@@ -106,9 +104,11 @@ class FaApiWire extends FlutterRustBridgeWasmWireBase<FaApiWasmModule> {
   FaApiWire(FutureOr<WasmModule> module)
       : super(WasmModule.cast<FaApiWasmModule>(module));
 
-  void wire_dynamic(NativePortType port_) => wasmModule.wire_dynamic(port_);
+  void wire_get_dynamic(NativePortType port_) =>
+      wasmModule.wire_get_dynamic(port_);
 
-  void wire_cached(NativePortType port_) => wasmModule.wire_cached(port_);
+  void wire_get_cached(NativePortType port_) =>
+      wasmModule.wire_get_cached(port_);
 
   void wire_get_state(
           NativePortType port_, Object data, List<String> ctx, String lang) =>
@@ -124,23 +124,22 @@ class FaApiWire extends FlutterRustBridgeWasmWireBase<FaApiWasmModule> {
   void wire_home(NativePortType port_, Object state) =>
       wasmModule.wire_home(port_, state);
 
-  void wire_depth(NativePortType port_, Object state) =>
-      wasmModule.wire_depth(port_, state);
+  dynamic /* int */ wire_depth(Object state) => wasmModule.wire_depth(state);
 
-  void wire_is_empty(NativePortType port_, Object state) =>
-      wasmModule.wire_is_empty(port_, state);
+  dynamic /* bool */ wire_is_empty(Object state) =>
+      wasmModule.wire_is_empty(state);
 
-  void wire_context(NativePortType port_, Object state) =>
-      wasmModule.wire_context(port_, state);
+  dynamic /* List<String> */ wire_context(Object state) =>
+      wasmModule.wire_context(state);
 
-  void wire_get_link(NativePortType port_, Object state) =>
-      wasmModule.wire_get_link(port_, state);
+  dynamic /* String? */ wire_get_link(Object state) =>
+      wasmModule.wire_get_link(state);
 
-  void wire_get_message(NativePortType port_, Object state) =>
-      wasmModule.wire_get_message(port_, state);
+  dynamic /* String */ wire_get_message(Object state) =>
+      wasmModule.wire_get_message(state);
 
-  void wire_get_button_texts(NativePortType port_, Object state) =>
-      wasmModule.wire_get_button_texts(port_, state);
+  dynamic /* List<String> */ wire_get_button_texts(Object state) =>
+      wasmModule.wire_get_button_texts(state);
 
   dynamic /*  */ drop_opaque_RwLockData(ptr) =>
       wasmModule.drop_opaque_RwLockData(ptr);

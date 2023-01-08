@@ -20,35 +20,35 @@ class FaApiImpl implements FaApi {
   factory FaApiImpl.wasm(FutureOr<WasmModule> module) =>
       FaApiImpl(module as ExternalLibrary);
   FaApiImpl.raw(this._platform);
-  Future<RwLockData> dynamic({dynamic hint}) {
+  Future<RwLockData> getDynamic({dynamic hint}) {
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_dynamic(port_),
+      callFfi: (port_) => _platform.inner.wire_get_dynamic(port_),
       parseSuccessData: _wire2api_RwLockData,
-      constMeta: kDynamicConstMeta,
+      constMeta: kGetDynamicConstMeta,
       argValues: [],
       hint: hint,
     ));
   }
 
-  FlutterRustBridgeTaskConstMeta get kDynamicConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kGetDynamicConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "dynamic",
+        debugName: "get_dynamic",
         argNames: [],
       );
 
-  Future<RwLockData> cached({dynamic hint}) {
+  Future<RwLockData> getCached({dynamic hint}) {
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_cached(port_),
+      callFfi: (port_) => _platform.inner.wire_get_cached(port_),
       parseSuccessData: _wire2api_RwLockData,
-      constMeta: kCachedConstMeta,
+      constMeta: kGetCachedConstMeta,
       argValues: [],
       hint: hint,
     ));
   }
 
-  FlutterRustBridgeTaskConstMeta get kCachedConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kGetCachedConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "cached",
+        debugName: "get_cached",
         argNames: [],
       );
 
@@ -134,10 +134,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<int> depth({required RwLockState state, dynamic hint}) {
+  int depth({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_depth(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_depth(arg0),
       parseSuccessData: _wire2api_usize,
       constMeta: kDepthConstMeta,
       argValues: [state],
@@ -151,10 +151,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<bool> isEmpty({required RwLockState state, dynamic hint}) {
+  bool isEmpty({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_is_empty(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_is_empty(arg0),
       parseSuccessData: _wire2api_bool,
       constMeta: kIsEmptyConstMeta,
       argValues: [state],
@@ -168,10 +168,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<List<String>> context({required RwLockState state, dynamic hint}) {
+  List<String> context({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_context(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_context(arg0),
       parseSuccessData: _wire2api_StringList,
       constMeta: kContextConstMeta,
       argValues: [state],
@@ -185,10 +185,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<String?> getLink({required RwLockState state, dynamic hint}) {
+  String? getLink({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_link(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_link(arg0),
       parseSuccessData: _wire2api_opt_String,
       constMeta: kGetLinkConstMeta,
       argValues: [state],
@@ -202,10 +202,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<String> getMessage({required RwLockState state, dynamic hint}) {
+  String getMessage({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_message(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_message(arg0),
       parseSuccessData: _wire2api_String,
       constMeta: kGetMessageConstMeta,
       argValues: [state],
@@ -219,11 +219,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<List<String>> getButtonTexts(
-      {required RwLockState state, dynamic hint}) {
+  List<String> getButtonTexts({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_button_texts(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_button_texts(arg0),
       parseSuccessData: _wire2api_StringList,
       constMeta: kGetButtonTextsConstMeta,
       argValues: [state],

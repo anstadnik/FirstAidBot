@@ -256,8 +256,8 @@ dependencies = [
  "anyhow",
  "first_aid_bot_core",
  "flutter_rust_bridge",
- "futures",
  "openssl",
+ "tokio",
 ]
 
 [[package]]
@@ -1116,6 +1116,7 @@ dependencies = [
  "libc",
  "memchr",
  "mio",
+ "num_cpus",
  "pin-project-lite",
  "socket2",
  "tokio-macros",

@@ -23,35 +23,35 @@ class FaApiImpl implements FaApi {
   factory FaApiImpl.wasm(FutureOr<WasmModule> module) =>
       FaApiImpl(module as ExternalLibrary);
   FaApiImpl.raw(this._platform);
-  Future<RwLockData> dynamic({dynamic hint}) {
+  Future<RwLockData> getDynamic({dynamic hint}) {
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_dynamic(port_),
+      callFfi: (port_) => _platform.inner.wire_get_dynamic(port_),
       parseSuccessData: _wire2api_RwLockData,
-      constMeta: kDynamicConstMeta,
+      constMeta: kGetDynamicConstMeta,
       argValues: [],
       hint: hint,
     ));
   }
 
-  FlutterRustBridgeTaskConstMeta get kDynamicConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kGetDynamicConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "dynamic",
+        debugName: "get_dynamic",
         argNames: [],
       );
 
-  Future<RwLockData> cached({dynamic hint}) {
+  Future<RwLockData> getCached({dynamic hint}) {
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_cached(port_),
+      callFfi: (port_) => _platform.inner.wire_get_cached(port_),
       parseSuccessData: _wire2api_RwLockData,
-      constMeta: kCachedConstMeta,
+      constMeta: kGetCachedConstMeta,
       argValues: [],
       hint: hint,
     ));
   }
 
-  FlutterRustBridgeTaskConstMeta get kCachedConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kGetCachedConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "cached",
+        debugName: "get_cached",
         argNames: [],
       );
 
@@ -137,10 +137,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<int> depth({required RwLockState state, dynamic hint}) {
+  int depth({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_depth(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_depth(arg0),
       parseSuccessData: _wire2api_usize,
       constMeta: kDepthConstMeta,
       argValues: [state],
@@ -154,10 +154,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<bool> isEmpty({required RwLockState state, dynamic hint}) {
+  bool isEmpty({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_is_empty(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_is_empty(arg0),
       parseSuccessData: _wire2api_bool,
       constMeta: kIsEmptyConstMeta,
       argValues: [state],
@@ -171,10 +171,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<List<String>> context({required RwLockState state, dynamic hint}) {
+  List<String> context({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_context(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_context(arg0),
       parseSuccessData: _wire2api_StringList,
       constMeta: kContextConstMeta,
       argValues: [state],
@@ -188,10 +188,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<String?> getLink({required RwLockState state, dynamic hint}) {
+  String? getLink({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_link(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_link(arg0),
       parseSuccessData: _wire2api_opt_String,
       constMeta: kGetLinkConstMeta,
       argValues: [state],
@@ -205,10 +205,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<String> getMessage({required RwLockState state, dynamic hint}) {
+  String getMessage({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_message(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_message(arg0),
       parseSuccessData: _wire2api_String,
       constMeta: kGetMessageConstMeta,
       argValues: [state],
@@ -222,11 +222,10 @@ class FaApiImpl implements FaApi {
         argNames: ["state"],
       );
 
-  Future<List<String>> getButtonTexts(
-      {required RwLockState state, dynamic hint}) {
+  List<String> getButtonTexts({required RwLockState state, dynamic hint}) {
     var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_button_texts(port_, arg0),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_button_texts(arg0),
       parseSuccessData: _wire2api_StringList,
       constMeta: kGetButtonTextsConstMeta,
       argValues: [state],
@@ -462,29 +461,33 @@ class FaApiWire implements FlutterRustBridgeWireBase {
   late final _init_frb_dart_api_dl = _init_frb_dart_api_dlPtr
       .asFunction<int Function(ffi.Pointer<ffi.Void>)>();
 
-  void wire_dynamic(
+  void wire_get_dynamic(
     int port_,
   ) {
-    return _wire_dynamic(
+    return _wire_get_dynamic(
       port_,
     );
   }
 
-  late final _wire_dynamicPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>('wire_dynamic');
-  late final _wire_dynamic = _wire_dynamicPtr.asFunction<void Function(int)>();
+  late final _wire_get_dynamicPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_get_dynamic');
+  late final _wire_get_dynamic =
+      _wire_get_dynamicPtr.asFunction<void Function(int)>();
 
-  void wire_cached(
+  void wire_get_cached(
     int port_,
   ) {
-    return _wire_cached(
+    return _wire_get_cached(
       port_,
     );
   }
 
-  late final _wire_cachedPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>('wire_cached');
-  late final _wire_cached = _wire_cachedPtr.asFunction<void Function(int)>();
+  late final _wire_get_cachedPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_get_cached');
+  late final _wire_get_cached =
+      _wire_get_cachedPtr.asFunction<void Function(int)>();
 
   void wire_get_state(
     int port_,
@@ -568,101 +571,89 @@ class FaApiWire implements FlutterRustBridgeWireBase {
   late final _wire_home =
       _wire_homePtr.asFunction<void Function(int, wire_RwLockState)>();
 
-  void wire_depth(
-    int port_,
+  WireSyncReturn wire_depth(
     wire_RwLockState state,
   ) {
     return _wire_depth(
-      port_,
       state,
     );
   }
 
-  late final _wire_depthPtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Int64, wire_RwLockState)>>(
-      'wire_depth');
+  late final _wire_depthPtr =
+      _lookup<ffi.NativeFunction<WireSyncReturn Function(wire_RwLockState)>>(
+          'wire_depth');
   late final _wire_depth =
-      _wire_depthPtr.asFunction<void Function(int, wire_RwLockState)>();
+      _wire_depthPtr.asFunction<WireSyncReturn Function(wire_RwLockState)>();
 
-  void wire_is_empty(
-    int port_,
+  WireSyncReturn wire_is_empty(
     wire_RwLockState state,
   ) {
     return _wire_is_empty(
-      port_,
       state,
     );
   }
 
-  late final _wire_is_emptyPtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Int64, wire_RwLockState)>>(
-      'wire_is_empty');
+  late final _wire_is_emptyPtr =
+      _lookup<ffi.NativeFunction<WireSyncReturn Function(wire_RwLockState)>>(
+          'wire_is_empty');
   late final _wire_is_empty =
-      _wire_is_emptyPtr.asFunction<void Function(int, wire_RwLockState)>();
+      _wire_is_emptyPtr.asFunction<WireSyncReturn Function(wire_RwLockState)>();
 
-  void wire_context(
-    int port_,
+  WireSyncReturn wire_context(
     wire_RwLockState state,
   ) {
     return _wire_context(
-      port_,
       state,
     );
   }
 
-  late final _wire_contextPtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Int64, wire_RwLockState)>>(
-      'wire_context');
+  late final _wire_contextPtr =
+      _lookup<ffi.NativeFunction<WireSyncReturn Function(wire_RwLockState)>>(
+          'wire_context');
   late final _wire_context =
-      _wire_contextPtr.asFunction<void Function(int, wire_RwLockState)>();
+      _wire_contextPtr.asFunction<WireSyncReturn Function(wire_RwLockState)>();
 
-  void wire_get_link(
-    int port_,
+  WireSyncReturn wire_get_link(
     wire_RwLockState state,
   ) {
     return _wire_get_link(
-      port_,
       state,
     );
   }
 
-  late final _wire_get_linkPtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Int64, wire_RwLockState)>>(
-      'wire_get_link');
+  late final _wire_get_linkPtr =
+      _lookup<ffi.NativeFunction<WireSyncReturn Function(wire_RwLockState)>>(
+          'wire_get_link');
   late final _wire_get_link =
-      _wire_get_linkPtr.asFunction<void Function(int, wire_RwLockState)>();
+      _wire_get_linkPtr.asFunction<WireSyncReturn Function(wire_RwLockState)>();
 
-  void wire_get_message(
-    int port_,
+  WireSyncReturn wire_get_message(
     wire_RwLockState state,
   ) {
     return _wire_get_message(
-      port_,
       state,
     );
   }
 
-  late final _wire_get_messagePtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Int64, wire_RwLockState)>>(
-      'wire_get_message');
-  late final _wire_get_message =
-      _wire_get_messagePtr.asFunction<void Function(int, wire_RwLockState)>();
+  late final _wire_get_messagePtr =
+      _lookup<ffi.NativeFunction<WireSyncReturn Function(wire_RwLockState)>>(
+          'wire_get_message');
+  late final _wire_get_message = _wire_get_messagePtr
+      .asFunction<WireSyncReturn Function(wire_RwLockState)>();
 
-  void wire_get_button_texts(
-    int port_,
+  WireSyncReturn wire_get_button_texts(
     wire_RwLockState state,
   ) {
     return _wire_get_button_texts(
-      port_,
       state,
     );
   }
 
-  late final _wire_get_button_textsPtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Int64, wire_RwLockState)>>(
-      'wire_get_button_texts');
+  late final _wire_get_button_textsPtr =
+      _lookup<ffi.NativeFunction<WireSyncReturn Function(wire_RwLockState)>>(
+          'wire_get_button_texts');
   late final _wire_get_button_texts = _wire_get_button_textsPtr
-      .asFunction<void Function(int, wire_RwLockState)>();
+      .asFunction<WireSyncReturn Function(wire_RwLockState)>();
 
   wire_RwLockData new_RwLockData() {
     return _new_RwLockData();

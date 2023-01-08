@@ -39,9 +39,9 @@ uintptr_t new_dart_opaque(Dart_Handle handle);
 
 intptr_t init_frb_dart_api_dl(void *obj);
 
-void wire_dynamic(int64_t port_);
+void wire_get_dynamic(int64_t port_);
 
-void wire_cached(int64_t port_);
+void wire_get_cached(int64_t port_);
 
 void wire_get_state(int64_t port_,
                     struct wire_RwLockData data,
@@ -57,17 +57,17 @@ void wire_back(int64_t port_, struct wire_RwLockState state);
 
 void wire_home(int64_t port_, struct wire_RwLockState state);
 
-void wire_depth(int64_t port_, struct wire_RwLockState state);
+WireSyncReturn wire_depth(struct wire_RwLockState state);
 
-void wire_is_empty(int64_t port_, struct wire_RwLockState state);
+WireSyncReturn wire_is_empty(struct wire_RwLockState state);
 
-void wire_context(int64_t port_, struct wire_RwLockState state);
+WireSyncReturn wire_context(struct wire_RwLockState state);
 
-void wire_get_link(int64_t port_, struct wire_RwLockState state);
+WireSyncReturn wire_get_link(struct wire_RwLockState state);
 
-void wire_get_message(int64_t port_, struct wire_RwLockState state);
+WireSyncReturn wire_get_message(struct wire_RwLockState state);
 
-void wire_get_button_texts(int64_t port_, struct wire_RwLockState state);
+WireSyncReturn wire_get_button_texts(struct wire_RwLockState state);
 
 struct wire_RwLockData new_RwLockData(void);
 
@@ -89,8 +89,8 @@ void free_WireSyncReturn(WireSyncReturn ptr);
 
 static int64_t dummy_method_to_enforce_bundling(void) {
     int64_t dummy_var = 0;
-    dummy_var ^= ((int64_t) (void*) wire_dynamic);
-    dummy_var ^= ((int64_t) (void*) wire_cached);
+    dummy_var ^= ((int64_t) (void*) wire_get_dynamic);
+    dummy_var ^= ((int64_t) (void*) wire_get_cached);
     dummy_var ^= ((int64_t) (void*) wire_get_state);
     dummy_var ^= ((int64_t) (void*) wire_move_to_state);
     dummy_var ^= ((int64_t) (void*) wire_back);

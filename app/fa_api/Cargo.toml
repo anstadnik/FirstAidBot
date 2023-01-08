@@ -11,8 +11,10 @@ crate-type = ["staticlib", "cdylib"]
 [dependencies]
 first_aid_bot_core = { path = "../../core" }
 anyhow = "1.0" 
-futures = "0.3"
+# futures = "0.3"
+tokio = { version =  "1.24" , features = ["macros", "rt-multi-thread" ] }
 flutter_rust_bridge = "1.59"
+# reqwest = { version = "0.11", features = ["native-tls-vendored" ]}
 
 # https://docs.rs/openssl/0.10.34/openssl/#vendored
 openssl = { version = "0.10", features = ["vendored"] }

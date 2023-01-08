@@ -2,13 +2,13 @@ use super::*;
 // Section: wire functions
 
 #[no_mangle]
-pub extern "C" fn wire_dynamic(port_: i64) {
-    wire_dynamic_impl(port_)
+pub extern "C" fn wire_get_dynamic(port_: i64) {
+    wire_get_dynamic_impl(port_)
 }
 
 #[no_mangle]
-pub extern "C" fn wire_cached(port_: i64) {
-    wire_cached_impl(port_)
+pub extern "C" fn wire_get_cached(port_: i64) {
+    wire_get_cached_impl(port_)
 }
 
 #[no_mangle]
@@ -42,33 +42,33 @@ pub extern "C" fn wire_home(port_: i64, state: wire_RwLockState) {
 }
 
 #[no_mangle]
-pub extern "C" fn wire_depth(port_: i64, state: wire_RwLockState) {
-    wire_depth_impl(port_, state)
+pub extern "C" fn wire_depth(state: wire_RwLockState) -> support::WireSyncReturn {
+    wire_depth_impl(state)
 }
 
 #[no_mangle]
-pub extern "C" fn wire_is_empty(port_: i64, state: wire_RwLockState) {
-    wire_is_empty_impl(port_, state)
+pub extern "C" fn wire_is_empty(state: wire_RwLockState) -> support::WireSyncReturn {
+    wire_is_empty_impl(state)
 }
 
 #[no_mangle]
-pub extern "C" fn wire_context(port_: i64, state: wire_RwLockState) {
-    wire_context_impl(port_, state)
+pub extern "C" fn wire_context(state: wire_RwLockState) -> support::WireSyncReturn {
+    wire_context_impl(state)
 }
 
 #[no_mangle]
-pub extern "C" fn wire_get_link(port_: i64, state: wire_RwLockState) {
-    wire_get_link_impl(port_, state)
+pub extern "C" fn wire_get_link(state: wire_RwLockState) -> support::WireSyncReturn {
+    wire_get_link_impl(state)
 }
 
 #[no_mangle]
-pub extern "C" fn wire_get_message(port_: i64, state: wire_RwLockState) {
-    wire_get_message_impl(port_, state)
+pub extern "C" fn wire_get_message(state: wire_RwLockState) -> support::WireSyncReturn {
+    wire_get_message_impl(state)
 }
 
 #[no_mangle]
-pub extern "C" fn wire_get_button_texts(port_: i64, state: wire_RwLockState) {
-    wire_get_button_texts_impl(port_, state)
+pub extern "C" fn wire_get_button_texts(state: wire_RwLockState) -> support::WireSyncReturn {
+    wire_get_button_texts_impl(state)
 }
 
 // Section: allocate functions

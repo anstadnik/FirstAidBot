@@ -2,13 +2,13 @@ use super::*;
 // Section: wire functions
 
 #[wasm_bindgen]
-pub fn wire_dynamic(port_: MessagePort) {
-    wire_dynamic_impl(port_)
+pub fn wire_get_dynamic(port_: MessagePort) {
+    wire_get_dynamic_impl(port_)
 }
 
 #[wasm_bindgen]
-pub fn wire_cached(port_: MessagePort) {
-    wire_cached_impl(port_)
+pub fn wire_get_cached(port_: MessagePort) {
+    wire_get_cached_impl(port_)
 }
 
 #[wasm_bindgen]
@@ -32,33 +32,33 @@ pub fn wire_home(port_: MessagePort, state: JsValue) {
 }
 
 #[wasm_bindgen]
-pub fn wire_depth(port_: MessagePort, state: JsValue) {
-    wire_depth_impl(port_, state)
+pub fn wire_depth(state: JsValue) -> support::WireSyncReturn {
+    wire_depth_impl(state)
 }
 
 #[wasm_bindgen]
-pub fn wire_is_empty(port_: MessagePort, state: JsValue) {
-    wire_is_empty_impl(port_, state)
+pub fn wire_is_empty(state: JsValue) -> support::WireSyncReturn {
+    wire_is_empty_impl(state)
 }
 
 #[wasm_bindgen]
-pub fn wire_context(port_: MessagePort, state: JsValue) {
-    wire_context_impl(port_, state)
+pub fn wire_context(state: JsValue) -> support::WireSyncReturn {
+    wire_context_impl(state)
 }
 
 #[wasm_bindgen]
-pub fn wire_get_link(port_: MessagePort, state: JsValue) {
-    wire_get_link_impl(port_, state)
+pub fn wire_get_link(state: JsValue) -> support::WireSyncReturn {
+    wire_get_link_impl(state)
 }
 
 #[wasm_bindgen]
-pub fn wire_get_message(port_: MessagePort, state: JsValue) {
-    wire_get_message_impl(port_, state)
+pub fn wire_get_message(state: JsValue) -> support::WireSyncReturn {
+    wire_get_message_impl(state)
 }
 
 #[wasm_bindgen]
-pub fn wire_get_button_texts(port_: MessagePort, state: JsValue) {
-    wire_get_button_texts_impl(port_, state)
+pub fn wire_get_button_texts(state: JsValue) -> support::WireSyncReturn {
+    wire_get_button_texts_impl(state)
 }
 
 // Section: allocate functions

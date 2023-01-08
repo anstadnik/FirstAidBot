@@ -21,24 +21,24 @@ use std::sync::Arc;
 
 // Section: wire functions
 
-fn wire_dynamic_impl(port_: MessagePort) {
+fn wire_get_dynamic_impl(port_: MessagePort) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {
-            debug_name: "dynamic",
+            debug_name: "get_dynamic",
             port: Some(port_),
             mode: FfiCallMode::Normal,
         },
-        move || move |task_callback| Ok(dynamic()),
+        move || move |task_callback| Ok(get_dynamic()),
     )
 }
-fn wire_cached_impl(port_: MessagePort) {
+fn wire_get_cached_impl(port_: MessagePort) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {
-            debug_name: "cached",
+            debug_name: "get_cached",
             port: Some(port_),
             mode: FfiCallMode::Normal,
         },
-        move || move |task_callback| Ok(cached()),
+        move || move |task_callback| Ok(get_cached()),
     )
 }
 fn wire_get_state_impl(
@@ -114,98 +114,92 @@ fn wire_home_impl(
     )
 }
 fn wire_depth_impl(
-    port_: MessagePort,
     state: impl Wire2Api<RustOpaque<RwLock<State>>> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+) -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "depth",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
         move || {
             let api_state = state.wire2api();
-            move |task_callback| Ok(depth(api_state))
+            Ok(depth(api_state))
         },
     )
 }
 fn wire_is_empty_impl(
-    port_: MessagePort,
     state: impl Wire2Api<RustOpaque<RwLock<State>>> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+) -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "is_empty",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
         move || {
             let api_state = state.wire2api();
-            move |task_callback| Ok(is_empty(api_state))
+            Ok(is_empty(api_state))
         },
     )
 }
 fn wire_context_impl(
-    port_: MessagePort,
     state: impl Wire2Api<RustOpaque<RwLock<State>>> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+) -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "context",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
         move || {
             let api_state = state.wire2api();
-            move |task_callback| Ok(context(api_state))
+            Ok(context(api_state))
         },
     )
 }
 fn wire_get_link_impl(
-    port_: MessagePort,
     state: impl Wire2Api<RustOpaque<RwLock<State>>> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+) -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "get_link",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
         move || {
             let api_state = state.wire2api();
-            move |task_callback| Ok(get_link(api_state))
+            Ok(get_link(api_state))
         },
     )
 }
 fn wire_get_message_impl(
-    port_: MessagePort,
     state: impl Wire2Api<RustOpaque<RwLock<State>>> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+) -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "get_message",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
         move || {
             let api_state = state.wire2api();
-            move |task_callback| Ok(get_message(api_state))
+            Ok(get_message(api_state))
         },
     )
 }
 fn wire_get_button_texts_impl(
-    port_: MessagePort,
     state: impl Wire2Api<RustOpaque<RwLock<State>>> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+) -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "get_button_texts",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
         move || {
             let api_state = state.wire2api();
-            move |task_callback| Ok(get_button_texts(api_state))
+            Ok(get_button_texts(api_state))
         },
     )
 }
@@ -245,13 +239,6 @@ impl Wire2Api<u8> for u8 {
 support::lazy_static! {
     pub static ref FLUTTER_RUST_BRIDGE_HANDLER: support::DefaultHandler = Default::default();
 }
-
-/// cbindgen:ignore
-#[cfg(target_family = "wasm")]
-#[path = "bridge_generated.web.rs"]
-mod web;
-#[cfg(target_family = "wasm")]
-pub use web::*;
 
 #[cfg(not(target_family = "wasm"))]
 #[path = "bridge_generated.io.rs"]
