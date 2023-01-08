@@ -49,15 +49,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late Future<RwLockData> data;
-  late Future<RwLockState> state;
+  late RwLockData data;
+  late RwLockState state;
 
   @override
   void initState() {
     super.initState();
     data = api.getDynamic();
+    print("init data");
     // data.then((data) => state = api.getState(data: data, ctx: [], lang: 'en'));
-    state = data.then((data) => api.getState(data: data, ctx: [], lang: 'en'));
+    state = api.getState(data: data, ctx: [], lang: 'Ukrainian');
+    print(state);
+    print("init state");
     // Future.delayed(Duration.zero, () async {
     //   state = api.getState(data: await data, ctx: [], lang: 'en');
     // });
@@ -87,18 +90,29 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            FutureBuilder<RwLockState>(
-                future: state,
-                builder: (context, snap) {
-                  final state = snap.data;
-                  if (state == null) return const CircularProgressIndicator();
-                  // length of button texts
-                  final len = api.getButtonTexts(state: state).length;
-                  return Text(
-                    '$len',
-                    style: Theme.of(context).textTheme.headline4,
-                  );
-                }),
+            Builder(builder: (context) {
+              print("hehey");
+              // length of button texts
+              final buttons = api.getButtonTexts(state: state);
+              // list of buttons
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < buttons.length; i++)
+                      TextButton(
+                        onPressed: () {
+                          // setState(() {
+                          //   state = api.updateState(state: state, button: i);
+                          // });
+                        },
+                        child: Text(buttons[i]),
+                      ),
+                  ]);
+              // return Text(
+              //   '$len',
+              //   style: Theme.of(context).textTheme.headline4,
+              // );
+            }),
           ],
         ),
       ),

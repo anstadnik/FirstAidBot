@@ -9,6 +9,8 @@ typedef int64_t DartPort;
 
 typedef bool (*DartPostCObjectFnType)(DartPort port_id, void *message);
 
+typedef struct DartCObject *WireSyncReturn;
+
 typedef struct wire_RwLockData {
   const void *ptr;
 } wire_RwLockData;
@@ -27,8 +29,6 @@ typedef struct wire_RwLockState {
   const void *ptr;
 } wire_RwLockState;
 
-typedef struct DartCObject *WireSyncReturn;
-
 void store_dart_post_cobject(DartPostCObjectFnType ptr);
 
 Dart_Handle get_dart_object(uintptr_t ptr);
@@ -39,14 +39,13 @@ uintptr_t new_dart_opaque(Dart_Handle handle);
 
 intptr_t init_frb_dart_api_dl(void *obj);
 
-void wire_get_dynamic(int64_t port_);
+WireSyncReturn wire_get_dynamic(void);
 
 void wire_get_cached(int64_t port_);
 
-void wire_get_state(int64_t port_,
-                    struct wire_RwLockData data,
-                    struct wire_StringList *ctx,
-                    struct wire_uint_8_list *lang);
+WireSyncReturn wire_get_state(struct wire_RwLockData data,
+                              struct wire_StringList *ctx,
+                              struct wire_uint_8_list *lang);
 
 void wire_move_to_state(int64_t port_,
                         struct wire_RwLockState state,

@@ -23,9 +23,9 @@ class FaApiImpl implements FaApi {
   factory FaApiImpl.wasm(FutureOr<WasmModule> module) =>
       FaApiImpl(module as ExternalLibrary);
   FaApiImpl.raw(this._platform);
-  Future<RwLockData> getDynamic({dynamic hint}) {
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_dynamic(port_),
+  RwLockData getDynamic({dynamic hint}) {
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_dynamic(),
       parseSuccessData: _wire2api_RwLockData,
       constMeta: kGetDynamicConstMeta,
       argValues: [],
@@ -55,7 +55,7 @@ class FaApiImpl implements FaApi {
         argNames: [],
       );
 
-  Future<RwLockState> getState(
+  RwLockState getState(
       {required RwLockData data,
       required List<String> ctx,
       required String lang,
@@ -63,9 +63,8 @@ class FaApiImpl implements FaApi {
     var arg0 = _platform.api2wire_RwLockData(data);
     var arg1 = _platform.api2wire_StringList(ctx);
     var arg2 = _platform.api2wire_String(lang);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) =>
-          _platform.inner.wire_get_state(port_, arg0, arg1, arg2),
+    return _platform.executeSync(FlutterRustBridgeSyncTask(
+      callFfi: () => _platform.inner.wire_get_state(arg0, arg1, arg2),
       parseSuccessData: _wire2api_RwLockState,
       constMeta: kGetStateConstMeta,
       argValues: [data, ctx, lang],
@@ -461,19 +460,15 @@ class FaApiWire implements FlutterRustBridgeWireBase {
   late final _init_frb_dart_api_dl = _init_frb_dart_api_dlPtr
       .asFunction<int Function(ffi.Pointer<ffi.Void>)>();
 
-  void wire_get_dynamic(
-    int port_,
-  ) {
-    return _wire_get_dynamic(
-      port_,
-    );
+  WireSyncReturn wire_get_dynamic() {
+    return _wire_get_dynamic();
   }
 
   late final _wire_get_dynamicPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+      _lookup<ffi.NativeFunction<WireSyncReturn Function()>>(
           'wire_get_dynamic');
   late final _wire_get_dynamic =
-      _wire_get_dynamicPtr.asFunction<void Function(int)>();
+      _wire_get_dynamicPtr.asFunction<WireSyncReturn Function()>();
 
   void wire_get_cached(
     int port_,
@@ -489,14 +484,12 @@ class FaApiWire implements FlutterRustBridgeWireBase {
   late final _wire_get_cached =
       _wire_get_cachedPtr.asFunction<void Function(int)>();
 
-  void wire_get_state(
-    int port_,
+  WireSyncReturn wire_get_state(
     wire_RwLockData data,
     ffi.Pointer<wire_StringList> ctx,
     ffi.Pointer<wire_uint_8_list> lang,
   ) {
     return _wire_get_state(
-      port_,
       data,
       ctx,
       lang,
@@ -505,13 +498,10 @@ class FaApiWire implements FlutterRustBridgeWireBase {
 
   late final _wire_get_statePtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(
-              ffi.Int64,
-              wire_RwLockData,
-              ffi.Pointer<wire_StringList>,
+          WireSyncReturn Function(wire_RwLockData, ffi.Pointer<wire_StringList>,
               ffi.Pointer<wire_uint_8_list>)>>('wire_get_state');
   late final _wire_get_state = _wire_get_statePtr.asFunction<
-      void Function(int, wire_RwLockData, ffi.Pointer<wire_StringList>,
+      WireSyncReturn Function(wire_RwLockData, ffi.Pointer<wire_StringList>,
           ffi.Pointer<wire_uint_8_list>)>();
 
   void wire_move_to_state(

@@ -2,8 +2,8 @@ use super::*;
 // Section: wire functions
 
 #[no_mangle]
-pub extern "C" fn wire_get_dynamic(port_: i64) {
-    wire_get_dynamic_impl(port_)
+pub extern "C" fn wire_get_dynamic() -> support::WireSyncReturn {
+    wire_get_dynamic_impl()
 }
 
 #[no_mangle]
@@ -13,12 +13,11 @@ pub extern "C" fn wire_get_cached(port_: i64) {
 
 #[no_mangle]
 pub extern "C" fn wire_get_state(
-    port_: i64,
     data: wire_RwLockData,
     ctx: *mut wire_StringList,
     lang: *mut wire_uint_8_list,
-) {
-    wire_get_state_impl(port_, data, ctx, lang)
+) -> support::WireSyncReturn {
+    wire_get_state_impl(data, ctx, lang)
 }
 
 #[no_mangle]

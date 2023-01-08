@@ -8,7 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 
 abstract class FaApi {
-  Future<RwLockData> getDynamic({dynamic hint});
+  RwLockData getDynamic({dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kGetDynamicConstMeta;
 
@@ -16,7 +16,7 @@ abstract class FaApi {
 
   FlutterRustBridgeTaskConstMeta get kGetCachedConstMeta;
 
-  Future<RwLockState> getState(
+  RwLockState getState(
       {required RwLockData data,
       required List<String> ctx,
       required String lang,

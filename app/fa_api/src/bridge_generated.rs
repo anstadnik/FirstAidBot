@@ -21,14 +21,14 @@ use std::sync::Arc;
 
 // Section: wire functions
 
-fn wire_get_dynamic_impl(port_: MessagePort) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+fn wire_get_dynamic_impl() -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "get_dynamic",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
-        move || move |task_callback| Ok(get_dynamic()),
+        move || Ok(get_dynamic()),
     )
 }
 fn wire_get_cached_impl(port_: MessagePort) {
@@ -42,22 +42,21 @@ fn wire_get_cached_impl(port_: MessagePort) {
     )
 }
 fn wire_get_state_impl(
-    port_: MessagePort,
     data: impl Wire2Api<RustOpaque<RwLock<Data>>> + UnwindSafe,
     ctx: impl Wire2Api<Vec<String>> + UnwindSafe,
     lang: impl Wire2Api<String> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+) -> support::WireSyncReturn {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync(
         WrapInfo {
             debug_name: "get_state",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
+            port: None,
+            mode: FfiCallMode::Sync,
         },
         move || {
             let api_data = data.wire2api();
             let api_ctx = ctx.wire2api();
             let api_lang = lang.wire2api();
-            move |task_callback| get_state(api_data, api_ctx, api_lang)
+            Ok(get_state(api_data, api_ctx, api_lang))
         },
     )
 }
