@@ -1,4 +1,4 @@
-package com.example.first_aid_robot
+package com.example.app
 
 import io.flutter.embedding.android.FlutterActivity
 
