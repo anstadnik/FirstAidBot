@@ -22,7 +22,7 @@ futures = "0.3"
 teloxide = { version = "0.12", features = ["macros", "redis-storage",
   "bincode-serializer", "throttle"] }
 log = "0.4"
-pretty_env_logger = "0.4"
+pretty_env_logger = "0.5"
 # anyhow = { version = "1.0", features = ["backtrace"] }
 anyhow = "1.0" 
 tokio = { version =  "1.28", features = ["rt-multi-thread", "macros"] }
