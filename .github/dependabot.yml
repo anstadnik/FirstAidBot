@@ -1,5 +1,10 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Check for updates to GitHub Actions every week
+      interval: "daily"
   - package-ecosystem: "cargo" # See documentation for possible values
     directory: "/core" # Location of package manifests
     target-branch: "dev"
