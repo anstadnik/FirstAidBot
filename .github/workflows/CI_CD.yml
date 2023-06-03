@@ -1,135 +1,62 @@
-name: Reusable build and deploy
+name: Build, test and deploy
 
 on:
-  workflow_call:
-    inputs:
-      release:
-        type: boolean
-        required: true
-      deploy:
-        type: boolean
-        required: true
-      environment:
-        type: string
-        required: true
+  push:
+    branches:
+      - "dev"
+      - "main"
+  pull_request:
+    branches:
+      - "dev"
+      - "main"
 
-permissions:
-  contents: write
-  pull-requests: write
+concurrency:
+  group: ${{ github.ref_name }}
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: bot
-    container:
-      image: rust:bullseye
+    uses: ./.github/workflows/build_and_test.yml
+    with:
+      release: ${{ github.ref_name == 'main' }}
+    secrets: inherit
 
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
-
-      - name: Build release
-        if: ${{ inputs.release }}
-        run: cargo build --release
-
-      - name: Build debug
-        if: ${{ !inputs.release }}
-        run: cargo build
-
-      - name: Download the table
-        if: ${{ inputs.release }}
-        run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
-
-      - name: Test
-        if: ${{ inputs.release }}
-        run: RUST_BACKTRACE=1 cargo test --release
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ inputs.release }}
-        with:
-          name: table
-          path: table.csv
-
-      - name: Move binary
-        run: mv target/*/first_aid_bot target
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: executable
-          path: target/first_aid_bot
-
-      - name: send telegram message on error
-        if: ${{ failure() && inputs.release && inputs.deploy  }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}
-
-            See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
-            See error: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            The commit fails to build! 💣
-
-  auto-merge:
-    runs-on: ubuntu-latest
+  build_bot:
     needs: build_and_test
-    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
-    steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v1.1.1
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Enable auto-merge for Dependabot PRs
-        #         if: ${{contains(steps.metadata.outputs.dependency-names, 'my-dependency') && steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
-        run: gh pr merge --auto --merge "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    uses: ./.github/workflows/build_and_test.yml
+    with:
+      release: ${{ github.ref_name == 'main' }}
+    secrets: inherit
 
   deploy:
     runs-on: [self-hosted]
-    needs: build_and_test
-    environment: ${{ inputs.environment }}
-    if: ${{ inputs.deploy }}
+    needs: build_bot
+    environment: ${{ github.ref_name }}
+    if: ${{ github.event_name == 'push' }}
 
     steps:
-      # - uses: actions/checkout@v3
-
       - uses: actions/download-artifact@v3
         with:
           name: executable
 
       - uses: actions/download-artifact@v3
-        if: ${{ inputs.release }}
         with:
           name: table
-
-      - name: Hack for bad dockerfile design
-        if: ${{ !inputs.release }}
-        run: touch table.csv
 
       - name: Restart bot
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
           SHEET_ID: ${{ secrets.SHEET_ID }}
         run: |
-          docker build -t first_aid_bot:${{ inputs.environment }} .
-          docker compose -f docker-compose_${{ inputs.environment }}.yml -p ${{ inputs.environment }}_bot up -d
+          docker build -t first_aid_bot:${{ github.ref_name }} .
+          docker compose -f docker-compose_${{ github.ref_name }}.yml -p ${{ github.ref_name }}_bot up -d
 
   release:
     runs-on: ubuntu-latest
     needs: deploy
-    if: ${{ inputs.deploy && inputs.release && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ github.event_name == 'push' && github.ref_name == 'main' && startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -150,8 +77,7 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: deploy
-    if: ${{ inputs.release }}
+    needs: [deploy, release]
 
     steps:
       - uses: actions/download-artifact@v3
@@ -160,6 +86,7 @@ jobs:
 
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
+        if: ${{ always() && github.ref_name == 'main' && !contains(needs.*.result, 'failure') }}
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
@@ -169,4 +96,29 @@ jobs:
             Commit message: ${{ github.event.commits[0].message }}
 
             See changes: https://github.com/${{ github.repository }}/actions/runs/${{github.sha}}
-            Successfully deployed ${{ inputs.environment }} bot! 🙆
+            See error: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Successfully deployed ${{ github.ref_name }} bot! 🙆
+
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        if: ${{ always() && github.ref_name == 'main' && contains(needs.*.result, 'failure') }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          document: table.csv
+          message: |
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            See changes: https://github.com/${{ github.repository }}/actions/runs/${{github.sha}}
+            See error: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            The commit fails to build or tests have failed! 💣
+
+  # It should wait untill all checks will pass
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ahmadnassri/action-dependabot-auto-merge@v2
+        with:
+          target: minor
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
