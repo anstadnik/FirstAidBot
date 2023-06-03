@@ -32,7 +32,7 @@ pub async fn move_to_state(
     dialogue
         .update(crate::bot::state::State::Dialogue {
             lang: state.lang.to_string(),
-            context: state.context().clone(),
+            context: state.context().to_vec(),
         })
         .await?;
     Ok(())

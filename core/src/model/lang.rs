@@ -8,8 +8,9 @@ use std::fmt::Display;
 //                                              Lang                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
 pub enum Lang {
+    #[default]
     Ua,
     /* En,
     Ru, */
@@ -45,12 +46,6 @@ impl TryFrom<&str> for Lang {
                 bail!("Error, unknown language. If issue persists, ask for help in {HELP_CHAT_URL}")
             }
         }
-    }
-}
-
-impl Default for Lang {
-    fn default() -> Self {
-        Ua
     }
 }
 
