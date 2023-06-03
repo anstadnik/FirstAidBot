@@ -1,7 +1,14 @@
 version: 2
 updates:
   - package-ecosystem: "cargo" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    directory: "/core" # Location of package manifests
+    target-branch: "dev"
+    allow:
+      - dependency-type: "all"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "cargo" # See documentation for possible values
+    directory: "/bot" # Location of package manifests
     target-branch: "dev"
     allow:
       - dependency-type: "all"

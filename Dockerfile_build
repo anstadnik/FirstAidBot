@@ -1,0 +1,4 @@
+FROM rust:latest
+
+COPY . /app
+RUN cd /app/bot && cargo build
