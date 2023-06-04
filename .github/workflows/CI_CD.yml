@@ -17,18 +17,56 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_and_test:
-    uses: ./.github/workflows/build_and_test.yml
-    with:
-      release: ${{ github.ref_name == 'main' }}
-    secrets: inherit
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bot
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      # - name: Install Rust
+      #   run: rustup update stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Download the table
+        if: ${{ github.ref_name == 'main' }}
+        run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
+
+      - run: cargo test
+
+      - uses: actions/upload-artifact@v3
+        if: ${{ github.ref_name == 'main' }}
+        with:
+          name: table
+          path: table.csv
 
   build_bot:
-    needs: build_and_test
-    uses: ./.github/workflows/build_and_test.yml
-    with:
-      release: ${{ github.ref_name == 'main' }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    needs: test
+    defaults:
+      run:
+        working-directory: bot
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build release
+        if: ${{ github.ref_name == 'main' }}
+        run: cargo build --release
+
+      - name: Build debug
+        if: ${{ !github.ref_name == 'main' }}
+        run: cargo build
+
+      - name: Move binary
+        run: mv target/*/first_aid_bot target
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: executable
+          path: target/first_aid_bot
 
   deploy:
     runs-on: [self-hosted]
