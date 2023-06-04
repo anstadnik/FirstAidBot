@@ -5,15 +5,8 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "daily"
-  - package-ecosystem: "cargo" # See documentation for possible values
-    directory: "/core" # Location of package manifests
-    target-branch: "dev"
-    allow:
-      - dependency-type: "all"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo" # See documentation for possible values
-    directory: "/bot" # Location of package manifests
+  - package-ecosystem: "cargo"
+    directory: "/"
     target-branch: "dev"
     allow:
       - dependency-type: "all"
