@@ -155,6 +155,7 @@ jobs:
   # It should wait untill all checks will pass
   auto-merge:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: ahmadnassri/action-dependabot-auto-merge@v2
         with:
