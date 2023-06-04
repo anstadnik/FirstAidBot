@@ -41,12 +41,12 @@ jobs:
         run: cargo build
 
       - name: Move binary
-        run: mv target/*/first_aid_bot target
+        run: mv target/*/bot target
 
       - uses: actions/upload-artifact@v3
         with:
           name: executable
-          path: target/first_aid_bot
+          path: target/bot
 
       - uses: actions/upload-artifact@v3
         if: ${{ github.ref_name == 'main' }}
