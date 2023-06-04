@@ -57,7 +57,7 @@ jobs:
         run: cargo build --release
 
       - name: Build debug
-        if: ${{ !github.ref_name == 'main' }}
+        if: ${{ github.ref_name != 'main' }}
         run: cargo build
 
       - name: Move binary
