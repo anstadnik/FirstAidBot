@@ -65,6 +65,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: executable
+          path: bin/bot
 
       - uses: actions/download-artifact@v3
         if: ${{ github.ref_name == 'main' }}
