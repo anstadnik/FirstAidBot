@@ -26,8 +26,8 @@ async fn get_rows(filename: Option<&str>, sheet_name: String) -> anyhow::Result<
     let rdr: Box<dyn io::Read> = if let Some(filename) = filename {
         Box::new(io::BufReader::new(File::open(filename)?))
     } else {
-        // let sheet_id = env::var("SHEET_ID")?;
-        let sheet_id = "1lPJgwtDRFul3klRKOrRDiF3ca5PjjUvFQmzF1ugOZUU";
+        let sheet_id = env::var("SHEET_ID")?;
+        // let sheet_id = "1lPJgwtDRFul3klRKOrRDiF3ca5PjjUvFQmzF1ugOZUU";
         let url = format!(
             "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
             sheet_id, sheet_name
