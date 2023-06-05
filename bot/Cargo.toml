@@ -14,7 +14,7 @@ serde = { version = "1.0" }
 anyhow = "1.0" 
 teloxide = { version = "0.11", features = ["macros", "redis-storage",
   "bincode-serializer", "throttle"] }
-redis = { version = "0.22", features = ["tokio-comp"] }
+redis = { version = "0.23", features = ["tokio-comp"] }
 rand = "0.8"
 itertools = "0.10"
 futures = "0.3"
