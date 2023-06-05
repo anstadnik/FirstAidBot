@@ -2,7 +2,7 @@ version: "3"
 
 services:
   bot:
-    image: first_aid_bot:prod
+    image: first_aid_bot:main
     environment:
       - SHEET_ID
       - TELOXIDE_TOKEN

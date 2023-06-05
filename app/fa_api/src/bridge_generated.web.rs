@@ -2,8 +2,8 @@ use super::*;
 // Section: wire functions
 
 #[wasm_bindgen]
-pub fn wire_get_dynamic(port_: MessagePort) {
-    wire_get_dynamic_impl(port_)
+pub fn wire_get_dynamic() -> support::WireSyncReturn {
+    wire_get_dynamic_impl()
 }
 
 #[wasm_bindgen]
@@ -12,8 +12,8 @@ pub fn wire_get_cached(port_: MessagePort) {
 }
 
 #[wasm_bindgen]
-pub fn wire_get_state(port_: MessagePort, data: JsValue, ctx: JsValue, lang: String) {
-    wire_get_state_impl(port_, data, ctx, lang)
+pub fn wire_get_state(data: JsValue, ctx: JsValue, lang: String) -> support::WireSyncReturn {
+    wire_get_state_impl(data, ctx, lang)
 }
 
 #[wasm_bindgen]

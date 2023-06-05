@@ -35,7 +35,8 @@ pub fn get_state(
     let lang = lang.as_str().try_into().unwrap();
     SyncReturn(
         rt.block_on(data.read().unwrap().get(&ctx, lang))
-            .map(|v| RustOpaque::new(RwLock::new(v))).unwrap(),
+            .map(|v| RustOpaque::new(RwLock::new(v)))
+            .unwrap(),
     )
 }
 
