@@ -4,10 +4,10 @@ project(runner LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "app")
+set(BINARY_NAME "flutter_rust_bridge_template")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.app")
+set(APPLICATION_ID "com.example.flutter_rust_bridge_template")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -90,6 +90,8 @@ set_target_properties(${BINARY_NAME}
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# Everything is set up, we include the CMake build file of our Rust project here.
+include(./rust.cmake)
 
 # === Installation ===
 # By default, "installing" just makes a relocatable bundle in the build

@@ -1,7 +1,11 @@
-use anyhow::{Error, Result};
-use teloxide::prelude::*;
-use futures::{future::BoxFuture, FutureExt};
+use crate::MAINTAINER_IDS;
+use anyhow::Error;
+use first_aid_bot_core::prelude::Lang;
+use futures::future::BoxFuture;
 use itertools::Itertools;
+use std::sync::Arc;
+use teloxide::error_handlers::ErrorHandler;
+use teloxide::prelude::*;
 use teloxide::utils::markdown::code_block;
 
 use super::FABot;
@@ -32,24 +36,6 @@ async fn send_escaped(bot: &FABot, id: ChatId, msg: &str) -> anyhow::Result<()> 
     Ok(())
 }
 
-pub trait ReportError {
-    fn report_if_err<'a>(self, bot: &'a FABot, id: ChatId, msg: &'a str) -> BoxFuture<'a, Self>;
-}
-impl<T> ReportError for Result<T>
-where
-    for<'a> T: Send + Sync + 'a,
-{
-    fn report_if_err<'a>(self, bot: &'a FABot, id: ChatId, msg: &'a str) -> BoxFuture<'a, Self> {
-        async move {
-            if let Err(err) = &self {
-                report_error(bot, id, msg, err).await;
-            }
-            self
-        }
-        .boxed()
-    }
-}
-
 pub async fn report_error(bot: &FABot, id: ChatId, msg: &str, err: &Error) {
     if let Err(err) = async {
         send_escaped(bot, id, msg).await?;
@@ -59,5 +45,28 @@ pub async fn report_error(bot: &FABot, id: ChatId, msg: &str, err: &Error) {
     {
         log::error!("OH MY GOD SOMETHING BROKEN AND I CAN'T EVEN REPORT IT");
         log::error!("The sending error is: {err}");
+    }
+}
+
+pub struct FAErrorHandler {
+    bot: FABot,
+}
+
+impl FAErrorHandler {
+    pub fn new(bot: FABot) -> Arc<Self> {
+        Arc::new(Self { bot })
+    }
+}
+
+impl ErrorHandler<anyhow::Error> for FAErrorHandler {
+    fn handle_error(self: Arc<Self>, err: anyhow::Error) -> BoxFuture<'static, ()> {
+        log::error!("{err:?}");
+        Box::pin(async move {
+            if !cfg!(debug_assertions) {
+                for &id in &MAINTAINER_IDS {
+                    report_error(&self.bot, id.into(), Lang::default().details().error, &err).await;
+                }
+            }
+        })
     }
 }

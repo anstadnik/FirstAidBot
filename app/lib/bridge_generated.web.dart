@@ -8,296 +8,112 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge.dart';
 import 'package:uuid/uuid.dart';
-import 'bridge_generated.web.io.dart'
-    if (dart.library.html) 'bridge_generated.web.web.dart';
+import 'bridge_generated.dart';
+export 'bridge_generated.dart';
 
-class FaApiImpl implements FaApi {
-  final FaApiPlatform _platform;
-  factory FaApiImpl(ExternalLibrary dylib) =>
-      FaApiImpl.raw(FaApiPlatform(dylib));
-
-  /// Only valid on web/WASM platforms.
-  factory FaApiImpl.wasm(FutureOr<WasmModule> module) =>
-      FaApiImpl(module as ExternalLibrary);
-  FaApiImpl.raw(this._platform);
-  RwLockData getDynamic({dynamic hint}) {
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_get_dynamic(),
-      parseSuccessData: _wire2api_RwLockData,
-      constMeta: kGetDynamicConstMeta,
-      argValues: [],
-      hint: hint,
-    ));
+class NativePlatform extends FlutterRustBridgeBase<NativeWire>
+    with FlutterRustBridgeSetupMixin {
+  NativePlatform(FutureOr<WasmModule> dylib) : super(NativeWire(dylib)) {
+    setupMixinConstructor();
   }
-
-  FlutterRustBridgeTaskConstMeta get kGetDynamicConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "get_dynamic",
-        argNames: [],
-      );
-
-  Future<RwLockData> getCached({dynamic hint}) {
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_cached(port_),
-      parseSuccessData: _wire2api_RwLockData,
-      constMeta: kGetCachedConstMeta,
-      argValues: [],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kGetCachedConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "get_cached",
-        argNames: [],
-      );
-
-  RwLockState getState(
-      {required RwLockData data,
-      required List<String> ctx,
-      required String lang,
-      dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockData(data);
-    var arg1 = _platform.api2wire_StringList(ctx);
-    var arg2 = _platform.api2wire_String(lang);
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_get_state(arg0, arg1, arg2),
-      parseSuccessData: _wire2api_RwLockState,
-      constMeta: kGetStateConstMeta,
-      argValues: [data, ctx, lang],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kGetStateConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "get_state",
-        argNames: ["data", "ctx", "lang"],
-      );
-
-  Future<void> moveToState(
-      {required RwLockState state,
-      required String text,
-      required RwLockData data,
-      dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    var arg1 = _platform.api2wire_String(text);
-    var arg2 = _platform.api2wire_RwLockData(data);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) =>
-          _platform.inner.wire_move_to_state(port_, arg0, arg1, arg2),
-      parseSuccessData: _wire2api_unit,
-      constMeta: kMoveToStateConstMeta,
-      argValues: [state, text, data],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kMoveToStateConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "move_to_state",
-        argNames: ["state", "text", "data"],
-      );
-
-  Future<void> back({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_back(port_, arg0),
-      parseSuccessData: _wire2api_unit,
-      constMeta: kBackConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kBackConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "back",
-        argNames: ["state"],
-      );
-
-  Future<void> home({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_home(port_, arg0),
-      parseSuccessData: _wire2api_unit,
-      constMeta: kHomeConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kHomeConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "home",
-        argNames: ["state"],
-      );
-
-  int depth({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_depth(arg0),
-      parseSuccessData: _wire2api_usize,
-      constMeta: kDepthConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kDepthConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "depth",
-        argNames: ["state"],
-      );
-
-  bool isEmpty({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_is_empty(arg0),
-      parseSuccessData: _wire2api_bool,
-      constMeta: kIsEmptyConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kIsEmptyConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "is_empty",
-        argNames: ["state"],
-      );
-
-  List<String> context({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_context(arg0),
-      parseSuccessData: _wire2api_StringList,
-      constMeta: kContextConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kContextConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "context",
-        argNames: ["state"],
-      );
-
-  String? getLink({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_get_link(arg0),
-      parseSuccessData: _wire2api_opt_String,
-      constMeta: kGetLinkConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kGetLinkConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "get_link",
-        argNames: ["state"],
-      );
-
-  String getMessage({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_get_message(arg0),
-      parseSuccessData: _wire2api_String,
-      constMeta: kGetMessageConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kGetMessageConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "get_message",
-        argNames: ["state"],
-      );
-
-  List<String> getButtonTexts({required RwLockState state, dynamic hint}) {
-    var arg0 = _platform.api2wire_RwLockState(state);
-    return _platform.executeSync(FlutterRustBridgeSyncTask(
-      callFfi: () => _platform.inner.wire_get_button_texts(arg0),
-      parseSuccessData: _wire2api_StringList,
-      constMeta: kGetButtonTextsConstMeta,
-      argValues: [state],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kGetButtonTextsConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "get_button_texts",
-        argNames: ["state"],
-      );
-
-  DropFnType get dropOpaqueRwLockData => _platform.inner.drop_opaque_RwLockData;
-  ShareFnType get shareOpaqueRwLockData =>
-      _platform.inner.share_opaque_RwLockData;
-  OpaqueTypeFinalizer get RwLockDataFinalizer => _platform.RwLockDataFinalizer;
-
-  DropFnType get dropOpaqueRwLockState =>
-      _platform.inner.drop_opaque_RwLockState;
-  ShareFnType get shareOpaqueRwLockState =>
-      _platform.inner.share_opaque_RwLockState;
-  OpaqueTypeFinalizer get RwLockStateFinalizer =>
-      _platform.RwLockStateFinalizer;
-
-  void dispose() {
-    _platform.dispose();
-  }
-// Section: wire2api
-
-  RwLockData _wire2api_RwLockData(dynamic raw) {
-    return RwLockData.fromRaw(raw[0], raw[1], this);
-  }
-
-  RwLockState _wire2api_RwLockState(dynamic raw) {
-    return RwLockState.fromRaw(raw[0], raw[1], this);
-  }
-
-  String _wire2api_String(dynamic raw) {
-    return raw as String;
-  }
-
-  List<String> _wire2api_StringList(dynamic raw) {
-    return (raw as List<dynamic>).cast<String>();
-  }
-
-  bool _wire2api_bool(dynamic raw) {
-    return raw as bool;
-  }
-
-  String? _wire2api_opt_String(dynamic raw) {
-    return raw == null ? null : _wire2api_String(raw);
-  }
-
-  int _wire2api_u8(dynamic raw) {
-    return raw as int;
-  }
-
-  Uint8List _wire2api_uint_8_list(dynamic raw) {
-    return raw as Uint8List;
-  }
-
-  void _wire2api_unit(dynamic raw) {
-    return;
-  }
-
-  int _wire2api_usize(dynamic raw) {
-    return castInt(raw);
-  }
-}
+  Future<void> setup() => inner.init;
 
 // Section: api2wire
 
-@protected
-int api2wire_u8(int raw) {
-  return raw;
+  @protected
+  Object api2wire_MultilangFs(MultilangFs raw) {
+    return raw.shareOrMove();
+  }
+
+  @protected
+  Object api2wire_RwLockFaContext(RwLockFaContext raw) {
+    return raw.shareOrMove();
+  }
+
+  @protected
+  String api2wire_String(String raw) {
+    return raw;
+  }
+
+  @protected
+  Uint8List api2wire_uint_8_list(Uint8List raw) {
+    return raw;
+  }
+// Section: finalizer
+
+  late final Finalizer<PlatformPointer> _MultilangFsFinalizer =
+      Finalizer<PlatformPointer>(inner.drop_opaque_MultilangFs);
+  Finalizer<PlatformPointer> get MultilangFsFinalizer => _MultilangFsFinalizer;
+  late final Finalizer<PlatformPointer> _RwLockFaContextFinalizer =
+      Finalizer<PlatformPointer>(inner.drop_opaque_RwLockFaContext);
+  Finalizer<PlatformPointer> get RwLockFaContextFinalizer =>
+      _RwLockFaContextFinalizer;
 }
 
-// Section: finalizer
+// Section: WASM wire module
+
+@JS('wasm_bindgen')
+external NativeWasmModule get wasmModule;
+
+@JS()
+@anonymous
+class NativeWasmModule implements WasmModule {
+  external Object /* Promise */ call([String? moduleName]);
+  external NativeWasmModule bind(dynamic thisArg, String moduleName);
+  external dynamic /* void */ wire_get_data(NativePortType port_);
+
+  external dynamic /* Object */ wire_get_context();
+
+  external dynamic /* void */ wire_get_fs(
+      NativePortType port_, Object mlfs, Object ctx);
+
+  external dynamic /* void */ wire_transition(
+      NativePortType port_, Object ctx, String text);
+
+  external dynamic /* void */ wire_back(NativePortType port_, Object ctx);
+
+  external dynamic /* void */ wire_home(NativePortType port_, Object ctx);
+
+  external dynamic /*  */ drop_opaque_MultilangFs(ptr);
+
+  external int /* *const c_void */ share_opaque_MultilangFs(ptr);
+
+  external dynamic /*  */ drop_opaque_RwLockFaContext(ptr);
+
+  external int /* *const c_void */ share_opaque_RwLockFaContext(ptr);
+}
+
+// Section: WASM wire connector
+
+class NativeWire extends FlutterRustBridgeWasmWireBase<NativeWasmModule> {
+  NativeWire(FutureOr<WasmModule> module)
+      : super(WasmModule.cast<NativeWasmModule>(module));
+
+  void wire_get_data(NativePortType port_) => wasmModule.wire_get_data(port_);
+
+  dynamic /* Object */ wire_get_context() => wasmModule.wire_get_context();
+
+  void wire_get_fs(NativePortType port_, Object mlfs, Object ctx) =>
+      wasmModule.wire_get_fs(port_, mlfs, ctx);
+
+  void wire_transition(NativePortType port_, Object ctx, String text) =>
+      wasmModule.wire_transition(port_, ctx, text);
+
+  void wire_back(NativePortType port_, Object ctx) =>
+      wasmModule.wire_back(port_, ctx);
+
+  void wire_home(NativePortType port_, Object ctx) =>
+      wasmModule.wire_home(port_, ctx);
+
+  dynamic /*  */ drop_opaque_MultilangFs(ptr) =>
+      wasmModule.drop_opaque_MultilangFs(ptr);
+
+  int /* *const c_void */ share_opaque_MultilangFs(ptr) =>
+      wasmModule.share_opaque_MultilangFs(ptr);
+
+  dynamic /*  */ drop_opaque_RwLockFaContext(ptr) =>
+      wasmModule.drop_opaque_RwLockFaContext(ptr);
+
+  int /* *const c_void */ share_opaque_RwLockFaContext(ptr) =>
+      wasmModule.share_opaque_RwLockFaContext(ptr);
+}

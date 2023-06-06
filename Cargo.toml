@@ -3,5 +3,5 @@
 members = [
     "core",
     "bot",
-    "app/fa_api"
+    "app/native"
 ]

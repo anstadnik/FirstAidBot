@@ -1,15 +1,15 @@
-use first_aid_bot_core::prelude::*;
 use crate::bot::FirstAidStorage;
+use first_aid_bot_core::prelude::*;
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 use super::logic::is_admin;
 use super::prelude::start_endpoint;
 use crate::bot::dialogue::logic::send_state;
-use crate::bot::report_error::{report_error, ReportError};
+use crate::bot::report_error::report_error;
 use crate::bot::{FABot, FADialogue};
 use crate::REDIS_USERS_SET_KEY;
 use anyhow::{anyhow, bail, Context, Error};
-use futures::{future::BoxFuture, FutureExt};
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::prelude::*;
@@ -38,13 +38,13 @@ pub async fn commands_handler(
     bot: FABot,
     msg: Message,
     cmd: FACommands,
-    data: Arc<Data>,
+    data: &'static Data,
     conn: MultiplexedConnection,
     dialogue: FADialogue,
 ) -> anyhow::Result<()> {
     let lang = Lang::default().name();
     match cmd {
-        FACommands::Start => start_endpoint(bot, msg, data, dialogue, lang, conn).await,
+        FACommands::Start => start_endpoint(bot, msg, data, dialogue, &lang, conn).await,
     }
 }
 
@@ -52,17 +52,16 @@ pub async fn maintainer_commands_handler(
     bot: FABot,
     msg: Message,
     cmd: MaintainerCommands,
-    data: Arc<Data>,
+    data: &Data,
     mut conn: MultiplexedConnection,
 ) -> anyhow::Result<()> {
     let id = msg.chat.id;
     match cmd {
         MaintainerCommands::GetNumber => match conn.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
-            Ok(n) => bot
-                .send_message(id, n.to_string())
-                .await
-                .map(|_| ())
-                .map_err(Error::msg),
+            Ok(n) => {
+                bot.send_message(id, n.to_string()).await?;
+                Ok(())
+            }
             Err(err) => {
                 let err = anyhow!(err);
                 report_error(&bot, id, Lang::default().details().error, &err).await;
@@ -71,10 +70,13 @@ pub async fn maintainer_commands_handler(
         },
         MaintainerCommands::Test => {
             let text = Lang::default().details().error;
-            test(data, &bot, &msg)
-                .await
-                .report_if_err(&bot, id, text)
-                .await
+            match test(data, &bot, &msg).await {
+                Err(err) => {
+                    report_error(&bot, id, text, &err).await;
+                    Err(err)
+                }
+                rez => rez,
+            }
         }
         MaintainerCommands::GifTest => easter_egg(&bot, &msg).await,
     }
@@ -89,30 +91,29 @@ pub async fn easter_egg(bot: &FABot, msg: &Message) -> Result<(), Error> {
     Ok(())
 }
 
-fn recursive_test<'a>(
-    state: &'a mut State,
-    data: &'a Data,
-    bot: &'a FABot,
-    msg: &'a Message,
-) -> BoxFuture<'a, anyhow::Result<()>> {
-    async move {
-        send_state(bot, msg, state)
+async fn recursive_test(fs: &Fs, ctx: FAContext, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
+    let mut q: VecDeque<_> = [(fs, ctx)].into();
+    while let Some((fs, ctx)) = q.pop_front() {
+        send_state(bot, msg, &ctx, fs)
             .await
-            .with_context(|| format!("Error while processing state {state}"))?;
-        for next_state in state.button_texts.clone() {
-            state.move_to_state(&next_state, data).await?;
-            recursive_test(state, data, bot, msg).await?;
-            state.back();
-        }
-        Ok(())
+            .with_context(|| format!("Error while processing state {ctx}"))?;
+        q.extend(fs.next_states.iter().map(|(s, fs)| {
+            let mut ctx = ctx.clone();
+            ctx.transition(s);
+            (fs, ctx)
+        }));
     }
-    .boxed()
+    Ok(())
 }
 
-async fn test(data: Arc<Data>, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
+async fn test(data: &Data, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
     for lang in Lang::iter() {
-        let mut state = data.get(&[], lang).await?;
-        recursive_test(&mut state, &data, bot, msg).await?;
+        let ctx = FAContext {
+            lang,
+            context: Vec::new(),
+        };
+        let fs = data.get().await?.get_state(&ctx)?;
+        recursive_test(&fs, ctx, bot, msg).await?;
     }
 
     Ok(())

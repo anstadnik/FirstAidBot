@@ -7,14 +7,14 @@ edition = "2021"
 
 [dependencies]
 first_aid_bot_core = { path = "../core" }
-tokio = { version =  "1.24", features = ["rt-multi-thread", "macros"] }
-pretty_env_logger = "0.4"
+tokio = { version =  "1.28", features = ["rt-multi-thread", "macros"] }
+pretty_env_logger = "0.5"
 log = "0.4"
 serde = { version = "1.0" }
 anyhow = "1.0" 
-teloxide = { version = "0.11", features = ["macros", "redis-storage",
+teloxide = { version = "0.12", features = ["macros", "redis-storage",
   "bincode-serializer", "throttle"] }
-redis = { version = "0.22", features = ["tokio-comp"] }
+redis = { version = "0.23", features = ["tokio-comp"] }
 rand = "0.8"
 itertools = "0.10"
 futures = "0.3"

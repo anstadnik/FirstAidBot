@@ -1,6 +1,6 @@
 use crate::bot::Message;
-use anyhow::{Context as AnyhowContext, Result};
-use first_aid_bot_core::prelude::State;
+use anyhow::{Context, Result};
+use first_aid_bot_core::prelude::FAContext;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -8,7 +8,7 @@ const ERR: &str = "Error writing a user to the redis db.";
 
 pub async fn log_to_redis(
     msg: &Message,
-    ctx: &State,
+    ctx: &FAContext,
     conn: &mut MultiplexedConnection,
 ) -> Result<()> {
     if let Some(id) = msg.from().map(|user| user.id.0.to_string()) {

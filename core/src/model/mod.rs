@@ -3,44 +3,23 @@ mod finite_state;
 mod lang;
 
 pub mod prelude {
-    pub use super::data::Data;
-    pub use super::get_data;
+    pub use super::data::{Cfs, CowMultLangFsExt, Data};
+    pub use super::finite_state::{Fs, MultilangFs};
     pub use super::lang::Lang;
+    pub use super::{get_data_from_file, get_data_from_web};
 }
 
-// use crate::logic::State;
-// use crate::prelude::State;
+use self::finite_state::{Fs, Row};
 use anyhow::{anyhow, Context};
 use bytes::Buf;
 use csv::Reader;
-use finite_state::MultilangStates;
-use futures::{stream, StreamExt, TryStreamExt};
+use finite_state::MultilangFs;
 use indexmap::IndexMap;
 use prelude::*;
-use std::{env, fs::File, io};
+use std::io::{BufReader, Read};
+use std::{env, fs::File};
 
-use self::finite_state::{Row, FS};
-
-// TODO: Add loading of special messages for Lang
-async fn get_rows(filename: Option<&str>, sheet_name: String) -> anyhow::Result<Vec<Row>> {
-    let rdr: Box<dyn io::Read> = if let Some(filename) = filename {
-        Box::new(io::BufReader::new(File::open(filename)?))
-    } else {
-        let sheet_id = env::var("SHEET_ID")?;
-        // let sheet_id = "1lPJgwtDRFul3klRKOrRDiF3ca5PjjUvFQmzF1ugOZUU";
-        let url = format!(
-            "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
-            sheet_id, sheet_name
-        );
-        Box::new(reqwest::get(url).await?.bytes().await?.reader())
-    };
-    Reader::from_reader(rdr)
-        .into_deserialize()
-        .collect::<Result<_, _>>()
-        .context("Cannot parse csv")
-}
-
-fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<IndexMap<String, FS>> {
+fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<IndexMap<String, Fs>> {
     data.iter()
         .filter(|r| r.key.strip_prefix(k).map_or(false, |s| !s.contains('.')))
         .map(|mut row| {
@@ -52,23 +31,42 @@ fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<IndexMap<Str
             let key = row.key.clone() + ".";
             let next_states = get_next_states_for_key(data, &key)?;
             let map_err = || format!("Error in parsing row with key {}", row.key);
-            let fs = FS::parse_row(row, next_states).with_context(map_err)?;
+            let fs = Fs::parse_row(row, next_states).with_context(map_err)?;
             Ok((row.question.clone(), fs))
         })
         .collect()
 }
 
-async fn get_finite_state(lang: Lang, filename: Option<&str>) -> anyhow::Result<FS> {
-    let mut rows = get_rows(filename, lang.name()).await?;
+fn get_finite_state(rdr: Reader<impl Read>, lang: Lang) -> anyhow::Result<Fs> {
+    let mut rows = rdr
+        .into_deserialize()
+        .collect::<Result<Vec<Row>, _>>()
+        .context("Cannot parse csv")?;
     rows.retain(|record| !record.is_empty());
     rows.iter_mut()
         .for_each(|r| r.key = r.key.trim().to_string());
-    Ok(FS::entry(lang, get_next_states_for_key(&rows, "")?))
+    Ok(Fs::entry(lang, get_next_states_for_key(&rows, "")?))
 }
 
-pub async fn get_data(filename: Option<&str>) -> anyhow::Result<MultilangStates> {
-    let load = |lang| async move { get_finite_state(lang, filename).await.map(|fs| (lang, fs)) };
-    stream::iter(Lang::iter()).then(load).try_collect().await
+// This file is only for Ukrainian. If we will want to add more languages, it should be changed
+pub fn get_data_from_file(filename: &str) -> anyhow::Result<MultilangFs> {
+    let rdr = Reader::from_reader(BufReader::new(File::open(filename)?));
+    assert!(Lang::iter().count() == 1, "Only one language is supported");
+    let lang = Lang::iter().next().unwrap();
+    Ok([(lang, get_finite_state(rdr, lang)?)].into())
+}
+
+pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
+    let sheet_id = env::var("SHEET_ID")?;
+    assert!(Lang::iter().count() == 1, "Only one language is supported");
+    let lang = Lang::iter().next().unwrap();
+    let sheet_name = lang.name();
+    let url = format!(
+        "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
+        sheet_id, sheet_name
+    );
+    let rdr = Reader::from_reader(reqwest::get(url).await?.bytes().await?.reader());
+    Ok([(lang, get_finite_state(rdr, lang)?)].into())
 }
 
 #[cfg(test)]
