@@ -111,9 +111,11 @@ jobs:
           crate: cargo-ndk
       - run: just
       - run: flutter build apk --release
+      - run: ls -R
       - uses: actions/upload-artifact@v3
         with:
           name: apk
+          if-no-files-found: error
           path: build/app/outputs/flutter-apk/app-release.apk
 
   release:
