@@ -31,6 +31,8 @@ jobs:
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
       - run: cargo test
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
 
       - name: Build release
         if: ${{ github.ref_name == 'main' }}
