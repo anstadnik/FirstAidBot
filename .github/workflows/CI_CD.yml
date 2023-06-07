@@ -104,7 +104,6 @@ jobs:
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: flutter_rust_bridge_codegen
-      # - run: flutter pub get
       - run: just
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v3
