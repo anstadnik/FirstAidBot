@@ -104,6 +104,9 @@ jobs:
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: flutter_rust_bridge_codegen
+      - uses: baptiste0928/cargo-install@v2
+        with:
+          crate: cargo-ndk
       - run: just
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v3
