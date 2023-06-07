@@ -100,6 +100,8 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android, i686-linux-android
       - uses: Swatinem/rust-cache@v2
       - uses: baptiste0928/cargo-install@v2
         with:
