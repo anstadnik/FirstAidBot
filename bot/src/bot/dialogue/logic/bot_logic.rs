@@ -1,11 +1,7 @@
-use first_aid_bot_core::prelude::*;
-
-use super::log_to_redis::log_to_redis;
-use super::process_broadcast;
-use super::{helpers::send_state, is_admin};
-use crate::bot::FABot;
-use crate::bot::FADialogue;
+use super::{helpers::send_state, is_admin, log_to_redis::log_to_redis, process_broadcast};
+use crate::bot::{FABot, FADialogue, State};
 use anyhow::{anyhow, Context};
+use first_aid_bot_core::prelude::*;
 use redis::aio::MultiplexedConnection;
 use teloxide::prelude::*;
 
@@ -17,22 +13,18 @@ pub async fn move_to_state(
     mut ctx: FAContext,
     conn: &mut MultiplexedConnection,
 ) -> anyhow::Result<()> {
-    let map_err = || format!("Error while moving into {ctx}");
-    if let Err(err) = log_to_redis(msg, &ctx, conn).await {
-        log::error!("Cannot log to redis: {err:?}");
-    };
-    send_state(bot, msg, &ctx, fs).await.with_context(map_err)?;
+    let err = format!("Error while moving into {ctx}");
+    let _ = log_to_redis(msg, &ctx, conn).await;
+    send_state(bot, msg, &ctx, fs).await.context(err.clone())?;
     if fs.next_states.is_empty() {
         ctx.home();
-        if let Err(err) = log_to_redis(msg, &ctx, conn).await {
-            log::error!("Cannot log to redis: {err:?}");
-        };
-        send_state(bot, msg, &ctx, fs).await?;
+        let _ = log_to_redis(msg, &ctx, conn).await;
+        send_state(bot, msg, &ctx, fs).await.context(err)?;
     }
     dialogue
-        .update(crate::bot::state::State::Dialogue {
+        .update(State::Dialogue {
             lang: ctx.lang.to_string(),
-            context: ctx.context.to_vec(),
+            context: ctx.context,
         })
         .await?;
     Ok(())
@@ -46,10 +38,6 @@ pub async fn state_transition(
     data: &'static Data,
     conn: &mut MultiplexedConnection,
 ) -> anyhow::Result<()> {
-    if let Err(err) = log_to_redis(msg, &ctx, conn).await {
-        log::error!("Cannot log to redis: {err:?}");
-    };
-
     let fs = data.get().await?.get_state(&ctx)?;
     match msg.text() {
         Some(text) if text == ctx.lang.details().button_home => ctx.home(),
@@ -58,12 +46,10 @@ pub async fn state_transition(
         Some(text) if ctx.is_empty() && Lang::iter().any(|l| l.details().button_lang == text) => {
             ctx.lang = Lang::iter()
                 .find(|lang| lang.details().button_lang == text)
-                .ok_or_else(|| anyhow!("Wrong language WTF?"))?;
+                .ok_or(anyhow!("Wrong language WTF?"))?;
         }
         Some(text) if text == ctx.lang.details().broadcast && is_admin(msg) => {
-            dialogue
-                .update(crate::bot::state::State::Broadcast { message: None })
-                .await?;
+            dialogue.update(State::Broadcast { message: None }).await?;
             return process_broadcast(bot, msg, dialogue, None, conn).await;
         }
         _ => {

@@ -1,16 +1,14 @@
-use crate::bot::FirstAidStorage;
-use first_aid_bot_core::prelude::*;
-use std::collections::VecDeque;
-use std::sync::Arc;
-
 use super::logic::is_admin;
 use super::prelude::start_endpoint;
 use crate::bot::dialogue::logic::send_state;
-use crate::bot::report_error::report_error;
+use crate::bot::FirstAidStorage;
 use crate::bot::{FABot, FADialogue};
 use crate::REDIS_USERS_SET_KEY;
-use anyhow::{anyhow, bail, Context, Error};
+use anyhow::{Context, Error};
+use first_aid_bot_core::prelude::*;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
+use std::collections::VecDeque;
+use std::sync::Arc;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::prelude::*;
 use teloxide::types::ParseMode::Html;
@@ -42,9 +40,8 @@ pub async fn commands_handler(
     conn: MultiplexedConnection,
     dialogue: FADialogue,
 ) -> anyhow::Result<()> {
-    let lang = Lang::default().name();
     match cmd {
-        FACommands::Start => start_endpoint(bot, msg, data, dialogue, &lang, conn).await,
+        FACommands::Start => start_endpoint(bot, msg, data, dialogue, conn).await,
     }
 }
 
@@ -57,27 +54,12 @@ pub async fn maintainer_commands_handler(
 ) -> anyhow::Result<()> {
     let id = msg.chat.id;
     match cmd {
-        MaintainerCommands::GetNumber => match conn.scard::<_, i32>(REDIS_USERS_SET_KEY).await {
-            Ok(n) => {
-                bot.send_message(id, n.to_string()).await?;
-                Ok(())
-            }
-            Err(err) => {
-                let err = anyhow!(err);
-                report_error(&bot, id, Lang::default().details().error, &err).await;
-                bail!(err)
-            }
-        },
-        MaintainerCommands::Test => {
-            let text = Lang::default().details().error;
-            match test(data, &bot, &msg).await {
-                Err(err) => {
-                    report_error(&bot, id, text, &err).await;
-                    Err(err)
-                }
-                rez => rez,
-            }
+        MaintainerCommands::GetNumber => {
+            let n = conn.scard::<_, i32>(REDIS_USERS_SET_KEY).await?;
+            bot.send_message(id, n.to_string()).await?;
+            Ok(())
         }
+        MaintainerCommands::Test => test(data, &bot, &msg).await,
         MaintainerCommands::GifTest => easter_egg(&bot, &msg).await,
     }
 }
@@ -112,8 +94,7 @@ async fn test(data: &Data, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
             lang,
             context: Vec::new(),
         };
-        let fs = data.get().await?.get_state(&ctx)?;
-        recursive_test(&fs, ctx, bot, msg).await?;
+        recursive_test(&*data.get().await?.get_state(&ctx)?, ctx, bot, msg).await?;
     }
 
     Ok(())
@@ -124,7 +105,7 @@ type FAHandler = Handler<'static, DependencyMap, Result<(), Error>, DpHandlerDes
 pub fn get_commands_branch() -> FAHandler {
     dptree::entry()
         .filter_command::<FACommands>()
-        .enter_dialogue::<Message, FirstAidStorage, crate::bot::state::State>()
+        .enter_dialogue::<Message, FirstAidStorage, crate::bot::State>()
         .endpoint(commands_handler)
 }
 

@@ -4,10 +4,6 @@ use indexmap::IndexMap;
 use serde::Deserialize;
 use std::collections::HashMap;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                           CSV entry                                            //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #[derive(Debug, Deserialize)]
 pub struct Row {
     pub key: String,
@@ -25,10 +21,6 @@ impl Row {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                       Finite State types                                       //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 pub type MultilangFs = HashMap<Lang, Fs>;
 
 #[derive(Debug, Clone)]
@@ -38,13 +30,13 @@ pub struct Fs {
     pub next_states: IndexMap<String, Fs>,
 }
 
+const PREFIX: &str = "https://drive.google.com/file/d/";
 fn parse_link(link: &Option<String>) -> anyhow::Result<Option<String>> {
     match link.as_ref() {
         None => Ok(None),
-        Some(link) if link.starts_with("https://drive.google.com/file/d/") => {
+        Some(link) if link.starts_with(PREFIX) => {
             let map_err = || anyhow!("Omg cannot strip prefix which is there WTF");
-            let prefix = &"https://drive.google.com/file/d/";
-            let link = link.strip_prefix(prefix).ok_or_else(map_err)?;
+            let link = link.strip_prefix(PREFIX).ok_or_else(map_err)?;
             let link = link.split_once('/').map_or(link, |p| p.0);
             Ok(Some(format!("https://drive.google.com/uc?id={link}")))
         }

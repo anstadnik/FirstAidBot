@@ -1,7 +1,7 @@
 use core::fmt::Display;
 use crate::prelude::Lang;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct FAContext {
     pub lang: Lang,
     pub context: Vec<String>,

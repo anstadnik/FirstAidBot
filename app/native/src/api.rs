@@ -10,8 +10,8 @@ pub async fn get_data() -> Result<RustOpaque<MultilangFs>> {
     // get_data_from_file("/Users/astadnik/Ukraine/FirstAidBot/table.csv").map(RustOpaque::new)
 }
 
-type RWCTX = RustOpaque<RwLock<FAContext>>;
-pub fn get_context() -> SyncReturn<RWCTX> {
+type Rwctx = RustOpaque<RwLock<FAContext>>;
+pub fn get_context() -> SyncReturn<Rwctx> {
     assert!(Lang::iter().count() == 1);
     SyncReturn(RustOpaque::new(RwLock::new(FAContext {
         lang: Lang::Ua,
@@ -25,7 +25,7 @@ pub struct FAState {
     pub next_states: Vec<String>,
 }
 
-pub fn get_fs(mlfs: RustOpaque<MultilangFs>, ctx: RWCTX) -> Option<FAState> {
+pub fn get_fs(mlfs: RustOpaque<MultilangFs>, ctx: Rwctx) -> Option<FAState> {
     let ctx = ctx.read().unwrap();
     let fs = ctx
         .context
@@ -38,12 +38,12 @@ pub fn get_fs(mlfs: RustOpaque<MultilangFs>, ctx: RWCTX) -> Option<FAState> {
     })
 }
 
-pub fn transition(ctx: RWCTX, text: String) {
+pub fn transition(ctx: Rwctx, text: String) {
     ctx.write().unwrap().transition(&text);
 }
-pub fn back(ctx: RWCTX) {
+pub fn back(ctx: Rwctx) {
     ctx.write().unwrap().back();
 }
-pub fn home(ctx: RWCTX) {
+pub fn home(ctx: Rwctx) {
     ctx.write().unwrap().home();
 }

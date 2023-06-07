@@ -1,7 +1,7 @@
 use first_aid_bot_core::prelude::Lang;
 use teloxide::types::{KeyboardButton, KeyboardMarkup, ReplyMarkup};
 
-pub fn make_keyboard(keys: &Vec<String>, lang: Lang, depth: usize, is_admin: bool) -> ReplyMarkup {
+pub fn make_keyboard(keys: &[&str], lang: Lang, depth: usize, is_admin: bool) -> ReplyMarkup {
     let mut keyboard: Vec<Vec<KeyboardButton>> = vec![];
 
     if keys.is_empty() && !is_admin {
@@ -9,7 +9,7 @@ pub fn make_keyboard(keys: &Vec<String>, lang: Lang, depth: usize, is_admin: boo
     }
 
     for key_texts in keys.chunks(2) {
-        keyboard.push(key_texts.iter().map(KeyboardButton::new).collect());
+        keyboard.push(key_texts.iter().copied().map(KeyboardButton::new).collect());
     }
 
     if is_admin {

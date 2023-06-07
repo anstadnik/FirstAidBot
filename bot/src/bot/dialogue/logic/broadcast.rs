@@ -1,7 +1,7 @@
 use super::keyboard::make_keyboard;
-use crate::bot::state::State;
 use crate::bot::FABot;
 use crate::bot::FADialogue;
+use crate::bot::State;
 use crate::BROADCAST_ENABLED;
 use anyhow::{anyhow, Result};
 use first_aid_bot_core::prelude::Lang;
@@ -35,8 +35,7 @@ pub async fn process_broadcast(
 
     if !BROADCAST_ENABLED {
         std::mem::drop(bot.send_message(id, MSG_DISABLED).await);
-        let lang = Lang::Ua.to_string();
-        dialogue.update(State::Start { lang }).await?;
+        dialogue.update(State::Start).await?;
         return Ok(());
     }
 
@@ -68,15 +67,14 @@ async fn broadcast_if_confirmed(
             .await;
     } else {
         bot.send_message(id, "You didn't confirm, bye").await?;
-        let lang = Lang::Ua.to_string();
-        dialogue.update(State::Start { lang }).await?;
+        dialogue.update(State::Start).await?;
     }
     Ok(())
 }
 
 async fn ask_to_confirm(bot: &FABot, id: ChatId, text: &str, dialogue: &FADialogue) -> Result<()> {
     bot.send_message(id, "Your message is:").await?;
-    let vec = vec![MSG_CONFIRM.to_string()];
+    let vec = vec![MSG_CONFIRM];
     let keyboard = make_keyboard(&vec, Lang::Ua, 42, true);
     bot.send_message(id, text).reply_markup(keyboard).await?;
     let message = Some(text.to_string());

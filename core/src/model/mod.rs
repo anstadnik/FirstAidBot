@@ -16,8 +16,8 @@ use csv::Reader;
 use finite_state::MultilangFs;
 use indexmap::IndexMap;
 use prelude::*;
-use std::io::{BufReader, Read};
-use std::{env, fs::File};
+use std::env;
+use std::io::Read;
 
 fn get_next_states_for_key(data: &[Row], k: &str) -> anyhow::Result<IndexMap<String, Fs>> {
     data.iter()
@@ -50,7 +50,8 @@ fn get_finite_state(rdr: Reader<impl Read>, lang: Lang) -> anyhow::Result<Fs> {
 
 // This file is only for Ukrainian. If we will want to add more languages, it should be changed
 pub fn get_data_from_file(filename: &str) -> anyhow::Result<MultilangFs> {
-    let rdr = Reader::from_reader(BufReader::new(File::open(filename)?));
+    // let rdr = Reader::from_reader(BufReader::new(File::open(filename)?));
+    let rdr = Reader::from_path(filename)?;
     assert!(Lang::iter().count() == 1, "Only one language is supported");
     let lang = Lang::iter().next().unwrap();
     Ok([(lang, get_finite_state(rdr, lang)?)].into())

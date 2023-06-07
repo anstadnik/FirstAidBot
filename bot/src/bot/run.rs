@@ -1,8 +1,8 @@
 use crate::bot::dialogue::prelude::*;
 use crate::bot::report_error::FAErrorHandler;
-use crate::bot::state::State;
+use crate::bot::State;
 use crate::REDIS_URLS;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use first_aid_bot_core::prelude::Data;
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
@@ -21,12 +21,8 @@ pub async fn connect_to_redis() -> Result<(MultiplexedConnection, Arc<FirstAidSt
             .await?;
         anyhow::Ok((connection, RedisStorage::open(url, Bincode).await?))
     }));
-    results
-        .await
-        .into_iter()
-        .flatten()
-        .next()
-        .ok_or_else(|| anyhow::anyhow!("No redis connection"))
+    let error = anyhow!("No redis connection");
+    results.await.into_iter().flatten().next().ok_or(error)
 }
 
 pub async fn run_bot(data: &'static Data) -> Result<()> {
@@ -44,7 +40,7 @@ pub async fn run_bot(data: &'static Data) -> Result<()> {
         .branch(get_commands_branch())
         .branch(get_maintainer_commands_branch())
         .enter_dialogue::<Message, FirstAidStorage, State>()
-        .branch(case![State::Start { lang }].endpoint(start_endpoint))
+        .branch(case![State::Start].endpoint(start_endpoint))
         .branch(case![State::Dialogue { lang, context }].endpoint(handle_endpoint))
         .branch(case![State::Broadcast { message }].endpoint(broadcast_endpoint));
 
