@@ -91,13 +91,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: extractions/setup-just@v1
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo install flutter_rust_bridge_codegen
+      - uses: baptiste0928/cargo-install@v2
+        with:
+          crate: flutter_rust_bridge_codegen
       # - run: flutter pub get
       - run: just
       - run: flutter build apk --release
