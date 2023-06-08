@@ -36,10 +36,14 @@ jobs:
 
       - name: Build release
         if: ${{ github.ref_name == 'main' }}
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
         run: cargo build --release
 
       - name: Build debug
         if: ${{ github.ref_name != 'main' }}
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
         run: cargo build
 
       - name: Move binary
@@ -77,7 +81,6 @@ jobs:
       - name: Restart bot
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
-          SHEET_ID: ${{ secrets.SHEET_ID }}
         run: |
           docker build -t first_aid_bot:${{ github.ref_name }} .
           docker compose -f docker-compose_${{ github.ref_name }}.yml -p ${{ github.ref_name }}_bot up -d
@@ -110,6 +113,8 @@ jobs:
         with:
           crate: cargo-ndk
       - run: just
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
       - run: flutter build apk --release
         # https://github.com/actions/upload-artifact/issues/294
       - uses: actions/upload-artifact@v3
