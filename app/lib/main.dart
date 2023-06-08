@@ -79,7 +79,7 @@ class _FARHomePageState extends State<FARHomePage> {
                 if (data == null) {
                   return PlatformCircularProgressIndicator();
                 }
-                final MultilangFs faData_ = data[0];
+                // final MultilangFs faData_ = data[0];
                 final FAState? faState_ = data[1];
                 if (faState_ == null) {
                   return PlatformText("No state");
