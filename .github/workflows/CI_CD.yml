@@ -113,9 +113,9 @@ jobs:
         with:
           crate: cargo-ndk
       - run: just
+      - run: flutter build apk --release
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-      - run: flutter build apk --release
         # https://github.com/actions/upload-artifact/issues/294
       - uses: actions/upload-artifact@v3
         with:
