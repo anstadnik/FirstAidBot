@@ -57,7 +57,7 @@ pub fn get_data_from_file(filename: &str) -> anyhow::Result<MultilangFs> {
 }
 
 pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
-    let sheet_id = env!("SHEET_ID")?;
+    let sheet_id = env!("SHEET_ID");
     assert!(Lang::iter().count() == 1, "Only one language is supported");
     let lang = Lang::iter().next().unwrap();
     let sheet_name = lang.name();
