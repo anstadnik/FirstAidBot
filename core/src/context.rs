@@ -8,8 +8,8 @@ pub struct FAContext {
 }
 
 impl FAContext {
-    pub fn transition(&mut self, text: &str) {
-        self.context.push(text.to_string());
+    pub fn transition(&mut self, text: String) {
+        self.context.push(text);
     }
     pub fn back(&mut self) {
         self.context.pop();

@@ -35,6 +35,11 @@ pub extern "C" fn wire_home(port_: i64, ctx: wire_RwLockFaContext) {
     wire_home_impl(port_, ctx)
 }
 
+#[no_mangle]
+pub extern "C" fn wire_get_path(port_: i64, ctx: wire_RwLockFaContext) {
+    wire_get_path_impl(port_, ctx)
+}
+
 // Section: allocate functions
 
 #[no_mangle]

@@ -37,6 +37,10 @@ abstract class Native {
 
   FlutterRustBridgeTaskConstMeta get kHomeConstMeta;
 
+  Future<String> getPath({required RwLockFaContext ctx, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kGetPathConstMeta;
+
   DropFnType get dropOpaqueMultilangFs;
   ShareFnType get shareOpaqueMultilangFs;
   OpaqueTypeFinalizer get MultilangFsFinalizer;

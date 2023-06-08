@@ -46,6 +46,8 @@ void wire_back(int64_t port_, struct wire_RwLockFaContext ctx);
 
 void wire_home(int64_t port_, struct wire_RwLockFaContext ctx);
 
+void wire_get_path(int64_t port_, struct wire_RwLockFaContext ctx);
+
 struct wire_MultilangFs new_MultilangFs(void);
 
 struct wire_RwLockFaContext new_RwLockFaContext(void);
@@ -70,6 +72,7 @@ static int64_t dummy_method_to_enforce_bundling(void) {
     dummy_var ^= ((int64_t) (void*) wire_transition);
     dummy_var ^= ((int64_t) (void*) wire_back);
     dummy_var ^= ((int64_t) (void*) wire_home);
+    dummy_var ^= ((int64_t) (void*) wire_get_path);
     dummy_var ^= ((int64_t) (void*) new_MultilangFs);
     dummy_var ^= ((int64_t) (void*) new_RwLockFaContext);
     dummy_var ^= ((int64_t) (void*) new_uint_8_list_0);

@@ -254,6 +254,22 @@ class NativeWire implements FlutterRustBridgeWireBase {
   late final _wire_home =
       _wire_homePtr.asFunction<void Function(int, wire_RwLockFaContext)>();
 
+  void wire_get_path(
+    int port_,
+    wire_RwLockFaContext ctx,
+  ) {
+    return _wire_get_path(
+      port_,
+      ctx,
+    );
+  }
+
+  late final _wire_get_pathPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, wire_RwLockFaContext)>>('wire_get_path');
+  late final _wire_get_path =
+      _wire_get_pathPtr.asFunction<void Function(int, wire_RwLockFaContext)>();
+
   wire_MultilangFs new_MultilangFs() {
     return _new_MultilangFs();
   }

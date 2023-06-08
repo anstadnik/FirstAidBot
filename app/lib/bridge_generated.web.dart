@@ -74,6 +74,8 @@ class NativeWasmModule implements WasmModule {
 
   external dynamic /* void */ wire_home(NativePortType port_, Object ctx);
 
+  external dynamic /* void */ wire_get_path(NativePortType port_, Object ctx);
+
   external dynamic /*  */ drop_opaque_MultilangFs(ptr);
 
   external int /* *const c_void */ share_opaque_MultilangFs(ptr);
@@ -104,6 +106,9 @@ class NativeWire extends FlutterRustBridgeWasmWireBase<NativeWasmModule> {
 
   void wire_home(NativePortType port_, Object ctx) =>
       wasmModule.wire_home(port_, ctx);
+
+  void wire_get_path(NativePortType port_, Object ctx) =>
+      wasmModule.wire_get_path(port_, ctx);
 
   dynamic /*  */ drop_opaque_MultilangFs(ptr) =>
       wasmModule.drop_opaque_MultilangFs(ptr);

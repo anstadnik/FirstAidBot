@@ -81,7 +81,7 @@ async fn recursive_test(fs: &Fs, ctx: FAContext, bot: &FABot, msg: &Message) -> 
             .with_context(|| format!("Error while processing state {ctx}"))?;
         q.extend(fs.next_states.iter().map(|(s, fs)| {
             let mut ctx = ctx.clone();
-            ctx.transition(s);
+            ctx.transition(s.to_string());
             (fs, ctx)
         }));
     }

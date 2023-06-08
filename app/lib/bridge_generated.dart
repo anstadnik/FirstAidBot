@@ -124,6 +124,23 @@ class NativeImpl implements Native {
         argNames: ["ctx"],
       );
 
+  Future<String> getPath({required RwLockFaContext ctx, dynamic hint}) {
+    var arg0 = _platform.api2wire_RwLockFaContext(ctx);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_get_path(port_, arg0),
+      parseSuccessData: _wire2api_String,
+      constMeta: kGetPathConstMeta,
+      argValues: [ctx],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kGetPathConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "get_path",
+        argNames: ["ctx"],
+      );
+
   DropFnType get dropOpaqueMultilangFs =>
       _platform.inner.drop_opaque_MultilangFs;
   ShareFnType get shareOpaqueMultilangFs =>

@@ -30,7 +30,7 @@ pub fn get_fs(mlfs: RustOpaque<MultilangFs>, ctx: Rwctx) -> Option<FAState> {
     let fs = ctx
         .context
         .iter()
-        .try_fold(mlfs.get(&ctx.lang)?, |fs, key| fs.next_states.get(key))?;
+        .try_fold(mlfs.get(&ctx.lang)?, |fs: &Fs, key| fs.next_states.get(key))?;
     Some(FAState {
         link: fs.link.clone(),
         message: fs.message.clone(),
@@ -39,11 +39,15 @@ pub fn get_fs(mlfs: RustOpaque<MultilangFs>, ctx: Rwctx) -> Option<FAState> {
 }
 
 pub fn transition(ctx: Rwctx, text: String) {
-    ctx.write().unwrap().transition(&text);
+    ctx.write().unwrap().transition(text);
 }
 pub fn back(ctx: Rwctx) {
     ctx.write().unwrap().back();
 }
 pub fn home(ctx: Rwctx) {
     ctx.write().unwrap().home();
+}
+
+pub fn get_path(ctx: Rwctx) -> String {
+    ctx.read().unwrap().to_string()
 }

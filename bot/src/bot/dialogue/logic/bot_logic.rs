@@ -42,7 +42,7 @@ pub async fn state_transition(
     match msg.text() {
         Some(text) if text == ctx.lang.details().button_home => ctx.home(),
         Some(text) if text == ctx.lang.details().button_back => ctx.back(),
-        Some(text) if fs.next_states.contains_key(text) => ctx.transition(text),
+        Some(text) if fs.next_states.contains_key(text) => ctx.transition(text.to_string()),
         Some(text) if ctx.is_empty() && Lang::iter().any(|l| l.details().button_lang == text) => {
             ctx.lang = Lang::iter()
                 .find(|lang| lang.details().button_lang == text)

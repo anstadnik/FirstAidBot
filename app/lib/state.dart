@@ -28,6 +28,10 @@ class FARState extends ChangeNotifier {
   }
 
   void refresh() {
+    faMLFS = null;
+    faCTX = api.getContext();
+    faState = null;
+    notifyListeners();
     api.getData().then((mlfs) {
       faMLFS = mlfs;
       getState();
@@ -41,9 +45,4 @@ class FARState extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  // void update() {
-  //   faState = faMLFS.then((mlfs) => api.getFs(mlfs: mlfs, ctx: faCTX));
-  //   notifyListeners();
-  // }
 }

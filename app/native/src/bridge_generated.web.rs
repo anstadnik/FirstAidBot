@@ -31,6 +31,11 @@ pub fn wire_home(port_: MessagePort, ctx: JsValue) {
     wire_home_impl(port_, ctx)
 }
 
+#[wasm_bindgen]
+pub fn wire_get_path(port_: MessagePort, ctx: JsValue) {
+    wire_get_path_impl(port_, ctx)
+}
+
 // Section: allocate functions
 
 // Section: related functions

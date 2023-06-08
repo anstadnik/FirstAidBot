@@ -109,6 +109,22 @@ fn wire_home_impl(
         },
     )
 }
+fn wire_get_path_impl(
+    port_: MessagePort,
+    ctx: impl Wire2Api<RustOpaque<RwLock<FAContext>>> + UnwindSafe,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "get_path",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_ctx = ctx.wire2api();
+            move |task_callback| Ok(get_path(api_ctx))
+        },
+    )
+}
 // Section: wrapper structs
 
 // Section: static checks

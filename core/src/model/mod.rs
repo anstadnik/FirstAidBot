@@ -42,8 +42,10 @@ fn get_finite_state(rdr: Reader<impl Read>, lang: Lang) -> anyhow::Result<Fs> {
         .collect::<Result<Vec<Row>, _>>()
         .context("Cannot parse csv")?;
     rows.retain(|record| !record.is_empty());
-    rows.iter_mut()
-        .for_each(|r| r.key = r.key.trim().to_string());
+    for r in rows.iter_mut() {
+        r.key = r.key.trim().to_string();
+        r.question = r.question.trim().to_string();
+    }
     Ok(Fs::entry(lang, get_next_states_for_key(&rows, "")?))
 }
 

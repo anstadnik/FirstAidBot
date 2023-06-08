@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'ffi.dart' if (dart.library.html) 'ffi_web.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -39,12 +38,12 @@ class MyFutureBuilder extends StatelessWidget {
       if (state.faState == null) {
         return const Center(child: CircularProgressIndicator());
       } else {
-        return _buildContent(context, state.faState!);
+        return _buildContent(state.faState!);
       }
     });
   }
 
-  Widget _buildContent(BuildContext context, FAState faState) => Column(
+  Widget _buildContent(FAState faState) => Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Padding(
@@ -79,32 +78,27 @@ class ButtonGrid extends StatelessWidget {
               nextStates.map((nextState) => _buildButton(nextState)).toList(),
         ),
         const SizedBox(height: 16.0),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          Consumer<FARState>(
-              builder: (context, state, child) => PlatformElevatedButton(
-                    color: Colors.orange,
-                    onPressed: () => state.back(),
-                    child: const Text("Back"),
-                  )),
-          Consumer<FARState>(
-              builder: (context, state, child) => PlatformElevatedButton(
-                    color: Colors.orange,
-                    onPressed: () => state.home(),
-                    child: const Text("Home"),
-                  )),
-          Consumer<FARState>(
-              builder: (context, state, child) => PlatformElevatedButton(
-                    color: Colors.orange,
-                    onPressed: () => state.refresh(),
-                    child: const Text("Refresh"),
-                  ))
-        ])
+        Consumer<FARState>(
+            builder: (context, state, child) => Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildButtonCallback("Back", () => state.back()),
+                      _buildButtonCallback("Home", () => state.home()),
+                      _buildButtonCallback("Refresh", () => state.refresh())
+                    ])),
+        const SizedBox(height: 16.0),
       ]));
-  Widget _buildButton(String nextState) {
-    return Consumer<FARState>(
-        builder: (context, state, child) => PlatformElevatedButton(
-              onPressed: () => state.transition(nextState),
-              child: Text(nextState),
-            ));
-  }
+
+  PlatformElevatedButton _buildButtonCallback(String text, VoidCallback cbk) =>
+      PlatformElevatedButton(
+        color: Colors.orange,
+        onPressed: cbk,
+        child: Text(text),
+      );
+
+  Widget _buildButton(String nextState) => Consumer<FARState>(
+      builder: (context, state, child) => PlatformElevatedButton(
+            onPressed: () => state.transition(nextState),
+            child: Text(nextState),
+          ));
 }
