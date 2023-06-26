@@ -5,7 +5,8 @@ import 'package:flutter/cupertino.dart';
 
 class FARState extends ChangeNotifier {
   MultilangFs? faMLFS;
-  RwLockFaContext faCTX = api.getContext();
+  bool updating = true;
+  final RwLockFaContext faCTX = api.getContext();
   FAState? faState;
 
   FARState() {
@@ -29,10 +30,13 @@ class FARState extends ChangeNotifier {
 
   void refresh() {
     faMLFS = null;
-    faCTX = api.getContext();
+    updating = true;
+    api.home(ctx: faCTX);
     faState = null;
     notifyListeners();
+
     api.getData().then((mlfs) {
+      updating = false;
       faMLFS = mlfs;
       getState();
     });
@@ -40,9 +44,14 @@ class FARState extends ChangeNotifier {
 
   void getState() {
     if (faMLFS != null) {
-      // TODO: Change it
-      api.getFs(mlfs: faMLFS!, ctx: faCTX).then((state) => faState = state);
+      api.getFs(mlfs: faMLFS!, ctx: faCTX).then((state) {
+        if (state == null) {
+          refresh();
+        } else {
+          faState = state;
+          notifyListeners();
+        }
+      });
     }
-    notifyListeners();
   }
 }

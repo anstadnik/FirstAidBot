@@ -1,12 +1,11 @@
 #![allow(dead_code)]
-use anyhow::Result;
 pub use first_aid_bot_core::prelude::*;
 use flutter_rust_bridge::{RustOpaque, SyncReturn};
 pub use std::sync::RwLock;
 
 #[tokio::main]
-pub async fn get_data() -> Result<RustOpaque<MultilangFs>> {
-    get_data_from_web().await.map(RustOpaque::new)
+pub async fn get_data() -> Option<RustOpaque<MultilangFs>> {
+    get_data_from_web().await.map(RustOpaque::new).ok()
     // get_data_from_file("/Users/astadnik/Ukraine/FirstAidBot/table.csv").map(RustOpaque::new)
 }
 
