@@ -88,9 +88,9 @@ jobs:
         with:
           crate: cargo-ndk
       - run: just
-      - run: cargo build
-        env:
-          SHEET_ID: ${{ secrets.SHEET_ID }}
+      # - run: cargo build
+      #   env:
+      #     SHEET_ID: ${{ secrets.SHEET_ID }}
       # - run: flutter test
       - run: flutter build apk --release
         env:
