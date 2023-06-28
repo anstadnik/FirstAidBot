@@ -1,4 +1,4 @@
-package com.example.flutter_rust_bridge_template
+package com.example.first_aid_robot
 
 import io.flutter.embedding.android.FlutterActivity
 
