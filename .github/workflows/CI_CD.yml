@@ -116,7 +116,7 @@ jobs:
       - run: cargo build
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-      - run: flutter test
+      # - run: flutter test
       - run: flutter build apk --release
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}

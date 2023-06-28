@@ -38,16 +38,15 @@ class FABFutureBuilder extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: StateConsumer(),
+        const Expanded(child: StateConsumer()),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            _buildButtonCallback("Back", () => farState.back()),
+            _buildButtonCallback("Home", () => farState.home()),
+            _buildButtonCallback("Refresh", () => farState.refresh())
+          ]),
         ),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-          _buildButtonCallback("Back", () => farState.back()),
-          _buildButtonCallback("Home", () => farState.home()),
-          _buildButtonCallback("Refresh", () => farState.refresh())
-        ]),
-        const SizedBox(height: 16.0),
       ],
     );
   }
@@ -95,4 +94,3 @@ class StateConsumer extends StatelessWidget {
     });
   }
 }
-
