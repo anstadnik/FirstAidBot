@@ -193,10 +193,14 @@ jobs:
 
   # It should wait untill all checks will pass
   auto-merge:
+    needs: [build_and_test_bot,build_flutter_apk]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      pull-requests: write
+      contents: write
     steps:
-      - uses: ahmadnassri/action-dependabot-auto-merge@v2
+      - uses: fastify/github-action-merge-dependabot@v3
         with:
           target: minor
           github-token: "${{ secrets.GITHUB_TOKEN }}"
