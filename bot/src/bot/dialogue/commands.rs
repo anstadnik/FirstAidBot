@@ -7,7 +7,6 @@ use crate::REDIS_USERS_SET_KEY;
 use anyhow::{Context, Error};
 use first_aid_bot_core::prelude::*;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
-use std::collections::VecDeque;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::prelude::*;
 use teloxide::types::ParseMode::Html;
@@ -73,11 +72,14 @@ pub async fn easter_egg(bot: &FABot, msg: &Message) -> Result<(), Error> {
 }
 
 async fn recursive_test(fs: &Fs, ctx: FAContext, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
-    let mut q: VecDeque<_> = [(fs, ctx)].into();
-    while let Some((fs, ctx)) = q.pop_front() {
-        send_state(bot, msg, &ctx, fs)
-            .await
-            .with_context(|| format!("Error while processing state {ctx}"))?;
+    let mut q = vec![(fs, ctx)];
+    while let Some((fs, ctx)) = q.pop() {
+        send_state(bot, msg, &ctx, fs).await.with_context(|| {
+            format!(
+                "Error while processing state {ctx}. Message is {}",
+                fs.message
+            )
+        })?;
         q.extend(fs.next_states.iter().map(|(s, fs)| {
             let mut ctx = ctx.clone();
             ctx.transition(s.to_string());

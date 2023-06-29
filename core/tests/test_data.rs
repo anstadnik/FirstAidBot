@@ -26,6 +26,12 @@ fn test_md(s: &str) -> Result<()> {
 }
 
 fn test_fs(fs: Fs) -> Result<()> {
+    if fs.message.chars().all(char::is_whitespace) {
+        bail!("Empty message");
+    }
+    if fs.link.as_ref().is_some_and(|s| s.chars().all(char::is_whitespace)) {
+        bail!("Empty link");
+    }
     test_md(&fs.message)?;
     for (s, fs) in fs.next_states {
         test_fs(fs).context(s)?;
