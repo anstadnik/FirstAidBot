@@ -1,0 +1,25 @@
+[package]
+name = "first_aid_bot_core"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+# # Load the data
+csv = "1.2"
+bytes = "1.4"
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.11"}
+indexmap = "1.9"
+
+# futures = "0.3"
+log = "0.4"
+anyhow = "1.0" 
+tokio = { version =  "1.28" , features = ["macros", "rt-multi-thread" ] }
+const_format = "0.2" 
+regex = "1.8.4"

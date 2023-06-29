@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  bot:
+    image: first_aid_bot:main
+    environment:
+      - SHEET_ID
+      - TELOXIDE_TOKEN
+    restart: always
+    depends_on:
+      - "redis"
+
+  redis:
+    image: redis
+    restart: always
+    volumes: 
+      - cache:/bitnami/redis/data
+      - rdb:/data
+
+volumes:
+  cache:
+    driver: local
+  rdb:
+    driver: local
