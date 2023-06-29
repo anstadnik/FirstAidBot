@@ -102,11 +102,10 @@ jobs:
           if-no-files-found: error
           path: app/build/app/outputs/flutter-apk/app-release.apk
 
-  deploy_main:
+  deploy:
     runs-on: [self-hosted]
     needs: [build_and_test_bot, build_flutter_apk]
-    environment: main
-    if: ${{ github.event_name == 'pull_request' }}
+    environment: ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}
 
     steps:
       - uses: actions/checkout@v3
@@ -124,33 +123,8 @@ jobs:
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
         run: |
-          docker build -t first_aid_bot:dev .
-          docker compose -f docker-compose_dev.yml -p dev_bot up -d
-
-  deploy_dev:
-    runs-on: [self-hosted]
-    needs: [build_and_test_bot, build_flutter_apk]
-    environment: dev
-    if: ${{ github.event_name == 'push' }}
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
-        with:
-          name: executable
-          path: bin/bot
-
-      - uses: actions/download-artifact@v3
-        if: ${{ github.event_name == 'pull_request' }}
-        with:
-          name: table
-
-      - name: Restart bot
-        env:
-          TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
-        run: |
-          docker build -t first_aid_bot:dev .
-          docker compose -f docker-compose_dev.yml -p dev_bot up -d
+          docker build -t first_aid_bot:${{ github.event_name == 'pull_request' && 'main' || 'dev' }} .
+          docker compose -f docker-compose_${{ github.event_name == 'pull_request' && 'main' || 'dev' }}.yml -p ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}_bot up -d
 
   release:
     runs-on: ubuntu-latest
