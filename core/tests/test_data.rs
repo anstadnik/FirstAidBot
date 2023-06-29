@@ -3,14 +3,20 @@ use first_aid_bot_core::prelude::*;
 use regex::Regex;
 use std::collections::VecDeque;
 
+// https://github.com/rust-lang/rust/issues/93743
 fn test_md(s: &str) -> Result<()> {
-    let re = Regex::new(r"(^|[^\\])(\*|_|__|~|\|\|)").unwrap();
-    let mut q: VecDeque<String> = VecDeque::new();
-    for cap in re.captures_iter(s) {
-        if q.back().map(String::as_str) == Some(&cap[2]) {
-            q.pop_back();
-        } else {
-            q.push_back(cap[2].to_owned());
+    let re = Regex::new(r"(\|\||__|\*|_|~)").unwrap();
+    let mut q: VecDeque<&str> = VecDeque::new();
+    for mat in re.find_iter(s) {
+        if mat.start() == 0
+            || !s.is_char_boundary(mat.start() - 1)
+            || &s[mat.start() - 1..mat.start()] != "\\"
+        {
+            if q.back() == Some(&mat.as_str()) {
+                q.pop_back();
+            } else {
+                q.push_back(mat.as_str());
+            }
         }
     }
     if !q.is_empty() {
@@ -21,9 +27,7 @@ fn test_md(s: &str) -> Result<()> {
 
 fn test_fs(fs: Fs) -> Result<()> {
     test_md(&fs.message)?;
-    for (s, fs) in fs
-        .next_states
-    {
+    for (s, fs) in fs.next_states {
         test_fs(fs).context(s)?;
     }
     Ok(())
@@ -41,4 +45,22 @@ async fn test_table() -> Result<()> {
     }
 
     Ok(())
+}
+
+// Add tests using cfg
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_example() -> Result<()> {
+        let s = r" *bold \*text*
+_italic \*text_
+__underline__
+~strikethrough~
+||spoiler||
+*bold _italic bold ~italic bold strikethrough ||italic bold strikethrough spoiler||~ __underline italic bold___ bold* ";
+        test_md(s)
+    }
 }
