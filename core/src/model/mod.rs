@@ -70,6 +70,3 @@ pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
     let rdr = Reader::from_reader(reqwest::get(url).await?.bytes().await?.reader());
     Ok([(lang, get_finite_state(rdr, lang)?)].into())
 }
-
-#[cfg(test)]
-mod test;

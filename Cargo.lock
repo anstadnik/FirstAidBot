@@ -399,6 +399,7 @@ dependencies = [
  "csv",
  "indexmap",
  "log",
+ "regex",
  "reqwest",
  "serde",
  "tokio",
