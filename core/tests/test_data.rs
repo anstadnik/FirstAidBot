@@ -8,8 +8,10 @@ fn test_md(s: &str) -> Result<()> {
     let re = Regex::new(r"(```|\|\||__|`|\*|_|~)").unwrap();
     let mut q: VecDeque<&str> = VecDeque::new();
     for mat in re.find_iter(s) {
-        let prev_i = mat.start() - 1;
-        if mat.start() == 0 || !s.is_char_boundary(prev_i) || &s[prev_i..mat.start()] != "\\" {
+        if mat.start() == 0
+            || !s.is_char_boundary(mat.start() - 1)
+            || &s[(mat.start() - 1)..mat.start()] != "\\"
+        {
             if q.back() == Some(&mat.as_str()) {
                 q.pop_back();
             } else {
