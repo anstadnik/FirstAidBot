@@ -74,9 +74,9 @@ jobs:
           cache: true
       - uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'
-          java-version: '11'
-          cache: 'gradle'
+          distribution: "zulu"
+          java-version: "11"
+          cache: "gradle"
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android, i686-linux-android
@@ -102,10 +102,11 @@ jobs:
           if-no-files-found: error
           path: app/build/app/outputs/flutter-apk/app-release.apk
 
-  deploy:
+  deploy_main:
     runs-on: [self-hosted]
-    needs: [build_and_test_bot,build_flutter_apk]
-    environment: ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}
+    needs: [build_and_test_bot, build_flutter_apk]
+    environment: main
+    if: ${{ github.event_name == 'pull_request' }}
 
     steps:
       - uses: actions/checkout@v3
@@ -123,12 +124,37 @@ jobs:
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
         run: |
-          docker build -t first_aid_bot:${{ github.event_name == 'pull_request' && 'main' || 'dev' }} .
-          docker compose -f docker-compose_${{ github.event_name == 'pull_request' && 'main' || 'dev' }}.yml -p ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}_bot up -d
+          docker build -t first_aid_bot:dev .
+          docker compose -f docker-compose_dev.yml -p dev_bot up -d
+
+  deploy_dev:
+    runs-on: [self-hosted]
+    needs: [build_and_test_bot, build_flutter_apk]
+    environment: dev
+    if: ${{ github.event_name == 'push' }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: executable
+          path: bin/bot
+
+      - uses: actions/download-artifact@v3
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          name: table
+
+      - name: Restart bot
+        env:
+          TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
+        run: |
+          docker build -t first_aid_bot:dev .
+          docker compose -f docker-compose_dev.yml -p dev_bot up -d
 
   release:
     runs-on: ubuntu-latest
-    needs: [build_and_test_bot,build_flutter_apk]
+    needs: [build_and_test_bot, build_flutter_apk]
     if: ${{ github.event_name == 'pull_request' && startsWith(github.ref, 'refs/tags/') }}
     steps:
       - uses: actions/checkout@v3
@@ -192,7 +218,7 @@ jobs:
 
   # It should wait untill all checks will pass
   auto-merge:
-    needs: [build_and_test_bot,build_flutter_apk]
+    needs: [build_and_test_bot, build_flutter_apk]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     permissions:
