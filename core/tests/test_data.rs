@@ -36,7 +36,7 @@ async fn test_table() -> Result<()> {
     let data = if cfg!(debug_assertions) {
         get_data_from_web().await?
     } else {
-        get_data_from_file("table.csv")?
+        get_data_from_file("../table.csv")?
     };
     for fs in data.into_values() {
         test_fs(fs)?;

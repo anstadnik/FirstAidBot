@@ -8,7 +8,6 @@ use anyhow::{Context, Error};
 use first_aid_bot_core::prelude::*;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::collections::VecDeque;
-use std::sync::Arc;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::prelude::*;
 use teloxide::types::ParseMode::Html;
