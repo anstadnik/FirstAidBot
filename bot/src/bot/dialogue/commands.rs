@@ -111,7 +111,7 @@ pub fn get_commands_branch() -> FAHandler {
 
 pub fn get_maintainer_commands_branch() -> FAHandler {
     dptree::filter(
-        |msg: Message, _bot: FABot, _data: Arc<Data>, _conn: MultiplexedConnection| {
+        |msg: Message, _bot: FABot, _data: &'static Data, _conn: MultiplexedConnection| {
             cfg!(debug_assertions) || is_admin(&msg)
         },
     )

@@ -28,21 +28,17 @@ jobs:
         if: github.event_name == 'pull_request'
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
-      - run: cargo test
-        env:
-          SHEET_ID: ${{ secrets.SHEET_ID }}
-
-      - name: Build release
+      - name: Test and build release
         if: github.event_name == 'pull_request'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-        run: cargo build --release
+        run: cargo test --release && cargo build --release
 
-      - name: Build debug
+      - name: Test and build debug
         if: github.event_name == 'push'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-        run: cargo build
+        run: cargo test && cargo build
 
       - name: Move binary
         run: mv target/*/bot target
