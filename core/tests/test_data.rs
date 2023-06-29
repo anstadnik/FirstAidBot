@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 
 // https://github.com/rust-lang/rust/issues/93743
 fn test_md(s: &str) -> Result<()> {
-    let re = Regex::new(r"(\|\||__|\*|_|~)").unwrap();
+    let re = Regex::new(r"(```|\|\||__|`|\*|_|~)").unwrap();
     let mut q: VecDeque<&str> = VecDeque::new();
     for mat in re.find_iter(s) {
         if mat.start() == 0
@@ -60,7 +60,14 @@ _italic \*text_
 __underline__
 ~strikethrough~
 ||spoiler||
-*bold _italic bold ~italic bold strikethrough ||italic bold strikethrough spoiler||~ __underline italic bold___ bold* ";
+*bold _italic bold ~italic bold strikethrough ||italic bold strikethrough spoiler||~ __underline italic bold___ bold*
+`inline fixed-width code`
+```
+pre-formatted fixed-width code block
+```
+```python
+pre-formatted fixed-width code block written in the Python programming language
+``` ";
         test_md(s)
     }
 }
