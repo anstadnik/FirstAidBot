@@ -26,6 +26,8 @@ jobs:
       # - name: Install Rust
       #   run: rustup update stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          targets: rust-std-x86_64-unknown-linux-musl
       - name: Download the table
         if: github.event_name == 'pull_request'
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
@@ -38,13 +40,13 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-        run: cargo build --release
+        run: cargo build --release --target x86_64-unknown-linux-musl
 
       - name: Build debug
         if: github.event_name == 'push'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-        run: cargo build
+        run: cargo build --target x86_64-unknown-linux-musl
 
       - name: Move binary
         run: mv target/*/bot target
@@ -153,7 +155,7 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [deploy, release]
+    needs: deploy
 
     steps:
       - uses: actions/download-artifact@v3
@@ -162,7 +164,7 @@ jobs:
 
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
-        if: always() && (github.event_name == 'pull_request') && !contains(needs.*.result, 'failure')
+        if: always() && github.event_name == 'pull_request' && !contains(needs.*.result, 'failure')
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
@@ -177,7 +179,7 @@ jobs:
 
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
-        if: always() && (github.event_name == 'pull_request') && contains(needs.*.result, 'failure')
+        if: always() && github.event_name == 'pull_request' && contains(needs.*.result, 'failure')
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
