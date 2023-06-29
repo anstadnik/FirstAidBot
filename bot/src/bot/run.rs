@@ -2,7 +2,7 @@ use crate::bot::dialogue::prelude::*;
 use crate::bot::report_error::FAErrorHandler;
 use crate::bot::State;
 use crate::REDIS_URLS;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Ok, Result};
 use first_aid_bot_core::prelude::Data;
 use futures::future::join_all;
 use redis::{aio::MultiplexedConnection, Client};
@@ -16,10 +16,8 @@ use super::FirstAidStorage;
 
 pub async fn connect_to_redis() -> Result<(MultiplexedConnection, Arc<FirstAidStorage>)> {
     let results = join_all(REDIS_URLS.into_iter().map(|url| async move {
-        let connection = Client::open(url)?
-            .get_multiplexed_tokio_connection()
-            .await?;
-        anyhow::Ok((connection, RedisStorage::open(url, Bincode).await?))
+        let connection = Client::open(url)?.get_multiplexed_tokio_connection().await;
+        Ok((connection?, RedisStorage::open(url, Bincode).await?))
     }));
     let error = anyhow!("No redis connection");
     results.await.into_iter().flatten().next().ok_or(error)

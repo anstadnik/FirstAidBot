@@ -89,10 +89,8 @@ async fn recursive_test(fs: &Fs, ctx: FAContext, bot: &FABot, msg: &Message) -> 
 
 async fn test(data: &Data, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
     for lang in Lang::iter() {
-        let ctx = FAContext {
-            lang,
-            context: Vec::new(),
-        };
+        let context = Vec::new();
+        let ctx = FAContext { lang, context };
         recursive_test(&*data.get().await?.get_state(&ctx)?, ctx, bot, msg).await?;
     }
 
