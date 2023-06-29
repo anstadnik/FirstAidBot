@@ -18,33 +18,28 @@ env:
 
 jobs:
   build_and_test_bot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    environment: ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}
 
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      # - name: Install Rust
-      #   run: rustup update stable
       - uses: Swatinem/rust-cache@v2
       - name: Download the table
-        if: ${{ github.event_name == 'pull_request' }}
+        if: github.event_name == 'pull_request'
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
-      - run: cargo test
+      - name: Test and build release
+        if: github.event_name == 'pull_request'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
+        run: cargo test --release && cargo build --release
 
-      - name: Build release
-        if: ${{ github.event_name == 'pull_request' }}
+      - name: Test and build debug
+        if: github.event_name == 'push'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-        run: cargo build --release
-
-      - name: Build debug
-        if: ${{ github.event_name == 'pull_request' }}
-        env:
-          SHEET_ID: ${{ secrets.SHEET_ID }}
-        run: cargo build
+        run: cargo test && cargo build
 
       - name: Move binary
         run: mv target/*/bot target
@@ -55,7 +50,7 @@ jobs:
           path: target/bot
 
       - uses: actions/upload-artifact@v3
-        if: ${{ github.event_name == 'pull_request' }}
+        if: github.event_name == 'pull_request'
         with:
           name: table
           path: table.csv
@@ -74,9 +69,9 @@ jobs:
           cache: true
       - uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'
-          java-version: '11'
-          cache: 'gradle'
+          distribution: "zulu"
+          java-version: "11"
+          cache: "gradle"
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android, i686-linux-android
@@ -104,8 +99,8 @@ jobs:
 
   deploy:
     runs-on: [self-hosted]
-    needs: [build_and_test_bot,build_flutter_apk]
-    environment: ${{ github.event_name == 'pull_request' && 'main' || 'dev '}}
+    needs: [build_and_test_bot, build_flutter_apk]
+    environment: ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}
 
     steps:
       - uses: actions/checkout@v3
@@ -115,7 +110,7 @@ jobs:
           path: bin/bot
 
       - uses: actions/download-artifact@v3
-        if: ${{ github.event_name == 'pull_request' }}
+        if: github.event_name == 'pull_request'
         with:
           name: table
 
@@ -123,13 +118,13 @@ jobs:
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
         run: |
-          docker build -t first_aid_bot:${{ github.event_name == 'pull_request' && 'main' || 'dev '}} .
-          docker compose -f docker-compose_${{ github.event_name == 'pull_request' && 'main' || 'dev '}}.yml -p ${{ github.event_name == 'pull_request' && 'main' || 'dev '}}_bot up -d
+          docker build -t first_aid_bot:${{ github.event_name == 'pull_request' && 'main' || 'dev' }} .
+          docker compose -f docker-compose_${{ github.event_name == 'pull_request' && 'main' || 'dev' }}.yml -p ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}_bot up -d
 
   release:
     runs-on: ubuntu-latest
-    needs: [build_and_test_bot,build_flutter_apk]
-    if: ${{ github.event_name == 'pull_request' && startsWith(github.ref, 'refs/tags/') }}
+    needs: [build_and_test_bot, build_flutter_apk]
+    if: github.event_name == 'pull_request' && startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
@@ -153,7 +148,8 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [deploy, release]
+    needs: deploy
+    if: github.event_name == 'pull_request'
 
     steps:
       - uses: actions/download-artifact@v3
@@ -162,7 +158,7 @@ jobs:
 
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
-        if: ${{ always() && github.event_name == 'pull_request' && !contains(needs.*.result, 'failure') }}
+        if: always() && github.event_name == 'pull_request' && !contains(needs.*.result, 'failure')
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
@@ -177,7 +173,7 @@ jobs:
 
       - name: send telegram message on push
         uses: appleboy/telegram-action@master
-        if: ${{ always() && github.event_name == 'pull_request' && contains(needs.*.result, 'failure') }}
+        if: always() && github.event_name == 'pull_request' && contains(needs.*.result, 'failure')
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
@@ -192,9 +188,9 @@ jobs:
 
   # It should wait untill all checks will pass
   auto-merge:
-    needs: [build_and_test_bot,build_flutter_apk]
+    needs: [build_and_test_bot, build_flutter_apk]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
+    if: github.event_name == 'pull_request'
     permissions:
       pull-requests: write
       contents: write

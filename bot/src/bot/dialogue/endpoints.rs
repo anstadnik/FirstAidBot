@@ -17,9 +17,8 @@ pub async fn start_endpoint(
     if is_admin(&msg) && random::<u8>() % 50 == 0 {
         easter_egg(&bot, &msg).await?;
     }
-    let ctx = FAContext::default();
-    let fs = data.get().await?.get_state(&ctx)?;
-    move_to_state(&bot, &msg, &dialogue, &fs, ctx, &mut conn).await
+    let fs = data.get().await?.get_state(&FAContext::default())?;
+    move_to_state(&bot, &msg, &dialogue, &fs, FAContext::default(), &mut conn).await
 }
 
 pub async fn handle_endpoint(

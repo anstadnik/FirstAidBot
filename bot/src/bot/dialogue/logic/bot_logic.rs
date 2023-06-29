@@ -21,12 +21,9 @@ pub async fn move_to_state(
         let _ = log_to_redis(msg, &ctx, conn).await;
         send_state(bot, msg, &ctx, fs).await.context(err)?;
     }
-    dialogue
-        .update(State::Dialogue {
-            lang: ctx.lang.to_string(),
-            context: ctx.context,
-        })
-        .await?;
+    let lang = ctx.lang.to_string();
+    let context = ctx.context;
+    dialogue.update(State::Dialogue { lang, context }).await?;
     Ok(())
 }
 

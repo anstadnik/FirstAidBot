@@ -8,7 +8,6 @@ use anyhow::{Context, Error};
 use first_aid_bot_core::prelude::*;
 use redis::{aio::MultiplexedConnection, AsyncCommands};
 use std::collections::VecDeque;
-use std::sync::Arc;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::prelude::*;
 use teloxide::types::ParseMode::Html;
@@ -90,10 +89,8 @@ async fn recursive_test(fs: &Fs, ctx: FAContext, bot: &FABot, msg: &Message) -> 
 
 async fn test(data: &Data, bot: &FABot, msg: &Message) -> anyhow::Result<()> {
     for lang in Lang::iter() {
-        let ctx = FAContext {
-            lang,
-            context: Vec::new(),
-        };
+        let context = Vec::new();
+        let ctx = FAContext { lang, context };
         recursive_test(&*data.get().await?.get_state(&ctx)?, ctx, bot, msg).await?;
     }
 
@@ -111,7 +108,7 @@ pub fn get_commands_branch() -> FAHandler {
 
 pub fn get_maintainer_commands_branch() -> FAHandler {
     dptree::filter(
-        |msg: Message, _bot: FABot, _data: Arc<Data>, _conn: MultiplexedConnection| {
+        |msg: Message, _bot: FABot, _data: &'static Data, _conn: MultiplexedConnection| {
             cfg!(debug_assertions) || is_admin(&msg)
         },
     )
