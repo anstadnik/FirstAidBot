@@ -105,7 +105,7 @@ jobs:
   deploy:
     runs-on: [self-hosted]
     needs: [build_and_test_bot, build_flutter_apk]
-    environment: ${{ (github.event_name == 'pull_request') && 'main' || 'dev' }}
+    environment: ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}
 
     steps:
       - uses: actions/checkout@v3
@@ -123,8 +123,8 @@ jobs:
         env:
           TELOXIDE_TOKEN: ${{ secrets.TELOXIDE_TOKEN }}
         run: |
-          docker build -t first_aid_bot:${{ (github.event_name == 'pull_request') && 'main' || 'dev' }} .
-          docker compose -f docker-compose_${{ (github.event_name == 'pull_request') && 'main' || 'dev' }}.yml -p ${{ (github.event_name == 'pull_request') && 'main' || 'dev' }}_bot up -d
+          docker build -t first_aid_bot:${{ github.event_name == 'pull_request' && 'main' || 'dev' }} .
+          docker compose -f docker-compose_${{ github.event_name == 'pull_request' && 'main' || 'dev' }}.yml -p ${{ github.event_name == 'pull_request' && 'main' || 'dev' }}_bot up -d
 
   release:
     runs-on: ubuntu-latest
