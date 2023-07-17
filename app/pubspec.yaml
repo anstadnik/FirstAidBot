@@ -38,7 +38,7 @@ dependencies:
   ffi: ^2.0.1
   flutter_rust_bridge: ^1.45.0
   meta: ^1.8.0
-  freezed_annotation: ^2.2.0
+  freezed_annotation: ^2.4.1
   flutter_platform_widgets: ^3.3.5
   provider: ^6.0.5
 
