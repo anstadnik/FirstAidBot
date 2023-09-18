@@ -82,12 +82,10 @@ jobs:
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: cargo-ndk
-      - run: just
-      # - run: cargo build
-      #   env:
-      #     SHEET_ID: ${{ secrets.SHEET_ID }}
-      # - run: flutter test
-      - run: flutter build apk --release
+      - uses: baptiste0928/cargo-install@v2
+        with:
+          crate: cargo-expand
+      - run: just && flutter build apk --release
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
         # https://github.com/actions/upload-artifact/issues/294

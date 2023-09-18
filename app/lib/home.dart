@@ -41,7 +41,8 @@ class FABFutureBuilder extends StatelessWidget {
         const Expanded(child: StateConsumer()),
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          child:
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             _buildButtonCallback("Back", () => farState.back()),
             _buildButtonCallback("Home", () => farState.home()),
             _buildButtonCallback("Refresh", () => farState.refresh())
