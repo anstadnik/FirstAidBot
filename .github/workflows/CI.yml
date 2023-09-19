@@ -24,6 +24,11 @@ jobs:
         if: github.base_ref == 'main'
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets['SHEET_ID_${github.base_ref}'] }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
+      - uses: baptiste0928/cargo-install@v2
+        with:
+          crate: cargo-bloat
+      - run: cargo-bloat
+
       - name: Test and build release
         if: github.base_ref == 'main'
         env:
