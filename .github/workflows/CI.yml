@@ -28,6 +28,8 @@ jobs:
         with:
           crate: cargo-bloat
       - run: cargo bloat
+        env:
+          SHEET_ID: ${{ secrets['SHEET_ID_${github.base_ref}'] }}
 
       - name: Test and build release
         if: github.base_ref == 'main'
