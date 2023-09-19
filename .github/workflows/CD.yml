@@ -21,7 +21,9 @@ jobs:
           pr: ${{github.event.pull_request.number}}
           workflow: CI.yml
           name: executable
-          path: bin/bot
+          skip_unpack: true
+          # path: bin/bot
+      - run: unzip executable.zip -d bin/bot
       - uses: dawidd6/action-download-artifact@v2
         if: github.base_ref == 'main'
         with:
