@@ -19,12 +19,14 @@ jobs:
       - uses: dawidd6/action-download-artifact@v2
         with:
           pr: ${{github.event.pull_request.number}}
+          workflow: CI.yml
           name: executable
           path: bin/bot
       - uses: dawidd6/action-download-artifact@v2
         if: github.base_ref == 'main'
         with:
           pr: ${{github.event.pull_request.number}}
+          workflow: CI.yml
           name: table
 
       - name: Restart bot
@@ -42,14 +44,17 @@ jobs:
       - uses: dawidd6/action-download-artifact@v2
         with:
           pr: ${{github.event.pull_request.number}}
+          workflow: CI.yml
           name: table
       - uses: dawidd6/action-download-artifact@v2
         with:
           pr: ${{github.event.pull_request.number}}
+          workflow: CI.yml
           name: executable
       - uses: dawidd6/action-download-artifact@v2
         with:
           pr: ${{github.event.pull_request.number}}
+          workflow: CI.yml
           name: apk
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -70,6 +75,7 @@ jobs:
       - uses: dawidd6/action-download-artifact@v2
         with:
           pr: ${{github.event.pull_request.number}}
+          workflow: CI.yml
           name: table
 
       - name: send telegram message on push
