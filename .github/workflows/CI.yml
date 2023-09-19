@@ -7,7 +7,7 @@ on:
       - "main"
 
 concurrency:
-  group: ${{ github.event_name }}
+  group: ${{ github.base_ref  }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,24 +15,24 @@ env:
 jobs:
   build_and_test_bot:
     runs-on: ubuntu-20.04
-    environment: ${{ github.event.pull_request.base.ref }}
+    environment: ${{ github.base_ref }}
 
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Download the table
-        if: github.event.pull_request.base.ref == 'main'
+        if: github.base_ref == 'main'
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
       - name: Test and build release
-        if: github.event.pull_request.base.ref == 'main'
+        if: github.base_ref == 'main'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
         run: cargo test --release && cargo build --release
 
       - name: Test and build debug
-        if: github.event.pull_request.base.ref == 'dev'
+        if: github.base_ref == 'dev'
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
         run: cargo test && cargo build
@@ -46,7 +46,7 @@ jobs:
           path: target/bot
 
       - uses: actions/upload-artifact@v3
-        if: github.event.pull_request.base.ref == 'main'
+        if: github.base_ref == 'main'
         with:
           name: table
           path: table.csv
@@ -95,7 +95,7 @@ jobs:
   auto-merge:
     needs: [build_and_test_bot, build_flutter_apk]
     runs-on: ubuntu-latest
-    if: github.event.pull_request.base.ref == 'main'
+    if: github.base_ref == 'main'
     permissions:
       pull-requests: write
       contents: write
