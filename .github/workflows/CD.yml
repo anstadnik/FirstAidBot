@@ -23,7 +23,7 @@ jobs:
           name: executable
           skip_unpack: true
           # path: bin/bot
-      - run: unzip executable.zip -d bin/bot
+      - run: unzip executable.zip -d bin
       - uses: dawidd6/action-download-artifact@v2
         if: github.base_ref == 'main'
         with:
