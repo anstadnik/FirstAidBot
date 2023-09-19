@@ -39,6 +39,8 @@ jobs:
       - name: Move binary
         run: mv target/*/bot target
 
+      - run: ls -l target/bot
+
       - uses: actions/upload-artifact@v3
         with:
           name: executable
