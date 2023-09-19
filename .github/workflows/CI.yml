@@ -27,7 +27,7 @@ jobs:
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: cargo-bloat
-      - run: cargo-bloat
+      - run: cargo bloat
 
       - name: Test and build release
         if: github.base_ref == 'main'
