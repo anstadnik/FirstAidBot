@@ -23,7 +23,7 @@ jobs:
       - name: Download the table
         if: github.base_ref == 'main'
         env:
-          SHEET_ID=${{ secrets['SHEET_ID_${github.base_ref}'] }}
+          SHEET_ID: ${{ secrets['SHEET_ID_${github.base_ref}'] }}
         run: curl -L "docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
       # - uses: baptiste0928/cargo-install@v2
