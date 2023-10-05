@@ -29,7 +29,11 @@ fn test_fs(fs: Fs) -> Result<()> {
     if fs.message.chars().all(char::is_whitespace) {
         bail!("Empty message");
     }
-    if fs.link.as_ref().is_some_and(|s| s.chars().all(char::is_whitespace)) {
+    if fs
+        .link
+        .as_ref()
+        .is_some_and(|s| s.chars().all(char::is_whitespace))
+    {
         bail!("Empty link");
     }
     test_md(&fs.message)?;
@@ -39,27 +43,13 @@ fn test_fs(fs: Fs) -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
-async fn test_table() -> Result<()> {
-    let data = if cfg!(debug_assertions) {
-        get_data_from_web().await?
-    } else {
-        get_data_from_file("../table.csv")?
-    };
-    for fs in data.into_values() {
-        test_fs(fs)?;
-    }
-
-    Ok(())
-}
-
 // Add tests using cfg
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
+    #[test_log::test]
     fn test_example() -> Result<()> {
         let s = r" *bold \*text*
 _italic \*text_
@@ -75,5 +65,23 @@ pre-formatted fixed-width code block
 pre-formatted fixed-width code block written in the Python programming language
 ``` ";
         test_md(s)
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_table() -> Result<()> {
+        let data = if cfg!(debug_assertions) {
+            get_data_from_web().await?
+        } else {
+            get_data_from_file("../table.csv")?
+        };
+        data.iter()
+            .for_each(|(lang, fs)| log::info!("Testing {lang} with {} nodes", fs.num_nodes()));
+        for (lang, fs) in data.into_iter() {
+            let n_nodes = fs.num_nodes();
+            test_fs(fs)?;
+            log::info!("All tests passed for {lang} with {n_nodes} nodes");
+        }
+
+        Ok(())
     }
 }

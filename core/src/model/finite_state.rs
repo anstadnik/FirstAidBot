@@ -59,4 +59,7 @@ impl Fs {
             next_states: options,
         })
     }
+    pub fn num_nodes(&self) -> usize {
+        1 + self.next_states.values().map(Fs::num_nodes).sum::<usize>()
+    }
 }
