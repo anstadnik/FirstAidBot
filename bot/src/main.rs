@@ -15,7 +15,7 @@ static DATA: OnceLock<Data> = OnceLock::new();
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    pretty_env_logger::init();
+    pretty_env_logger::init_timed();
     let data = if cfg!(debug_assertions) {
         Data::dynamic()
     } else {
