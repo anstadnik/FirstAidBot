@@ -16,12 +16,14 @@ static DATA: OnceLock<Data> = OnceLock::new();
 #[tokio::main]
 async fn main() -> Result<()> {
     pretty_env_logger::init_timed();
+    let commit = option_env!("GITHUB_SHA").unwrap_or("unknown");
+    log::info!("Starting bot on commit {commit} ...");
     let data = if cfg!(debug_assertions) {
         Data::dynamic()
     } else {
         Data::cached()?
     };
-    DATA.get_or_init(|| data);
+    DATA.set(data).map_err(|_| anyhow!("OnceLock is already initialized"))?;
 
     run_bot(DATA.get().ok_or(anyhow!("OnceLock is not initialized"))?).await
 }
