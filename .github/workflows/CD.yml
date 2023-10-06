@@ -16,6 +16,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Download the table
+        if: github.base_ref == 'main'
+        run: curl -L "docs.google.com/spreadsheets/d/${{ env.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
+
       - uses: dawidd6/action-download-artifact@v2
         with:
           pr: ${{github.event.pull_request.number}}
@@ -24,12 +29,6 @@ jobs:
           skip_unpack: true
           # path: bin/bot
       - run: unzip executable.zip -d bin
-      - uses: dawidd6/action-download-artifact@v2
-        if: github.base_ref == 'main'
-        with:
-          pr: ${{github.event.pull_request.number}}
-          workflow: CI.yml
-          name: table
 
       - name: Restart bot
         env:
