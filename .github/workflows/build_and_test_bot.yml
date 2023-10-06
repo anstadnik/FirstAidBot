@@ -28,6 +28,7 @@ jobs:
         if: inputs.release
         env:
           SHEET_ID: ${{ env.SHEET_ID }}
+          RUST_LOG: info 
         run: cargo test --release -- --nocapture && cargo build --release
 
       - name: Test and build debug
