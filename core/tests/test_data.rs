@@ -75,12 +75,9 @@ pre-formatted fixed-width code block written in the Python programming language
             get_data_from_file("../table.csv")?
         };
         assert!(!data.is_empty());
-        data.iter()
-            .for_each(|(lang, fs)| log::info!("Testing {lang} with {} nodes", fs.num_nodes()));
-        for (lang, fs) in data.into_iter() {
-            let n_nodes = fs.num_nodes();
-            test_fs(fs)?;
-        }
+        data.into_iter()
+            .inspect(|(lang, fs)| log::info!("Testing {lang} with {} nodes", fs.num_nodes()))
+            .try_for_each(|(_, fs)| test_fs(fs))?;
 
         Ok(())
     }
