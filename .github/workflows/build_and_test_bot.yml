@@ -28,13 +28,13 @@ jobs:
         if: inputs.release
         env:
           SHEET_ID: ${{ env.SHEET_ID }}
-        run: cargo test --release && cargo build --release
+        run: cargo test --release -- --nocapture && cargo build --release
 
       - name: Test and build debug
         if: ${{ !inputs.release }}
         env:
           SHEET_ID: ${{ env.SHEET_ID }}
-        run: cargo test && cargo build
+        run: cargo test -- --nocapture && cargo build
 
       - name: Move binary
         if: inputs.upload-artifact
