@@ -14,91 +14,19 @@ env:
 
 jobs:
   build_and_test_bot:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Download the table
-        if: github.base_ref == 'main'
-        # env:
-          # SHEET_ID: 
-        # run: curl -L "docs.google.com/spreadsheets/d/${{ secrets['SHEET_ID_${github.base_ref}'] }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
-        run: curl -L "docs.google.com/spreadsheets/d/${{ secrets['SHEET_ID_dev'] }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
-
-      # - uses: baptiste0928/cargo-install@v2
-      #   with:
-      #     crate: cargo-bloat
-      # - run: cd bot && cargo bloat
-      #   env:
-      #     SHEET_ID: ${{ secrets['SHEET_ID_${github.base_ref}'] }}
-
-      - name: Test and build release
-        if: github.base_ref == 'main'
-        env:
-          SHEET_ID: ${{ secrets['SHEET_ID_${github.base_ref}'] }}
-        run: cargo test --release && cargo build --release
-
-      - name: Test and build debug
-        if: github.base_ref == 'dev'
-        env:
-          SHEET_ID: ${{ secrets['SHEET_ID_${github.base_ref}'] }}
-        run: cargo test && cargo build
-
-      - name: Move binary
-        run: mv target/*/bot target
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: executable
-          path: target/bot
-
-      - uses: actions/upload-artifact@v3
-        if: github.base_ref == 'main'
-        with:
-          name: table
-          path: table.csv
+    uses: ./.github/workflows/build_and_test_bot.yml
+    with:
+      release: ${{ github.base_ref == 'main' }}
+      upload-artifact: true
+    secrets:
+      SHEET_ID: ${{ secrets.SHEET_ID }}
 
   build_flutter_apk:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
-    steps:
-      - uses: actions/checkout@v3
-      - uses: extractions/setup-just@v1
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          cache: true
-      - uses: actions/setup-java@v3
-        with:
-          distribution: "zulu"
-          java-version: "11"
-          cache: "gradle"
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android, i686-linux-android
-      - uses: Swatinem/rust-cache@v2
-      - uses: baptiste0928/cargo-install@v2
-        with:
-          crate: flutter_rust_bridge_codegen
-      - uses: baptiste0928/cargo-install@v2
-        with:
-          crate: cargo-ndk
-      - uses: baptiste0928/cargo-install@v2
-        with:
-          crate: cargo-expand
-      - run: just && flutter build apk --release
-        env:
-          SHEET_ID: ${{ secrets['SHEET_ID_${github.base_ref}'] }}
-        # https://github.com/actions/upload-artifact/issues/294
-      - uses: actions/upload-artifact@v3
-        with:
-          name: apk
-          if-no-files-found: error
-          path: app/build/app/outputs/flutter-apk/app-release.apk
+    uses: ./.github/workflows/build_flutter_apk.yml
+    with:
+      upload-artifact: true
+    secrets:
+      SHEET_ID: ${{ secrets.SHEET_ID }}
 
   # It should wait untill all checks will pass
   auto-merge:
