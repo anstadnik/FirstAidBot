@@ -10,7 +10,7 @@ pub mod prelude {
 }
 
 use self::finite_state::{Fs, Row};
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow, bail, Context};
 use bytes::Buf;
 use csv::Reader;
 use finite_state::MultilangFs;
@@ -42,6 +42,9 @@ fn get_finite_state(rdr: Reader<impl Read>, lang: Lang) -> anyhow::Result<Fs> {
         .collect::<Result<Vec<Row>, _>>()
         .context("Cannot parse csv")?;
     rows.retain(|record| !record.is_empty());
+    if rows.is_empty() {
+        bail!("No data");
+    }
     for r in rows.iter_mut() {
         r.key = r.key.trim().to_string();
         r.question = r.question.trim().to_string();

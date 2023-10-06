@@ -27,14 +27,14 @@ jobs:
       - name: Test and build release
         if: inputs.release
         env:
-          SHEET_ID: ${{ env.SHEET_ID }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
           RUST_LOG: info 
         run: cargo test --release -- --nocapture && cargo build --release
 
       - name: Test and build debug
         if: ${{ !inputs.release }}
         env:
-          SHEET_ID: ${{ env.SHEET_ID }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
           RUST_LOG: info 
         run: cargo test -- --nocapture && cargo build
 
