@@ -15,7 +15,7 @@ jobs:
     environment: ${{ github.base_ref }}
 
     steps:
-      - uses: actions/checkout@v3
+      # - uses: actions/checkout@v3
 
       - name: Download the table
         if: github.base_ref == 'main'
