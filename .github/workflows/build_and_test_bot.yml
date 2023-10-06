@@ -31,7 +31,7 @@ jobs:
         run: cargo test --release && cargo build --release
 
       - name: Test and build debug
-        if: ! release
+        if: ${{ !release }}
         env:
           SHEET_ID: ${{ env.SHEET_ID }}
         run: cargo test && cargo build
