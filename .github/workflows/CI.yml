@@ -21,12 +21,12 @@ jobs:
     secrets:
       SHEET_ID: ${{ secrets.SHEET_ID }}
 
-  # build_flutter_apk:
-  #   uses: ./.github/workflows/build_flutter_apk.yml
-  #   with:
-  #     upload-artifact: true
-  #   secrets:
-  #     SHEET_ID: ${{ secrets.SHEET_ID }}
+  build_flutter_apk:
+    uses: ./.github/workflows/build_flutter_apk.yml
+    with:
+      upload-artifact: true
+    secrets:
+      SHEET_ID: ${{ secrets.SHEET_ID }}
 
   # It should wait untill all checks will pass
   auto-merge:
