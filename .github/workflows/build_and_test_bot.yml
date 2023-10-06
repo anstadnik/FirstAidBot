@@ -35,6 +35,7 @@ jobs:
         if: ${{ !inputs.release }}
         env:
           SHEET_ID: ${{ env.SHEET_ID }}
+          RUST_LOG: info 
         run: cargo test -- --nocapture && cargo build
 
       - name: Move binary
