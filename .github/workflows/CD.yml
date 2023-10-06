@@ -19,7 +19,7 @@ jobs:
 
       - name: Download the table
         if: github.base_ref == 'main'
-        run: curl -L "docs.google.com/spreadsheets/d/${{ env.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
+        run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
       - uses: dawidd6/action-download-artifact@v2
         with:
