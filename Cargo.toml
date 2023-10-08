@@ -6,3 +6,9 @@ members = [
     "bot",
     "app/native"
 ]
+
+[workspace.dependencies]
+log = "0.4"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+anyhow = "1" 
+serde = "1" 
