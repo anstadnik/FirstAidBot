@@ -1,7 +1,6 @@
 use crate::model::MultilangFs;
 use crate::prelude::*;
 use anyhow::{anyhow, Result};
-use log::info;
 use std::borrow::Cow;
 
 #[derive(Debug)]
@@ -11,11 +10,11 @@ pub struct Data {
 
 impl Data {
     pub fn dynamic() -> Self {
-        info!("Dynamic data!");
+        log::info!("Dynamic data!");
         Self { data: None }
     }
     pub fn cached() -> Result<Self> {
-        info!("Cached data!");
+        log::info!("Cached data!");
         Ok(Self {
             data: Some(get_data_from_file("table.csv")?),
         })

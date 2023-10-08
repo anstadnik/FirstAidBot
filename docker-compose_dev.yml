@@ -5,6 +5,7 @@ services:
     image: first_aid_bot:dev
     environment:
       - SHEET_ID
+      - RUST_LOG=info
       - TELOXIDE_TOKEN
     restart: unless-stopped
     depends_on:

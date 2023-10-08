@@ -1,6 +1,5 @@
-use self::Lang::Ua;
 use crate::HELP_CHAT_URL;
-use anyhow::bail;
+use anyhow::anyhow;
 use const_format::concatcp;
 use std::fmt::Display;
 
@@ -19,11 +18,11 @@ pub enum Lang {
 impl Lang {
     // https://github.com/rust-lang/rfcs/issues/284
     pub fn iter() -> impl Iterator<Item = Self> {
-        [Ua /* En, Ru */].into_iter()
+        [Lang::Ua /* En, Ru */].into_iter()
     }
     pub const fn details(self) -> LangDetails {
         match self {
-            Ua => UA_LD,
+            Lang::Ua => UA_LD,
             /* En => EN_LD,
             Ru => RU_LD, */
         }
@@ -37,15 +36,14 @@ impl TryFrom<&str> for Lang {
     type Error = anyhow::Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            UA_STR => Ok(Ua),
-            /* EN_STR => Ok(En),
-            RU_STR => Ok(Ru), */
-            unknown_lang => {
-                log::error!("Cannot create a language from {unknown_lang}");
-                bail!("Error, unknown language. If issue persists, ask for help in {HELP_CHAT_URL}")
-            }
-        }
+        Lang::iter()
+            .find(|lang| lang.name() == value)
+            .ok_or_else(|| {
+                log::error!("Cannot create a language from {value}");
+                anyhow!(
+                    "Error, unknown language. If issue persists, ask for help in {HELP_CHAT_URL}"
+                )
+            })
     }
 }
 
@@ -71,9 +69,8 @@ pub struct LangDetails {
     pub broadcast: &'static str,
 }
 
-const UA_STR: &str = "Ukrainian";
 const UA_LD: LangDetails = LangDetails {
-    name: UA_STR,
+    name:  "Ukrainian",
     button_lang: "Українська",
     button_back: "◀️ Повернутись",
     button_home: "◀️ На початок",
@@ -91,18 +88,16 @@ const UA_LD: LangDetails = LangDetails {
     broadcast: "Транслювати",
 };
 
-// const EN_STR: &str = "Ukrainian";
 // const EN_LD: LangDetails = LangDetails {
-//     name: EN_STR,
+//     name: "English",
 //     button_lang_name: "English",
 //     error: "An error occured, please tell us about it at " + HELP_CHAT_URL,
 //     use_buttons_text: "Use buttons, or restart bot i\f something is wrong (/start)",
 //     greeting: "What happened?",
 // };
-//
-// const RU_STR: &str = "Ukrainian";
+
 // const RU_LD: LangDetails = LangDetails {
-//     name: RU_STR,
+//     name: "Russian",
 //     button_lang_name: "Русский",
 //     error: "Произошла ошибка, пожалуйста, сообщине о ней в " + HELP_CHAT_URL,
 //     use_buttons_text: "Используйте кнопки, или перезагрузите бота, если что-то сломалось (/start)",
