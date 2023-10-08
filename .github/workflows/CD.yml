@@ -15,7 +15,7 @@ jobs:
     environment: ${{ github.base_ref }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download the table
         if: github.base_ref == 'main'
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.base_ref == 'main' && startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dawidd6/action-download-artifact@v2
         with:
           pr: ${{github.event.pull_request.number}}
