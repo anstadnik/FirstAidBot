@@ -904,7 +904,6 @@ dependencies = [
 name = "native"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "first_aid_bot_core",
  "flutter_rust_bridge",
  "openssl",
