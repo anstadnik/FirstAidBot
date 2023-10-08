@@ -32,7 +32,7 @@ jobs:
   auto-merge:
     needs: [build_and_test_bot, build_flutter_apk]
     runs-on: ubuntu-latest
-    if: github.base_ref == 'main'
+    # if: github.base_ref == 'main'
     permissions:
       pull-requests: write
       contents: write
