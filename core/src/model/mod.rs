@@ -10,7 +10,7 @@ pub mod prelude {
 }
 
 use self::finite_state::{Fs, Row};
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow, bail, Context};
 use bytes::Buf;
 use csv::Reader;
 use finite_state::MultilangFs;
@@ -42,6 +42,9 @@ fn get_finite_state(rdr: Reader<impl Read>, lang: Lang) -> anyhow::Result<Fs> {
         .collect::<Result<Vec<Row>, _>>()
         .context("Cannot parse csv")?;
     rows.retain(|record| !record.is_empty());
+    if rows.is_empty() {
+        bail!("No data");
+    }
     for r in rows.iter_mut() {
         r.key = r.key.trim().to_string();
         r.question = r.question.trim().to_string();
@@ -59,7 +62,7 @@ pub fn get_data_from_file(filename: &str) -> anyhow::Result<MultilangFs> {
 }
 
 pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
-    let sheet_id = env!("SHEET_ID");
+    let sheet_id = option_env!("SHEET_ID").ok_or_else(|| anyhow!("SHEET_ID is not set"))?;
     assert!(Lang::iter().count() == 1, "Only one language is supported");
     let lang = Lang::iter().next().unwrap();
     let sheet_name = lang.name();
