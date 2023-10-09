@@ -11,7 +11,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [dependencies]
 
 # # Load the data
-csv = "1.2"
+csv = "1.3"
 bytes = "1.5"
 reqwest = { version = "0.11"}
 indexmap = "1.9"
@@ -21,7 +21,7 @@ log = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 
 const_format = "0.2" 
-regex = "1.9.5"
+regex = "1.9.6"
 
 [dev-dependencies]
 env_logger = "0.10"
