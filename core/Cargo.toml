@@ -21,7 +21,7 @@ log = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 
 const_format = "0.2" 
-regex = "1.9.5"
+regex = "1.9.6"
 
 [dev-dependencies]
 env_logger = "0.10"
