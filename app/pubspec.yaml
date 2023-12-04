@@ -53,7 +53,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.1
   ffigen: ^8.0.2
-  build_runner: ^2.4.4
+  build_runner: ^2.4.7
   freezed: ^2.4.5
 
 # For information on the generic Dart part of this file, see the
