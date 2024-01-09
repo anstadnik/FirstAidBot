@@ -47,7 +47,7 @@ jobs:
       - run: just && flutter build apk --release
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: inputs.upload-artifact
         with:
           name: apk
