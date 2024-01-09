@@ -21,7 +21,7 @@ impl<T> NewWithNullPtr for *mut T {
 }
 
 #[no_mangle]
-pub extern "C" fn frbgen_app2_dart_fn_deliver_output(
+pub extern "C" fn frbgen_app_dart_fn_deliver_output(
     call_id: i32,
     ptr_: *mut u8,
     rust_vec_len_: i32,
