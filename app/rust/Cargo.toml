@@ -10,6 +10,6 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 first_aid_bot_core = { path = "../../core" }
-flutter_rust_bridge = "1"
+flutter_rust_bridge = "2.0.0-dev"
 openssl = { version = "0.10", features = ["vendored"] }
 tokio = { workspace = true }

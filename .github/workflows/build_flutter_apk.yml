@@ -37,7 +37,7 @@ jobs:
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: flutter_rust_bridge_codegen
-          version: 2.0.0-dev.0
+          version: 2.0.0-dev
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: cargo-ndk

@@ -74,7 +74,7 @@ class RustLibWire implements BaseWire {
   late final _dart_fn_deliver_outputPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Int32, ffi.Pointer<ffi.Uint8>, ffi.Int32,
-              ffi.Int32)>>('frbgen_app2_dart_fn_deliver_output');
+              ffi.Int32)>>('frbgen_app_dart_fn_deliver_output');
   late final _dart_fn_deliver_output = _dart_fn_deliver_outputPtr
       .asFunction<void Function(int, ffi.Pointer<ffi.Uint8>, int, int)>();
 
