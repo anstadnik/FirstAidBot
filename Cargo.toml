@@ -5,7 +5,7 @@ members = [
     "core",
     "bot",
     # "app/native"
-    "app2/rust"
+    # "app/rust"
 ]
 
 [workspace.dependencies]
