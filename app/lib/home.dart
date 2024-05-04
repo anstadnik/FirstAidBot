@@ -5,15 +5,15 @@ import 'state.dart';
 import 'state_widget.dart';
 
 class FARHomePage extends StatelessWidget {
-  const FARHomePage({Key? key}) : super(key: key);
+  const FARHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return PlatformScaffold(
       iosContentPadding: true,
       appBar: PlatformAppBar(title: const Text('First Aid Robot')),
-      body: const FABFutureBuilder(),
-      bottomNavBar: _buildNavBar(context),
+      body: const FARFutureBuilder(),
+      // bottomNavBar: _buildNavBar(context),
     );
   }
 
@@ -29,8 +29,8 @@ class FARHomePage extends StatelessWidget {
   }
 }
 
-class FABFutureBuilder extends StatelessWidget {
-  const FABFutureBuilder({Key? key}) : super(key: key);
+class FARFutureBuilder extends StatelessWidget {
+  const FARFutureBuilder({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +38,11 @@ class FABFutureBuilder extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Expanded(child: StateConsumer()),
+        const SingleChildScrollView(child: StateConsumer()),
         Padding(
           padding: const EdgeInsets.all(16.0),
           child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
             _buildButtonCallback("Back", () => farState.back()),
             _buildButtonCallback("Home", () => farState.home()),
             _buildButtonCallback("Refresh", () => farState.refresh())
@@ -54,6 +54,7 @@ class FABFutureBuilder extends StatelessWidget {
 
   Widget _buildButtonCallback(String text, VoidCallback cbk) =>
       PlatformElevatedButton(
+        padding: const EdgeInsets.all(16.0),
         color: Colors.orange,
         onPressed: cbk,
         child: Text(text),
@@ -70,7 +71,7 @@ class StateConsumer extends StatelessWidget {
     return Consumer<FARState>(builder: (context, state, child) {
       if (state.updating) {
         return const Center(child: CircularProgressIndicator());
-      } else if (state.faMLFS == null) {
+      } else if (state.data == null) {
         showPlatformDialog(
             context: context,
             builder: (context) => PlatformAlertDialog(
@@ -90,7 +91,7 @@ class StateConsumer extends StatelessWidget {
           ],
         );
       } else {
-        return StateWidget(faState: state.faState!);
+        return StateWidget(fs: state.fs!);
       }
     });
   }

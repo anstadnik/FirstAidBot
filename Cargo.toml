@@ -4,8 +4,7 @@ resolver = "2"
 members = [
     "core",
     "bot",
-    "app/native"
-    # "app/rust"
+    "app/rust"
 ]
 
 [workspace.dependencies]

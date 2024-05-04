@@ -1,42 +1,33 @@
 use super::commands::easter_egg;
-use super::logic::{is_admin, move_to_state, process_broadcast, state_transition};
-use crate::bot::{FABot, FADialogue, State};
+use super::logic::{is_admin, move_to_state, process_broadcast, transition_logic};
+use crate::bot::{FABot, FADialogue};
+use crate::{DataGetState, DATA};
 use anyhow::{bail, Result};
 use first_aid_bot_core::prelude::*;
 use rand::random;
-use redis::aio::MultiplexedConnection;
 use teloxide::{requests::Requester, types::Message};
 
-pub async fn start_endpoint(
-    bot: FABot,
-    msg: Message,
-    data: &'static Data,
-    dialogue: FADialogue,
-    mut conn: MultiplexedConnection,
-) -> Result<()> {
+pub async fn start_endpoint(bot: FABot, msg: Message, dialogue: FADialogue) -> Result<()> {
     if is_admin(&msg) && random::<u8>() % 50 == 0 {
         easter_egg(&bot, &msg).await?;
     }
-    let fs = data.get().await?.get_state(&FAContext::default())?;
-    move_to_state(&bot, &msg, &dialogue, &fs, FAContext::default(), &mut conn).await
+    let ctx = FAContext::default();
+    move_to_state(&bot, &msg, &dialogue, &*DATA.get_state(&ctx).await?, ctx).await
 }
 
-pub async fn handle_endpoint(
+pub async fn transition_endpoint(
     bot: FABot,
     msg: Message,
     dialogue: FADialogue,
-    data: &'static Data,
-    mut conn: MultiplexedConnection,
     (lang, context): (String, Vec<String>),
 ) -> Result<()> {
     let f = || async {
         let lang = lang.as_str().try_into()?;
-        let ctx = FAContext { lang, context };
-        state_transition(&bot, &msg, &dialogue, ctx, data, &mut conn).await
+        transition_logic(&bot, &msg, &dialogue, FAContext { lang, context }).await
     };
 
     if let Err(e) = f().await {
-        start_endpoint(bot, msg, data, dialogue, conn).await?;
+        start_endpoint(bot, msg, dialogue).await?;
         bail!(e);
     }
     Ok(())
@@ -46,16 +37,14 @@ pub async fn broadcast_endpoint(
     bot: FABot,
     msg: Message,
     dialogue: FADialogue,
-    mut conn: MultiplexedConnection,
     message: Option<String>,
 ) -> Result<()> {
     if !is_admin(&msg) {
         let _ = bot
             .send_message(msg.chat.id, "WTF you are not an admin bye")
             .await;
-        dialogue.update(State::Start).await?;
-        return Ok(());
+        return start_endpoint(bot, msg, dialogue).await;
     }
-    process_broadcast(&bot, &msg, &dialogue, message, &mut conn).await?;
+    process_broadcast(&bot, &msg, &dialogue, message).await?;
     Ok(())
 }

@@ -1,57 +1,55 @@
-import 'ffi.dart' if (dart.library.html) 'ffi_web.dart';
+// import 'ffi.dart' if (dart.library.html) 'ffi_web.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:app/src/rust/api/fa_api.dart';
 // import 'package:provider/provider.dart';
 
 class FARState extends ChangeNotifier {
-  MultilangFs? faMLFS;
+  Data? data;
   bool updating = true;
-  final RwLockFaContext faCTX = api.getContext();
-  FAState? faState;
+  FaContext ctx = getContext();
+  Fs_? fs;
 
   FARState() {
     refresh();
   }
 
   void home() {
-    api.home(ctx: faCTX);
-    getState();
+    ctx.home();
+    updateState();
   }
 
   void back() {
-    api.back(ctx: faCTX);
-    getState();
+    ctx.back();
+    updateState();
   }
 
   void transition(String text) {
-    api.transition(ctx: faCTX, text: text);
-    getState();
+    ctx.transition(text: text);
+    updateState();
   }
 
   void refresh() {
-    faMLFS = null;
+    data = null;
     updating = true;
-    api.home(ctx: faCTX);
-    faState = null;
+    ctx.home();
+    fs = null;
     notifyListeners();
 
-    api.getData().then((mlfs) {
+    getData().then((mlfs) {
       updating = false;
-      faMLFS = mlfs;
-      getState();
+      data = mlfs;
+      updateState();
     });
   }
 
-  void getState() {
-    if (faMLFS != null) {
-      api.getFs(mlfs: faMLFS!, ctx: faCTX).then((state) {
-        if (state == null) {
-          refresh();
-        } else {
-          faState = state;
-          notifyListeners();
-        }
-      });
+  void updateState() {
+    if (data == null) {
+      return;
     }
+    getState(data: data!, ctx: ctx).then((state) {
+      fs = state;
+      notifyListeners();
+    });
   }
 }

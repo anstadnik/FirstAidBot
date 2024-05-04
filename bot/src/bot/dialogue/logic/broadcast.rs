@@ -3,10 +3,11 @@ use crate::bot::FABot;
 use crate::bot::FADialogue;
 use crate::bot::State;
 use crate::BROADCAST_ENABLED;
+use crate::REDIS_CONN;
 use anyhow::{anyhow, Result};
 use first_aid_bot_core::prelude::Lang;
 use futures::{stream, StreamExt};
-use redis::{aio::MultiplexedConnection, AsyncCommands};
+use redis::AsyncCommands;
 use teloxide::prelude::*;
 
 const MSG_DISABLED: &str = "Аля, ні";
@@ -28,7 +29,6 @@ pub async fn process_broadcast(
     msg: &Message,
     dialogue: &FADialogue,
     message: Option<String>,
-    conn: &mut MultiplexedConnection,
 ) -> Result<()> {
     let text = msg.text().ok_or_else(|| anyhow!("No text unfortunately"))?;
     let id = msg.chat.id;
@@ -42,7 +42,7 @@ pub async fn process_broadcast(
     match message {
         None if text == MSG_BROADCASTING => wait_for_message(bot, id).await,
         None => ask_to_confirm(bot, id, text, dialogue).await,
-        Some(msg) => broadcast_if_confirmed(text, bot, id, &msg, conn, dialogue).await,
+        Some(msg) => broadcast_if_confirmed(text, bot, id, &msg, dialogue).await,
     }
 }
 
@@ -51,12 +51,15 @@ async fn broadcast_if_confirmed(
     bot: &FABot,
     id: ChatId,
     message: &str,
-    conn: &mut MultiplexedConnection,
     dialogue: &FADialogue,
 ) -> Result<()> {
     if text == MSG_CONFIRM {
         bot.send_message(id, MSG_BROADCASTING).await?;
 
+        let mut conn = REDIS_CONN
+            .get()
+            .ok_or_else(|| anyhow!("No connection"))?
+            .clone();
         stream::iter(conn.keys::<_, Vec<String>>("user_*").await?)
             .for_each(|user_id| async move {
                 if let Err(err) = send_to_user(bot, &user_id, message).await {
