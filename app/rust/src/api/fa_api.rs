@@ -1,5 +1,5 @@
 use flutter_rust_bridge::frb;
-use std::{borrow::Cow, env::set_var};
+use std::borrow::Cow;
 
 use anyhow::{bail, Result};
 pub use first_aid_bot_core::prelude::*;
