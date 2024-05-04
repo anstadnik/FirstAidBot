@@ -6,7 +6,7 @@ use crate::bot::{FABot, FADialogue};
 use crate::{DataGetState, DATA, REDIS_CONN, REDIS_USERS_SET_KEY};
 use anyhow::{anyhow, Context, Error};
 use first_aid_bot_core::prelude::*;
-use redis::{aio::MultiplexedConnection, AsyncCommands};
+use redis::AsyncCommands;
 use teloxide::dispatching::DpHandlerDescription;
 use teloxide::prelude::*;
 use teloxide::types::ParseMode::Html;
@@ -109,11 +109,7 @@ pub fn get_commands_branch() -> FAHandler {
 }
 
 pub fn get_maintainer_commands_branch() -> FAHandler {
-    dptree::filter(
-        |msg: Message, _bot: FABot, _data: &'static Data, _conn: MultiplexedConnection| {
-            cfg!(debug_assertions) || is_admin(&msg)
-        },
-    )
-    .filter_command::<MaintainerCommands>()
-    .endpoint(maintainer_commands_handler)
+    dptree::filter(|msg: Message, _bot: FABot| cfg!(debug_assertions) || is_admin(&msg))
+        .filter_command::<MaintainerCommands>()
+        .endpoint(maintainer_commands_handler)
 }
