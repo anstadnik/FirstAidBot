@@ -3,7 +3,7 @@ mod finite_state;
 mod lang;
 
 pub mod prelude {
-    pub use super::data::{Cfs, CowMultLangFsExt, Data};
+    pub use super::data::{CowMultLangFsExt, Data};
     pub use super::finite_state::{Fs, MultilangFs};
     pub use super::lang::Lang;
     pub use super::{get_data_from_file, get_data_from_web};
@@ -62,7 +62,7 @@ pub fn get_data_from_file(filename: &str) -> anyhow::Result<MultilangFs> {
 }
 
 pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
-    let sheet_id = option_env!("SHEET_ID").ok_or_else(|| anyhow!("SHEET_ID is not set"))?;
+    let sheet_id = env!("SHEET_ID");
     assert!(Lang::iter().count() == 1, "Only one language is supported");
     let lang = Lang::iter().next().unwrap();
     let sheet_name = lang.name();

@@ -1,4 +1,5 @@
 mod dialogue;
+mod init_connections;
 mod report_error;
 mod run;
 
@@ -11,6 +12,7 @@ pub type FABot = DefaultParseMode<Throttle<Bot>>;
 pub type FirstAidStorage = RedisStorage<Bincode>;
 pub mod prelude {
     pub use super::run::run_bot;
+    pub use super::init_connections::init_connections;
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize, Default)]

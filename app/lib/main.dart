@@ -3,10 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:app/src/rust/frb_generated.dart';
 import 'home.dart';
 import 'state.dart';
 
-void main() {
+Future<void> main() async {
+  await RustLib.init();
   runApp(ChangeNotifierProvider(
     create: (context) => FARState(),
     child: const FARApp(),

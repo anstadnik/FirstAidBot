@@ -20,7 +20,7 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v3
-      - uses: extractions/setup-just@v1
+      # - uses: extractions/setup-just@v1
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
@@ -37,13 +37,15 @@ jobs:
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: flutter_rust_bridge_codegen
-      - uses: baptiste0928/cargo-install@v2
-        with:
-          crate: cargo-ndk
+          version: 2.0.0-dev.32
+      # - uses: baptiste0928/cargo-install@v2
+      #   with:
+      #     crate: cargo-ndk
       - uses: baptiste0928/cargo-install@v2
         with:
           crate: cargo-expand
-      - run: just && flutter build apk --release
+      # - run: flutter_rust_bridge_codegen build && flutter build apk --release
+      - run: flutter build apk --release
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
       - uses: actions/upload-artifact@v3
