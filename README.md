@@ -11,3 +11,14 @@
 👉Бот буде доповнюватись за появи нових запитів.
 
 🙏Допоможіть поширити бота - це може врятувати життя🙏
+
+# Architecture
+- `core` (Rust) - data loading, state management
+- `bot` (Rust) - telegram bot. Messaging, commands, broadcasting
+- `app` (Flutter) - flutter app. Uses `core` for content management
+
+# Git workflow
+- `main` - production-ready code, only pull requests. After CI passes, merged
+commits are deployed to production
+- `dev` - development branch. All feature branches are merged here. After CI passes,
+merged commits are deployed to staging
