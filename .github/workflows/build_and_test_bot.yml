@@ -24,6 +24,9 @@ jobs:
         if: inputs.release
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
+      - name: Update bindings
+        run: flutter_rust_bridge_codegen generate
+        working-directory: app
       - name: Test and build release
         if: inputs.release
         env:
