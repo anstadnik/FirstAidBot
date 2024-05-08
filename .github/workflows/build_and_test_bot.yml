@@ -24,6 +24,10 @@ jobs:
         if: inputs.release
         run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
+      - uses: baptiste0928/cargo-install@v2
+        with:
+          crate: flutter_rust_bridge_codegen
+          version: 2.0.0-dev.32
       - name: Update bindings
         run: flutter_rust_bridge_codegen generate
         working-directory: app
