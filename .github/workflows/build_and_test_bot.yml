@@ -28,6 +28,10 @@ jobs:
         with:
           crate: flutter_rust_bridge_codegen
           version: 2.0.0-dev.32
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
       - name: Update bindings
         run: flutter_rust_bridge_codegen generate
         working-directory: app
