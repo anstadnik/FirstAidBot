@@ -35,6 +35,9 @@ jobs:
       - name: Update bindings
         run: flutter_rust_bridge_codegen generate
         working-directory: app
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          RUST_LOG: info 
       - name: Test and build release
         if: inputs.release
         env:
