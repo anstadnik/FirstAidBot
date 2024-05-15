@@ -40,5 +40,5 @@ jobs:
       - uses: fastify/github-action-merge-dependabot@v3
         with:
           # target: minor
-          use-github-auto-merge: true
+          use-github-auto-merge: ${{ github.base_ref == 'main' }}
           github-token: "${{ secrets.GITHUB_TOKEN }}"
