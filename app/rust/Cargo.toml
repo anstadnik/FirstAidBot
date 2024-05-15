@@ -9,5 +9,5 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 openssl = { version = "0.10", features = ["vendored"] }
 first_aid_bot_core = { path = "../../core" }
-flutter_rust_bridge = "=2.0.0-dev.32"
+flutter_rust_bridge = "=2.0.0-dev.33"
 anyhow = { workspace = true }
