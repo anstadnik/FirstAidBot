@@ -39,6 +39,7 @@ impl<'a> CowMultLangFsExt<'a> for Cow<'a, MultilangFs> {
     fn get_state(self, ctx: &FAContext) -> Result<Cow<'a, Fs>> {
         let err_lang = anyhow!("No such lang: {}", ctx.lang);
         let err_ctx = |key| move || anyhow!("Cannot find {key} for context {:?}", ctx.context);
+
         match self {
             Cow::Borrowed(v) => {
                 Ok(Cow::Borrowed(ctx.context.iter().try_fold(
