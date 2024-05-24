@@ -9,8 +9,8 @@ use std::fmt::Display;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
 pub enum Lang {
-    #[default]
     // Ua,
+    #[default]
     En,
     // Ru
 }
