@@ -10,21 +10,22 @@ use std::fmt::Display;
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
 pub enum Lang {
     #[default]
-    Ua,
-    /* En,
-    Ru, */
+    // Ua,
+    En,
+    // Ru
 }
 
 impl Lang {
     // https://github.com/rust-lang/rfcs/issues/284
     pub fn iter() -> impl Iterator<Item = Self> {
-        [Lang::Ua /* En, Ru */].into_iter()
+        // [Lang::Ua].into_iter()
+        [Lang::En].into_iter()
     }
     pub const fn details(self) -> LangDetails {
         match self {
-            Lang::Ua => UA_LD,
-            /* En => EN_LD,
-            Ru => RU_LD, */
+            // Lang::Ua => UA_LD,
+            Lang::En => EN_LD,
+            // Lang::Ru => RU_LD,
         }
     }
     pub fn name(self) -> String {
@@ -69,32 +70,42 @@ pub struct LangDetails {
     pub broadcast: &'static str,
 }
 
-const UA_LD: LangDetails = LangDetails {
-    name:  "Ukrainian",
-    button_lang: "Українська",
-    button_back: "◀️ Повернутись",
-    button_home: "◀️ На початок",
+// const UA_LD: LangDetails = LangDetails {
+//     name:  "Ukrainian",
+//     button_lang: "Українська",
+//     button_back: "◀️ Повернутись",
+//     button_home: "◀️ На початок",
+//     error: concatcp!(
+//         "Сталась помилка :( Перезапустіть бота (/start), і якщо це не допоможе, будь ласка, повідомте про це у ",
+//         HELP_CHAT_URL
+//     ),
+//     error_due_to_update: concatcp!(
+//         "Схоже, що бота було оновлено. Повертаюсь на початок. Якщо бот далі не працює, будь ласка, повідомте про це у ",
+//         HELP_CHAT_URL
+//     ),
+//     use_buttons_text: "Використайте кнопки, або перезавантажте бота \\(/start\\)",
+//     // TODO: Change it <26-06-22, astadnik> //
+//     greeting: "Що трапилось?",
+//     broadcast: "Транслювати",
+// };
+
+const EN_LD: LangDetails = LangDetails {
+    name: "English",
+    button_lang: "English",
+    button_back: "◀️ Back",
+    button_home: "◀️ Home",
     error: concatcp!(
-        "Сталась помилка :( Перезапустіть бота (/start), і якщо це не допоможе, будь ласка, повідомте про це у ",
+        "An error occurred :( Restart the bot (/start), and if that doesn't help, please report it in ",
         HELP_CHAT_URL
     ),
     error_due_to_update: concatcp!(
-        "Схоже, що бота було оновлено. Повертаюсь на початок. Якщо бот далі не працює, будь ласка, повідомте про це у ",
+        "It seems that the bot has been updated. Returning to the beginning. If the bot still doesn't work, please report it in ",
         HELP_CHAT_URL
     ),
-    use_buttons_text: "Використайте кнопки, або перезавантажте бота \\(/start\\)",
-    // TODO: Change it <26-06-22, astadnik> //
-    greeting: "Що трапилось?",
-    broadcast: "Транслювати",
+    use_buttons_text: "Use buttons, or restart bot if something is wrong (/start)",
+    greeting: "What happened?",
+    broadcast: "Broadcast",
 };
-
-// const EN_LD: LangDetails = LangDetails {
-//     name: "English",
-//     button_lang_name: "English",
-//     error: "An error occured, please tell us about it at " + HELP_CHAT_URL,
-//     use_buttons_text: "Use buttons, or restart bot i\f something is wrong (/start)",
-//     greeting: "What happened?",
-// };
 
 // const RU_LD: LangDetails = LangDetails {
 //     name: "Russian",
