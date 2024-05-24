@@ -9,8 +9,8 @@ use std::fmt::Display;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default)]
 pub enum Lang {
-    // Ua,
     #[default]
+    Ua,
     En,
     // Ru
 }
@@ -19,11 +19,11 @@ impl Lang {
     // https://github.com/rust-lang/rfcs/issues/284
     pub fn iter() -> impl Iterator<Item = Self> {
         // [Lang::Ua].into_iter()
-        [Lang::En].into_iter()
+        [Lang::Ua, Lang::En].into_iter()
     }
     pub const fn details(self) -> LangDetails {
         match self {
-            // Lang::Ua => UA_LD,
+            Lang::Ua => UA_LD,
             Lang::En => EN_LD,
             // Lang::Ru => RU_LD,
         }
@@ -70,24 +70,24 @@ pub struct LangDetails {
     pub broadcast: &'static str,
 }
 
-// const UA_LD: LangDetails = LangDetails {
-//     name:  "Ukrainian",
-//     button_lang: "Українська",
-//     button_back: "◀️ Повернутись",
-//     button_home: "◀️ На початок",
-//     error: concatcp!(
-//         "Сталась помилка :( Перезапустіть бота (/start), і якщо це не допоможе, будь ласка, повідомте про це у ",
-//         HELP_CHAT_URL
-//     ),
-//     error_due_to_update: concatcp!(
-//         "Схоже, що бота було оновлено. Повертаюсь на початок. Якщо бот далі не працює, будь ласка, повідомте про це у ",
-//         HELP_CHAT_URL
-//     ),
-//     use_buttons_text: "Використайте кнопки, або перезавантажте бота \\(/start\\)",
-//     // TODO: Change it <26-06-22, astadnik> //
-//     greeting: "Що трапилось?",
-//     broadcast: "Транслювати",
-// };
+const UA_LD: LangDetails = LangDetails {
+    name:  "Ukrainian",
+    button_lang: "Українська",
+    button_back: "◀️ Повернутись",
+    button_home: "◀️ На початок",
+    error: concatcp!(
+        "Сталась помилка :( Перезапустіть бота (/start), і якщо це не допоможе, будь ласка, повідомте про це у ",
+        HELP_CHAT_URL
+    ),
+    error_due_to_update: concatcp!(
+        "Схоже, що бота було оновлено. Повертаюсь на початок. Якщо бот далі не працює, будь ласка, повідомте про це у ",
+        HELP_CHAT_URL
+    ),
+    use_buttons_text: "Використайте кнопки, або перезавантажте бота \\(/start\\)",
+    // TODO: Change it <26-06-22, astadnik> //
+    greeting: "Що трапилось?",
+    broadcast: "Транслювати",
+};
 
 const EN_LD: LangDetails = LangDetails {
     name: "English",
