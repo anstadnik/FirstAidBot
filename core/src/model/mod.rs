@@ -63,13 +63,16 @@ pub fn get_data_from_file(filename: &str) -> anyhow::Result<MultilangFs> {
 
 pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
     let sheet_id = env!("SHEET_ID");
-    assert!(Lang::iter().count() == 1, "Only one language is supported");
-    let lang = Lang::iter().next().unwrap();
-    let sheet_name = lang.name();
-    let url = format!(
-        "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
-        sheet_id, sheet_name
-    );
-    let rdr = Reader::from_reader(reqwest::get(url).await?.bytes().await?.reader());
-    Ok([(lang, get_finite_state(rdr, lang)?)].into())
+    // assert!(Lang::iter().count() == 1, "Only one language is supported");
+    let mut ret = MultilangFs::default();
+    for lang in Lang::iter() {
+        let url = format!(
+            "https://docs.google.com/spreadsheets/d/{}/gviz/tq?tqx=out:csv&sheet={}",
+            sheet_id,
+            lang.name()
+        );
+        let rdr = Reader::from_reader(reqwest::get(url).await?.bytes().await?.reader());
+        ret.insert(lang, get_finite_state(rdr, lang)?);
+    }
+    Ok(ret)
 }
