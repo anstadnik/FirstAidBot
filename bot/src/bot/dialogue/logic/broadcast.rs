@@ -78,7 +78,7 @@ async fn broadcast_if_confirmed(
 async fn ask_to_confirm(bot: &FABot, id: ChatId, text: &str, dialogue: &FADialogue) -> Result<()> {
     bot.send_message(id, "Your message is:").await?;
     let vec = vec![MSG_CONFIRM];
-    let keyboard = make_keyboard(&vec, Lang::Ua, 42, true);
+    let keyboard = make_keyboard(&vec, Lang::En, 42, true);
     bot.send_message(id, text).reply_markup(keyboard).await?;
     let message = Some(text.to_string());
     dialogue.update(State::Broadcast { message }).await?;
@@ -86,7 +86,7 @@ async fn ask_to_confirm(bot: &FABot, id: ChatId, text: &str, dialogue: &FADialog
 }
 
 async fn wait_for_message(bot: &FABot, id: ChatId) -> Result<()> {
-    let kbd = make_keyboard(&Vec::new(), Lang::Ua, 42, true);
+    let kbd = make_keyboard(&Vec::new(), Lang::En, 42, true);
     bot.send_message(id, MSG_REQUEST).reply_markup(kbd).await?;
     Ok(())
 }
