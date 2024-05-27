@@ -37,7 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   rust_lib_app:
     path: rust_builder
-  flutter_rust_bridge: 2.0.0-dev.35
+  flutter_rust_bridge: 2.0.0-dev.36
   provider: ^6.1.2
   flutter_platform_widgets: ^7.0.0
 
