@@ -37,7 +37,7 @@ pub async fn commands_handler(
     dialogue: FADialogue,
 ) -> anyhow::Result<()> {
     match cmd {
-        FACommands::Start => start_endpoint(bot, msg, dialogue).await,
+        FACommands::Start => start_endpoint(bot, msg, dialogue, Lang::default()).await,
     }
 }
 

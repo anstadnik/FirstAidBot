@@ -52,18 +52,19 @@ fn get_finite_state(rdr: Reader<impl Read>, lang: Lang) -> anyhow::Result<Fs> {
     Ok(Fs::entry(lang, get_next_states_for_key(&rows, "")?))
 }
 
-// This file is only for Ukrainian. If we will want to add more languages, it should be changed
-pub fn get_data_from_file(filename: &str) -> anyhow::Result<MultilangFs> {
+pub fn get_data_from_file(_filename: &str) -> anyhow::Result<MultilangFs> {
+    unimplemented!("There is no multiple language support yet! There has to be multiple filenames");
     // let rdr = Reader::from_reader(BufReader::new(File::open(filename)?));
-    let rdr = Reader::from_path(filename)?;
-    assert!(Lang::iter().count() == 1, "Only one language is supported");
-    let lang = Lang::iter().next().unwrap();
-    Ok([(lang, get_finite_state(rdr, lang)?)].into())
+    // assert!(Lang::iter().count() == 1, "Only one language is supported");
+    // let lang = Lang::iter().next().unwrap();
+    // Ok([(lang, get_finite_state(rdr, lang)?)].into())
+    // Lang::iter()
+    //     .map(|lang| Ok((lang, get_finite_state(Reader::from_path(filename)?, lang)?)))
+    //     .collect()
 }
 
 pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
     let sheet_id = env!("SHEET_ID");
-    // assert!(Lang::iter().count() == 1, "Only one language is supported");
     let mut ret = MultilangFs::default();
     for lang in Lang::iter() {
         let url = format!(
