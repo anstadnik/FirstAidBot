@@ -77,6 +77,12 @@ pre-formatted fixed-width code block written in the Python programming language
         assert!(!data.is_empty());
         assert!(data.iter().all(|(_, fs)| fs.num_nodes() > 1));
         assert!(Lang::iter().all(|lang| data.contains_key(&lang)));
+        for (lang, fs) in &data {
+            log::info!("First keys for lang {lang} are: ");
+            for key in fs.next_states.keys() {
+                log::info!("{}", key);
+            }
+        }
         data.into_iter()
             .inspect(|(lang, fs)| log::info!("Testing {lang} with {} nodes", fs.num_nodes()))
             .try_for_each(|(_, fs)| test_fs(fs))?;

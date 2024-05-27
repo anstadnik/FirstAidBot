@@ -19,14 +19,14 @@ jobs:
       release: ${{ github.base_ref == 'main' }}
       upload-artifact: true
     secrets:
-      SHEET_ID: ${{ vars.SHEET_ID }}
+      SHEET_ID: ${{ github.base_ref == 'main' && secrets.SHEET_ID_main || secrets.SHEET_ID_dev }}
 
   build_flutter_apk:
     uses: ./.github/workflows/build_flutter_apk.yml
     with:
       upload-artifact: true
     secrets:
-      SHEET_ID: ${{ vars.SHEET_ID }}
+      SHEET_ID: ${{ github.base_ref == 'main' && secrets.SHEET_ID_main || secrets.SHEET_ID_dev }}
 
   # It should wait untill all checks will pass
   auto-merge:

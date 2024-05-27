@@ -16,16 +16,18 @@ pub fn make_keyboard(keys: &[&str], lang: Lang, depth: usize, is_admin: bool) ->
         keyboard.push(vec![KeyboardButton::new(lang.details().broadcast)]);
     }
 
-    let special_keys = if depth == 0 {
-        let f = |lang: Lang| KeyboardButton::new(lang.details().button_lang);
-        Lang::iter().filter(|&l| l != lang).map(f).collect()
-    } else {
-        let mut special_keys = vec![KeyboardButton::new(lang.details().button_back)];
-        if depth > 1 {
-            special_keys.push(KeyboardButton::new(lang.details().button_home));
-        };
-        special_keys
-    };
+    let ld = lang.details();
+    let special_keys = match depth {
+        0 => Lang::iter()
+            .filter(|&l| l != lang)
+            .map(|l| l.details().button_lang)
+            .collect(),
+        1 => vec![ld.button_back],
+        2.. => vec![ld.button_back, ld.button_home],
+    }
+    .into_iter()
+    .map(KeyboardButton::new)
+    .collect();
     keyboard.push(special_keys);
 
     ReplyMarkup::Keyboard(KeyboardMarkup::new(keyboard).resize_keyboard(true))

@@ -14,9 +14,10 @@ impl Data {
         Self { data: None }
     }
     pub fn cached() -> Result<Self> {
-        log::info!("Cached data!");
-        let data = Some(get_data_from_file("table.csv")?);
-        Ok(Self { data })
+        unimplemented!("There is no multiple language support yet!");
+        // log::info!("Cached data!");
+        // let data = Some(get_data_from_file("table.csv")?);
+        // Ok(Self { data })
     }
     pub async fn download() -> Result<Self> {
         log::info!("Downloading data!");
@@ -42,16 +43,20 @@ impl<'a> CowMultLangFsExt<'a> for Cow<'a, MultilangFs> {
 
         match self {
             Cow::Borrowed(v) => {
-                Ok(Cow::Borrowed(ctx.context.iter().try_fold(
-                    v.get(&ctx.lang).ok_or(err_lang)?,
-                    |fs, key| fs.next_states.get(key).ok_or_else(err_ctx(key)),
-                )?))
+                let init = v.get(&ctx.lang).ok_or(err_lang)?;
+                Ok(Cow::Borrowed(
+                    ctx.context.iter().try_fold(init, |fs, key| {
+                        fs.next_states.get(key).ok_or_else(err_ctx(key))
+                    })?,
+                ))
             }
             Cow::Owned(mut v) => {
-                Ok(Cow::Owned(ctx.context.iter().try_fold(
-                    v.remove(&ctx.lang).ok_or(err_lang)?,
-                    |mut fs, key| fs.next_states.swap_remove(key).ok_or_else(err_ctx(key)),
-                )?))
+                let init = v.remove(&ctx.lang).ok_or(err_lang)?;
+                Ok(Cow::Owned(
+                    ctx.context.iter().try_fold(init, |mut fs, key| {
+                        fs.next_states.swap_remove(key).ok_or_else(err_ctx(key))
+                    })?,
+                ))
             }
         }
     }
