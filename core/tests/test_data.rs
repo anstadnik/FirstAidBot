@@ -74,9 +74,10 @@ pre-formatted fixed-width code block written in the Python programming language
         } else {
             get_data_from_file("../table.csv")?
         };
-        assert!(!data.is_empty());
-        assert!(data.iter().all(|(_, fs)| fs.num_nodes() > 1));
-        assert!(Lang::iter().all(|lang| data.contains_key(&lang)));
+        assert!(!data.is_empty(), "Data is empty");
+        assert!(data.iter().all(|(_, fs)| fs.num_nodes() > 1), "There is a language with only one node");
+        let lang = Lang::iter().find(|lang| data.contains_key(lang));
+        assert!(lang.is_none(), "There is a language missing: {:?}", lang);
         for (lang, fs) in &data {
             log::info!("First keys for lang {lang} are: ");
             for key in fs.next_states.keys() {
