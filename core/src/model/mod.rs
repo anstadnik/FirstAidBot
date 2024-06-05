@@ -73,7 +73,15 @@ pub async fn get_data_from_web() -> anyhow::Result<MultilangFs> {
             lang.name()
         );
         let rdr = Reader::from_reader(reqwest::get(url).await?.bytes().await?.reader());
-        ret.insert(lang, get_finite_state(rdr, lang)?);
+        ret.insert(
+            lang,
+            get_finite_state(rdr, lang).with_context(|| {
+                format!(
+                    "Error in parsing data for language {lang}, SHEET_ID: {}",
+                    env!("SHEET_ID").chars().take(5).collect::<String>() + "..."
+                )
+            })?,
+        );
     }
     Ok(ret)
 }
