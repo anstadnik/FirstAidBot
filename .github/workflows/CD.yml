@@ -27,7 +27,7 @@ jobs:
           name: table
           path: table.csv
 
-      - uses: dawidd6/action-download-artifact@v2
+      - uses: dawidd6/action-download-artifact@v5
         with:
           pr: ${{github.event.pull_request.number}}
           workflow: CI.yml
@@ -51,12 +51,12 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: table
-      - uses: dawidd6/action-download-artifact@v2
+      - uses: dawidd6/action-download-artifact@v5
         with:
           pr: ${{github.event.pull_request.number}}
           workflow: CI.yml
           name: executable
-      - uses: dawidd6/action-download-artifact@v2
+      - uses: dawidd6/action-download-artifact@v5
         with:
           pr: ${{github.event.pull_request.number}}
           workflow: CI.yml
@@ -77,7 +77,7 @@ jobs:
   #   if: github.base_ref == 'main'
   #
   #   steps:
-  #     - uses: dawidd6/action-download-artifact@v2
+  #     - uses: dawidd6/action-download-artifact@v5
   #       with:
   #         pr: ${{github.event.pull_request.number}}
   #         workflow: CI.yml
