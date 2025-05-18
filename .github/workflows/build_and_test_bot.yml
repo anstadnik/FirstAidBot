@@ -14,7 +14,7 @@ on:
 
 jobs:
   build_and_test_bot:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -22,27 +22,27 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Download the table
         if: inputs.release
-        run: curl -L "docs.google.com/spreadsheets/d/${{ secrets.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
+        run: curl -L "docs.google.com/spreadsheets/d/${{ vars.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
       - name: Test and build release
         if: inputs.release
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-          RUST_LOG: info 
+          RUST_LOG: info
         run: cargo test --release -- --nocapture && cargo build --release
 
       - name: Test and build debug
         if: ${{ !inputs.release }}
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
-          RUST_LOG: info 
+          RUST_LOG: info
         run: cargo test -- --nocapture && cargo build
 
       - name: Move binary
         if: inputs.upload-artifact
         run: mv target/*/bot target
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: inputs.upload-artifact
         with:
           name: executable
