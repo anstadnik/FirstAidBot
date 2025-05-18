@@ -22,7 +22,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Download the table
         if: inputs.release
-        run: curl -L "docs.google.com/spreadsheets/d/${{ variables.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
+        run: curl -L "docs.google.com/spreadsheets/d/${{ vars.SHEET_ID }}/gviz/tq?tqx=out:csv&sheet=Ukrainian" -o table.csv
 
       - name: Test and build release
         if: inputs.release
